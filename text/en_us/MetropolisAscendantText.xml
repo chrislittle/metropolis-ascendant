@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Database>
+	<EnglishText>
+		<Row Tag="LOC_MA_TIER1_DESCRIPTION">
+			<Text>Metropolis Ascendant (size 1): +1 Specialist per district, and +[icon:YIELD_HAPPINESS] Happiness to help this dense Settlement hold a higher Happiness stage.</Text>
+		</Row>
+		<Row Tag="LOC_MA_STAGE_DESCRIPTION">
+			<Text>While this Settlement is Joyous or happier: +[icon:YIELD_SCIENCE] Science and +[icon:YIELD_CULTURE] Culture per Urban [icon:YIELD_POPULATION] Population, increasing further while Ecstatic. A perfected metropolis turns its happiness into output. Full only while you stay tall (one city per hemisphere).</Text>
+		</Row>
+		<Row Tag="LOC_MA_TIER2_DESCRIPTION">
+			<Text>Metropolis Ascendant (size 2): +1 Specialist per district; +Wonder production; +Great Work slots in the Palace.</Text>
+		</Row>
+		<Row Tag="LOC_MA_TIER3_DESCRIPTION">
+			<Text>Metropolis Ascendant (size 3): +1 Specialist per district; +[icon:YIELD_SCIENCE] Science and +[icon:YIELD_CULTURE] Culture per Urban [icon:YIELD_POPULATION] Population.</Text>
+		</Row>
+		<Row Tag="LOC_MA_SAFETY_DESCRIPTION">
+			<Text>Specialists cost 50% less [icon:YIELD_FOOD] Food and [icon:YIELD_HAPPINESS] Happiness to maintain, so a city packed with Specialists stays stable. Active while you hold fewer than 5 Cities.</Text>
+		</Row>
+		<Row Tag="LOC_MA_SLOTS_DESCRIPTION">
+			<Text>+1 flexible Great Work slot in every building and Wonder that has one, so a single city can store all the Codices, Relics, Artifacts and Great Works a victory needs. Counts all settlements: requires fewer than 4 total settlements (Towns included).</Text>
+		</Row>
+		<Row Tag="LOC_MA_COMBAT_STRENGTH_PREVIEW">
+			<Text>+{1_Value} Organized Military</Text>
+		</Row>
+		<Row Tag="LOC_MA_RESEED_DESCRIPTION">
+			<Text>New Age head start: +[icon:YIELD_SCIENCE] Science and +[icon:YIELD_CULTURE] Culture per Urban [icon:YIELD_POPULATION] Population while your empire rebuilds. Active from the start of the Age until you research this Age's main bonus node, then your full bonuses take over. Fades as you add settlements; ends at four.</Text>
+		</Row>
+		<!-- Per-age, per-domain unlock notes (LOC_MA_<AQ|EX|MO>_NOTE_*) are GENERATED with live numbers into
+		     MetropolisAscendantNotes.generated.xml by tools/gen-ascendant.ps1 - do not add them here. -->
+		<Row Tag="LOC_MA_UNLOCK_NOTE">
+			<Text>Metropolis Ascendant unlocked. As your Urban [icon:YIELD_POPULATION] Population grows, a single tall city gains escalating bonuses tied to where you research them across the tech and culture trees: more Specialist slots, larger [icon:YIELD_SCIENCE] Science and [icon:YIELD_CULTURE] Culture adjacency, yields per Population, extra Great Work slots, faster Wonder production, and Suzerain bonuses that scale with the city-states you lead. Bonuses fade as you add settlements (Towns included) and end at four.</Text>
+		</Row>
+	</EnglishText>
+</Database>

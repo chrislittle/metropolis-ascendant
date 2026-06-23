@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Mod id="metropolis-ascendant" version="1"
+	xmlns="ModInfo">
+	<Properties>
+		<Name>Metropolis Ascendant</Name>
+		<Description>Metropolis Ascendant — one city per hemisphere. Make it the greatest the world has ever seen.
+[N][N]Most of Civ VII rewards going wide. Metropolis Ascendant flips that: you build one towering city per hemisphere (one Homeland, one Distant Lands) and pour everything into making it extraordinary — a single, ever-denser metropolis that out-thinks, out-builds and out-cultures empires many times its size. A true tall overhaul: bonuses are at full strength only while you stay small, and switch off the moment you sprawl.
+[N][N]KEY MECHANICS
+[N]- Urban Population is power — your city's Urban Population (not rural) drives everything across three tiers (T1 / T2 / T3); specialists pay out full tile adjacency, so a dense city compounds fast.
+[N]- Build through the trees — bonuses fan out across the tech and culture trees by victory domain: Science, Culture, Economy, or a dedicated Military lane.
+[N]- One city, many towns — granary, mining, trade, fortress and resort benefits are all internalized into the single metropolis.
+[N]- Suzerain layer — bonuses scale with how many city-states you lead: reach, resources and influence without founding another city.
+[N]- Happiness pays off — keep the metropolis Joyous and it earns escalating Science and Culture per Urban Population (more while Ecstatic); specialists also cost less to maintain until the city is thriving.
+[N]- A strict tall rule — every scaling bonus is full at exactly one settlement per hemisphere, and off at two or more.
+[N]- Spans all three Ages: Antiquity, Exploration and Modern.
+[N][N]Every bonus is described on the tech or civic node that unlocks it (mastery bonuses appear on the node's Mastery panel), so you always know what you are building toward.
+[N][N]TIERS — Urban Population thresholds: 5 / 9 / 12 in Antiquity, 8 / 14 / 20 in Exploration, 10 / 16 / 24 in Modern. Every scaling bonus is full at exactly one settlement in a hemisphere and off at two or more (Towns count) — no partial taper. The specialist cap and safety nets fade more leniently and never revoke a placed specialist.
+[N][N]Built and tested on Civilization VII 1.4.1. No DLC required. Experimental and actively tuned — feedback welcome.
+[N][N]Built and developed using Claude Code.</Description>
+		<Authors>Chris</Authors>
+		<Package>Mod</Package>
+		<AffectsSavedGames>1</AffectsSavedGames>
+		<Version>1</Version>
+		<LastUpdated>2026-06-22</LastUpdated>
+	</Properties>
+
+	<Dependencies>
+		<Mod id="base-standard" title="LOC_MODULE_BASE_STANDARD_NAME"/>
+	</Dependencies>
+	<References>
+		<Mod id="core" title="LOC_MODULE_CORE_NAME"/>
+	</References>
+
+	<ActionCriteria>
+		<Criteria id="age-antiquity">
+			<AgeInUse>AGE_ANTIQUITY</AgeInUse>
+		</Criteria>
+		<Criteria id="age-exploration">
+			<AgeInUse>AGE_EXPLORATION</AgeInUse>
+		</Criteria>
+		<Criteria id="age-modern">
+			<AgeInUse>AGE_MODERN</AgeInUse>
+		</Criteria>
+		<Criteria id="always">
+			<AlwaysMet/>
+		</Criteria>
+	</ActionCriteria>
+
+	<ActionGroups>
+		<ActionGroup id="text-all" scope="game" criteria="always">
+			<Properties>
+				<LoadOrder>100</LoadOrder>
+			</Properties>
+			<Actions>
+				<UpdateText>
+					<Item>text/en_us/MetropolisAscendantText.xml</Item>
+					<Item>text/en_us/MetropolisAscendantNotes.generated.xml</Item>
+				</UpdateText>
+			</Actions>
+		</ActionGroup>
+
+		<ActionGroup id="antiquity" scope="game" criteria="age-antiquity">
+			<Properties>
+				<LoadOrder>110</LoadOrder>
+			</Properties>
+			<Actions>
+				<UpdateDatabase>
+					<Item>data/antiquity/modifiers.xml</Item>
+					<Item>data/antiquity/traditions.xml</Item>
+				</UpdateDatabase>
+			</Actions>
+		</ActionGroup>
+
+		<ActionGroup id="exploration" scope="game" criteria="age-exploration">
+			<Properties>
+				<LoadOrder>110</LoadOrder>
+			</Properties>
+			<Actions>
+				<UpdateDatabase>
+					<Item>data/exploration/modifiers.xml</Item>
+					<Item>data/exploration/traditions.xml</Item>
+				</UpdateDatabase>
+			</Actions>
+		</ActionGroup>
+
+		<ActionGroup id="modern" scope="game" criteria="age-modern">
+			<Properties>
+				<LoadOrder>110</LoadOrder>
+			</Properties>
+			<Actions>
+				<UpdateDatabase>
+					<Item>data/modern/modifiers.xml</Item>
+					<Item>data/modern/traditions.xml</Item>
+				</UpdateDatabase>
+			</Actions>
+		</ActionGroup>
+	</ActionGroups>
+</Mod>
