@@ -321,6 +321,175 @@
 		</OwnerRequirements>
 		<Argument name="ConstructibleType">IMPROVEMENT_INCA_MOUNTAIN</Argument>
 	</Modifier>
+	<Modifier id="MA_MO_WATER_NAVRIVER_YIELD" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_IS_RIVER"><Argument name="Navigable">true</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_FOOD, YIELD_GOLD</Argument>
+		<Argument name="Amount">4</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_MINRIVER_YIELD" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_IS_RIVER"><Argument name="Minor">true</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_FOOD</Argument>
+		<Argument name="Amount">3</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_LAKE_YIELD" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_IS_LAKE"/>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_FOOD, YIELD_HAPPINESS</Argument>
+		<Argument name="Amount">4</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_MARINE_YIELD" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_BIOME_TYPE_MATCHES"><Argument name="BiomeType">BIOME_MARINE</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_FOOD, YIELD_GOLD, YIELD_SCIENCE</Argument>
+		<Argument name="Amount">3</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_REEF_YIELD" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_FEATURE_TYPE_MATCHES"><Argument name="FeatureClassType">FEATURE_CLASS_AQUATIC</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_SCIENCE, YIELD_CULTURE</Argument>
+		<Argument name="Amount">4</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_WATERNW_YIELD" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_IS_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLOT_BIOME_TYPE_MATCHES"><Argument name="BiomeType">BIOME_MARINE</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS, YIELD_SCIENCE, YIELD_FOOD</Argument>
+		<Argument name="Amount">7</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_ADJ_GOLD" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS" inverse="true"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="ConstructibleAdjacency">MA_CoastGold3</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_ADJ_PROD" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS" inverse="true"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="ConstructibleAdjacency">MA_RiverProd3</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_FLOOR_FOOD" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_YIELD">
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_HAS_TERRAIN"><Argument name="TerrainType">TERRAIN_COAST</Argument><Argument name="Amount">1</Argument></Requirement>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS" inverse="true"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_FOOD</Argument>
+		<Argument name="Amount">4</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_FLOOR_PROD" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_YIELD">
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_HAS_TERRAIN"><Argument name="TerrainType">TERRAIN_COAST</Argument><Argument name="Amount">1</Argument></Requirement>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS" inverse="true"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_PRODUCTION</Argument>
+		<Argument name="Amount">4</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
 	<!-- TIER 2 (Urban pop >= 16) -->
 	<Modifier id="MA_MO_T2_WORKER_CAP" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_WORKER_CAP">
 		<OwnerRequirements>
@@ -788,6 +957,175 @@
 			</Requirement>
 		</SubjectRequirements>
 		<Argument name="ConstructibleAdjacency">MA_MtnGold3</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_NAVRIVER_YIELD_DL" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement inverse="true" type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_IS_RIVER"><Argument name="Navigable">true</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_FOOD, YIELD_GOLD</Argument>
+		<Argument name="Amount">4</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_MINRIVER_YIELD_DL" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement inverse="true" type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_IS_RIVER"><Argument name="Minor">true</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_FOOD</Argument>
+		<Argument name="Amount">3</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_LAKE_YIELD_DL" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement inverse="true" type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_IS_LAKE"/>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_FOOD, YIELD_HAPPINESS</Argument>
+		<Argument name="Amount">4</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_MARINE_YIELD_DL" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement inverse="true" type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_BIOME_TYPE_MATCHES"><Argument name="BiomeType">BIOME_MARINE</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_FOOD, YIELD_GOLD, YIELD_SCIENCE</Argument>
+		<Argument name="Amount">3</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_REEF_YIELD_DL" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement inverse="true" type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_FEATURE_TYPE_MATCHES"><Argument name="FeatureClassType">FEATURE_CLASS_AQUATIC</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_SCIENCE, YIELD_CULTURE</Argument>
+		<Argument name="Amount">4</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_WATERNW_YIELD_DL" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement inverse="true" type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_IS_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLOT_BIOME_TYPE_MATCHES"><Argument name="BiomeType">BIOME_MARINE</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS, YIELD_SCIENCE, YIELD_FOOD</Argument>
+		<Argument name="Amount">7</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_ADJ_GOLD_DL" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="ConstructibleAdjacency">MA_CoastGold3</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_ADJ_PROD_DL" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="ConstructibleAdjacency">MA_RiverProd3</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_FLOOR_FOOD_DL" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_YIELD">
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_HAS_TERRAIN"><Argument name="TerrainType">TERRAIN_COAST</Argument><Argument name="Amount">1</Argument></Requirement>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_FOOD</Argument>
+		<Argument name="Amount">4</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_WATER_FLOOR_PROD_DL" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_YIELD">
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_HAS_TERRAIN"><Argument name="TerrainType">TERRAIN_COAST</Argument><Argument name="Amount">1</Argument></Requirement>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_PRODUCTION</Argument>
+		<Argument name="Amount">4</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>
 	</Modifier>
 	<!-- TIER 2 (Urban pop >= 16) - distant lands -->
 	<Modifier id="MA_MO_T2_WORKER_CAP_DL" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_WORKER_CAP">
@@ -1997,7 +2335,7 @@
 	     wrapper, which attaches every modifier below to each major player so they resolve their own
 	     collection + tech-node + pop + per-hemisphere anti-wide gates. -->
 	<Modifier id="MA_MO_ATTACH_ALL" collection="COLLECTION_MAJOR_PLAYERS" effect="EFFECT_ATTACH_MODIFIERS">
-		<Argument name="ModifierId">MA_MO_T1_WORKER_CAP, MA_MO_T1_SPECIALIST_UPKEEP, MA_MO_T1_HAPPINESS, MA_MO_T1_RESOURCE_CAP, MA_MO_STAGE_JOYOUS_SCIENCE, MA_MO_STAGE_ECSTATIC_SCIENCE, MA_MO_STAGE_JOYOUS_CULTURE, MA_MO_STAGE_ECSTATIC_CULTURE, MA_MO_WONDER_HAPPY_ADJ, MA_MO_APPEAL_YIELD, MA_MO_MOUNTAIN_YIELD, MA_MO_MTN_ADJ_CUL, MA_MO_MTN_ADJ_GOLD, MA_MO_WONDER_APPEAL, MA_MO_MOUNTAIN_UNLOCK, MA_MO_T2_WORKER_CAP, MA_MO_T2_WONDERS_SOLO, MA_MO_T2_GREAT_WORKS, MA_MO_T2_RESOURCE_CAP, MA_MO_T3_WORKER_CAP, MA_MO_T3_RESOURCE_CAP, MA_MO_T3_COLLECTION_SLOTS, MA_MO_TRADE_ROUTES, MA_MO_T3_SCIENCE_SOLO, MA_MO_T3_CULTURE_SOLO, MA_MO_T3_PRODUCTION_SOLO, MA_MO_T3_COMBAT_STRENGTH, MA_MO_UNDER_CAP_FOOD, MA_MO_UNDER_CAP_PRODUCTION, MA_MO_TRADE_RANGE_LAND, MA_MO_TRADE_RANGE_SEA, MA_MO_T1_WORKER_CAP_DL, MA_MO_T1_SPECIALIST_UPKEEP_DL, MA_MO_T1_HAPPINESS_DL, MA_MO_T1_RESOURCE_CAP_DL, MA_MO_STAGE_JOYOUS_SCIENCE_DL, MA_MO_STAGE_ECSTATIC_SCIENCE_DL, MA_MO_STAGE_JOYOUS_CULTURE_DL, MA_MO_STAGE_ECSTATIC_CULTURE_DL, MA_MO_WONDER_HAPPY_ADJ_DL, MA_MO_APPEAL_YIELD_DL, MA_MO_MOUNTAIN_YIELD_DL, MA_MO_MTN_ADJ_CUL_DL, MA_MO_MTN_ADJ_GOLD_DL, MA_MO_T2_WORKER_CAP_DL, MA_MO_T2_WONDERS_SOLO_DL, MA_MO_T2_RESOURCE_CAP_DL, MA_MO_T3_WORKER_CAP_DL, MA_MO_T3_RESOURCE_CAP_DL, MA_MO_T3_SCIENCE_SOLO_DL, MA_MO_T3_CULTURE_SOLO_DL, MA_MO_RESEED_SCIENCE, MA_MO_RESEED_CULTURE, MA_MO_SUZ_SCIENTIFIC, MA_MO_SUZ_CULTURAL, MA_MO_SUZ_MILITARISTIC, MA_MO_SUZ_ECONOMIC, MA_MO_SUZ_EXPANSIONIST, MA_MO_SUZ_DIPLOMATIC, MA_MO_SUZ_PRIMER, MA_MO_SUZ_RANGE_LAND, MA_MO_SUZ_RANGE_SEA, MA_MO_SUZ_RESOURCE_CAP, MA_MO_HUB_INFLUENCE, MA_MO_FORT_HEALTH, MA_MO_FORT_HEALING, MA_MO_FORT_GOLD, MA_MO_WAREHOUSE_FOOD, MA_MO_WAREHOUSE_PRODUCTION, MA_MO_WAREHOUSE_HAPPINESS, MA_MO_RESORT_APPEAL, MA_MO_RESORT_NATURAL_WONDER, MA_MO_T1_ADJ_QUARTER_SCIENCE_SOLO, MA_MO_T1_ADJ_QUARTER_CULTURE_SOLO, MA_MO_T1_ADJ_WONDER_SCIENCE_SOLO, MA_MO_T1_ADJ_WONDER_CULTURE_SOLO, MA_MO_T1_ADJ_MOUNTAIN_CULTURE_SOLO, MA_MO_T1_ADJ_RESOURCE_SCIENCE_SOLO, MA_MO_T1_ADJ_NATURAL_WONDER_CULTURE_SOLO, MA_MO_T2_ADJ_QUARTER_SCIENCE_SOLO, MA_MO_T2_ADJ_QUARTER_CULTURE_SOLO, MA_MO_T2_ADJ_WONDER_SCIENCE_SOLO, MA_MO_T2_ADJ_WONDER_CULTURE_SOLO, MA_MO_T2_ADJ_MOUNTAIN_CULTURE_SOLO, MA_MO_T2_ADJ_RESOURCE_SCIENCE_SOLO, MA_MO_T2_ADJ_NATURAL_WONDER_CULTURE_SOLO, MA_MO_T3_ADJ_QUARTER_SCIENCE_SOLO, MA_MO_T3_ADJ_QUARTER_CULTURE_SOLO, MA_MO_T3_ADJ_WONDER_SCIENCE_SOLO, MA_MO_T3_ADJ_WONDER_CULTURE_SOLO, MA_MO_T3_ADJ_MOUNTAIN_CULTURE_SOLO, MA_MO_T3_ADJ_RESOURCE_SCIENCE_SOLO, MA_MO_T3_ADJ_NATURAL_WONDER_CULTURE_SOLO, MA_MO_T1_ADJ_QUARTER_SCIENCE_SOLO_DL, MA_MO_T1_ADJ_QUARTER_CULTURE_SOLO_DL, MA_MO_T1_ADJ_WONDER_SCIENCE_SOLO_DL, MA_MO_T1_ADJ_WONDER_CULTURE_SOLO_DL, MA_MO_T1_ADJ_MOUNTAIN_CULTURE_SOLO_DL, MA_MO_T1_ADJ_RESOURCE_SCIENCE_SOLO_DL, MA_MO_T1_ADJ_NATURAL_WONDER_CULTURE_SOLO_DL, MA_MO_T2_ADJ_QUARTER_SCIENCE_SOLO_DL, MA_MO_T2_ADJ_QUARTER_CULTURE_SOLO_DL, MA_MO_T2_ADJ_WONDER_SCIENCE_SOLO_DL, MA_MO_T2_ADJ_WONDER_CULTURE_SOLO_DL, MA_MO_T2_ADJ_MOUNTAIN_CULTURE_SOLO_DL, MA_MO_T2_ADJ_RESOURCE_SCIENCE_SOLO_DL, MA_MO_T2_ADJ_NATURAL_WONDER_CULTURE_SOLO_DL, MA_MO_T3_ADJ_QUARTER_SCIENCE_SOLO_DL, MA_MO_T3_ADJ_QUARTER_CULTURE_SOLO_DL, MA_MO_T3_ADJ_WONDER_SCIENCE_SOLO_DL, MA_MO_T3_ADJ_WONDER_CULTURE_SOLO_DL, MA_MO_T3_ADJ_MOUNTAIN_CULTURE_SOLO_DL, MA_MO_T3_ADJ_RESOURCE_SCIENCE_SOLO_DL, MA_MO_T3_ADJ_NATURAL_WONDER_CULTURE_SOLO_DL</Argument>
+		<Argument name="ModifierId">MA_MO_T1_WORKER_CAP, MA_MO_T1_SPECIALIST_UPKEEP, MA_MO_T1_HAPPINESS, MA_MO_T1_RESOURCE_CAP, MA_MO_STAGE_JOYOUS_SCIENCE, MA_MO_STAGE_ECSTATIC_SCIENCE, MA_MO_STAGE_JOYOUS_CULTURE, MA_MO_STAGE_ECSTATIC_CULTURE, MA_MO_WONDER_HAPPY_ADJ, MA_MO_APPEAL_YIELD, MA_MO_MOUNTAIN_YIELD, MA_MO_MTN_ADJ_CUL, MA_MO_MTN_ADJ_GOLD, MA_MO_WONDER_APPEAL, MA_MO_MOUNTAIN_UNLOCK, MA_MO_WATER_NAVRIVER_YIELD, MA_MO_WATER_MINRIVER_YIELD, MA_MO_WATER_LAKE_YIELD, MA_MO_WATER_MARINE_YIELD, MA_MO_WATER_REEF_YIELD, MA_MO_WATER_WATERNW_YIELD, MA_MO_WATER_ADJ_GOLD, MA_MO_WATER_ADJ_PROD, MA_MO_WATER_FLOOR_FOOD, MA_MO_WATER_FLOOR_PROD, MA_MO_T2_WORKER_CAP, MA_MO_T2_WONDERS_SOLO, MA_MO_T2_GREAT_WORKS, MA_MO_T2_RESOURCE_CAP, MA_MO_T3_WORKER_CAP, MA_MO_T3_RESOURCE_CAP, MA_MO_T3_COLLECTION_SLOTS, MA_MO_TRADE_ROUTES, MA_MO_T3_SCIENCE_SOLO, MA_MO_T3_CULTURE_SOLO, MA_MO_T3_PRODUCTION_SOLO, MA_MO_T3_COMBAT_STRENGTH, MA_MO_UNDER_CAP_FOOD, MA_MO_UNDER_CAP_PRODUCTION, MA_MO_TRADE_RANGE_LAND, MA_MO_TRADE_RANGE_SEA, MA_MO_T1_WORKER_CAP_DL, MA_MO_T1_SPECIALIST_UPKEEP_DL, MA_MO_T1_HAPPINESS_DL, MA_MO_T1_RESOURCE_CAP_DL, MA_MO_STAGE_JOYOUS_SCIENCE_DL, MA_MO_STAGE_ECSTATIC_SCIENCE_DL, MA_MO_STAGE_JOYOUS_CULTURE_DL, MA_MO_STAGE_ECSTATIC_CULTURE_DL, MA_MO_WONDER_HAPPY_ADJ_DL, MA_MO_APPEAL_YIELD_DL, MA_MO_MOUNTAIN_YIELD_DL, MA_MO_MTN_ADJ_CUL_DL, MA_MO_MTN_ADJ_GOLD_DL, MA_MO_WATER_NAVRIVER_YIELD_DL, MA_MO_WATER_MINRIVER_YIELD_DL, MA_MO_WATER_LAKE_YIELD_DL, MA_MO_WATER_MARINE_YIELD_DL, MA_MO_WATER_REEF_YIELD_DL, MA_MO_WATER_WATERNW_YIELD_DL, MA_MO_WATER_ADJ_GOLD_DL, MA_MO_WATER_ADJ_PROD_DL, MA_MO_WATER_FLOOR_FOOD_DL, MA_MO_WATER_FLOOR_PROD_DL, MA_MO_T2_WORKER_CAP_DL, MA_MO_T2_WONDERS_SOLO_DL, MA_MO_T2_RESOURCE_CAP_DL, MA_MO_T3_WORKER_CAP_DL, MA_MO_T3_RESOURCE_CAP_DL, MA_MO_T3_SCIENCE_SOLO_DL, MA_MO_T3_CULTURE_SOLO_DL, MA_MO_RESEED_SCIENCE, MA_MO_RESEED_CULTURE, MA_MO_SUZ_SCIENTIFIC, MA_MO_SUZ_CULTURAL, MA_MO_SUZ_MILITARISTIC, MA_MO_SUZ_ECONOMIC, MA_MO_SUZ_EXPANSIONIST, MA_MO_SUZ_DIPLOMATIC, MA_MO_SUZ_PRIMER, MA_MO_SUZ_RANGE_LAND, MA_MO_SUZ_RANGE_SEA, MA_MO_SUZ_RESOURCE_CAP, MA_MO_HUB_INFLUENCE, MA_MO_FORT_HEALTH, MA_MO_FORT_HEALING, MA_MO_FORT_GOLD, MA_MO_WAREHOUSE_FOOD, MA_MO_WAREHOUSE_PRODUCTION, MA_MO_WAREHOUSE_HAPPINESS, MA_MO_RESORT_APPEAL, MA_MO_RESORT_NATURAL_WONDER, MA_MO_T1_ADJ_QUARTER_SCIENCE_SOLO, MA_MO_T1_ADJ_QUARTER_CULTURE_SOLO, MA_MO_T1_ADJ_WONDER_SCIENCE_SOLO, MA_MO_T1_ADJ_WONDER_CULTURE_SOLO, MA_MO_T1_ADJ_MOUNTAIN_CULTURE_SOLO, MA_MO_T1_ADJ_RESOURCE_SCIENCE_SOLO, MA_MO_T1_ADJ_NATURAL_WONDER_CULTURE_SOLO, MA_MO_T2_ADJ_QUARTER_SCIENCE_SOLO, MA_MO_T2_ADJ_QUARTER_CULTURE_SOLO, MA_MO_T2_ADJ_WONDER_SCIENCE_SOLO, MA_MO_T2_ADJ_WONDER_CULTURE_SOLO, MA_MO_T2_ADJ_MOUNTAIN_CULTURE_SOLO, MA_MO_T2_ADJ_RESOURCE_SCIENCE_SOLO, MA_MO_T2_ADJ_NATURAL_WONDER_CULTURE_SOLO, MA_MO_T3_ADJ_QUARTER_SCIENCE_SOLO, MA_MO_T3_ADJ_QUARTER_CULTURE_SOLO, MA_MO_T3_ADJ_WONDER_SCIENCE_SOLO, MA_MO_T3_ADJ_WONDER_CULTURE_SOLO, MA_MO_T3_ADJ_MOUNTAIN_CULTURE_SOLO, MA_MO_T3_ADJ_RESOURCE_SCIENCE_SOLO, MA_MO_T3_ADJ_NATURAL_WONDER_CULTURE_SOLO, MA_MO_T1_ADJ_QUARTER_SCIENCE_SOLO_DL, MA_MO_T1_ADJ_QUARTER_CULTURE_SOLO_DL, MA_MO_T1_ADJ_WONDER_SCIENCE_SOLO_DL, MA_MO_T1_ADJ_WONDER_CULTURE_SOLO_DL, MA_MO_T1_ADJ_MOUNTAIN_CULTURE_SOLO_DL, MA_MO_T1_ADJ_RESOURCE_SCIENCE_SOLO_DL, MA_MO_T1_ADJ_NATURAL_WONDER_CULTURE_SOLO_DL, MA_MO_T2_ADJ_QUARTER_SCIENCE_SOLO_DL, MA_MO_T2_ADJ_QUARTER_CULTURE_SOLO_DL, MA_MO_T2_ADJ_WONDER_SCIENCE_SOLO_DL, MA_MO_T2_ADJ_WONDER_CULTURE_SOLO_DL, MA_MO_T2_ADJ_MOUNTAIN_CULTURE_SOLO_DL, MA_MO_T2_ADJ_RESOURCE_SCIENCE_SOLO_DL, MA_MO_T2_ADJ_NATURAL_WONDER_CULTURE_SOLO_DL, MA_MO_T3_ADJ_QUARTER_SCIENCE_SOLO_DL, MA_MO_T3_ADJ_QUARTER_CULTURE_SOLO_DL, MA_MO_T3_ADJ_WONDER_SCIENCE_SOLO_DL, MA_MO_T3_ADJ_WONDER_CULTURE_SOLO_DL, MA_MO_T3_ADJ_MOUNTAIN_CULTURE_SOLO_DL, MA_MO_T3_ADJ_RESOURCE_SCIENCE_SOLO_DL, MA_MO_T3_ADJ_NATURAL_WONDER_CULTURE_SOLO_DL</Argument>
 	</Modifier>
 
 </GameEffects>

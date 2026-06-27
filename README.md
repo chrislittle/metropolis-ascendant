@@ -20,8 +20,12 @@ can **concentrate** them — a strength the AI never builds toward:
   - Your Buildings and Wonders draw Culture and Gold from nearby **Mountains**.
   - **Mountains become workable** — terrace the peaks that used to wall your city in, and work them for the
     full Arcadia bounty (no special civ required).
-- **It compounds where it's needed most.** Mountain yields grow richer each Age, so by the Modern era two
-  cities can hold their own against an empire of dozens.
+  - **The waters pay too.** Navigable rivers, minor rivers, lakes, the open sea, reefs and water Natural
+    Wonders each yield by type; Buildings gain Gold by the Coast and Production by a Navigable River; in the
+    Exploration Age you can work the open ocean; and every coastal city gains a flat Food/Production floor — so
+    a water-heavy or island map is never a dead end for a tall city.
+- **It compounds where it's needed most.** Mountain and water yields grow richer each Age, so by the Modern era
+  two cities can hold their own against an empire of dozens.
 
 The AI has no reason to cradle one city among the peaks and pour Wonders into it — but you do. It's depth the
 breadth-builders can't reach: a distinct option, not a checklist.
@@ -40,7 +44,8 @@ breadth-builders can't reach: a distinct option, not a checklist.
   and Culture per Urban Population (more while **Ecstatic**), and specialists cost less to maintain until the
   city is thriving — turning the new staged-happiness system into a tall-exclusive strength.
 - **Wonders & Arcadia.** Concentrate Wonders and natural beauty in one city — discover a Natural Wonder and your
-  Breathtaking tiles, nearby mountains and terraced peaks all become productive (see the section above).
+  Breathtaking tiles, nearby mountains, terraced peaks and the surrounding waters all become productive (see the
+  section above).
 - **Strict tall rule.** Every scaling bonus is full at exactly one settlement per hemisphere and off at two or
   more (Towns included).
 

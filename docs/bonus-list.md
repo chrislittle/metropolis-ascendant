@@ -71,6 +71,7 @@ Every scaling bonus is at FULL strength with one settlement per hemisphere and O
 - Breathtaking rural tiles each gain +1 / +2 / +3 (by Age) Culture, Production, Happiness, Science and Food.
 - Every Building and Wonder gains +1 / +2 / +3 (by Age) Culture and Gold for each adjacent Mountain.
 - Mountains become workable - terrace a peak and it yields the full +1 / +2 / +3 Arcadia set (Culture, Production, Happiness, Science, Food). In Exploration and Modern a Breathtaking peak stacks both the rural and mountain bonuses.
+- Water becomes bounty - every worked water tile yields by type (Navigable Rivers, Minor Rivers, Lakes, the open sea, Reefs and water Natural Wonders each give their own mix of Food, Gold, Science, Culture or Happiness, more in later Ages), and Buildings near Coast or a Navigable River gain Gold / Production. In Exploration you may work the open ocean, and a coastal city gains a flat Food / Production floor just for being on the sea - so a tile-starved island metropolis can still thrive.
 
 ## Foundations
 

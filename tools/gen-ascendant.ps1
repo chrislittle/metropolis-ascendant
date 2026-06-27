@@ -248,6 +248,38 @@ $warehouse = @{
             Happy='MOHappinessProjectResourceHappiness' }
 }
 
+# WONDER LANE "Arcadia embraces the waters" (ROADMAP item 2) config. Per-water-type worked-tile yields. Chris's
+# design rule (2026-06-27): water is DIVERSE - each type gets its OWN yield set + per-Age amount, BUFFED above the
+# mountain-peak baseline (peaks = $age.Preserve = 1/2/3), because water is the headline ceiling-breaker on
+# archipelago / sea-heavy maps. Amounts are FIRST-PASS - tune at Deity. The broad MARINE type is kept at the peak
+# baseline per-tile (its 3-yield SET plus the many sea tiles it covers are the real buff) and is the #1 balance dial;
+# scarce premium types (reef, water Natural Wonder) carry higher amounts. Engine names VERIFIED against installed
+# 1.4.1 + DLC data (not guessed): REQUIREMENT_PLOT_IS_RIVER(Navigable/Minor), _IS_LAKE, _BIOME_TYPE_MATCHES(BIOME_
+# MARINE = coast+ocean in one), _FEATURE_TYPE_MATCHES(FeatureClassType = FEATURE_CLASS_AQUATIC = all reefs/atolls),
+# _IS_NATURAL_WONDER (water-NW scoped to marine biome, DLC-agnostic). Each type -> one M-WaterYield modifier per
+# hemisphere. Reef/water-NW tiles deliberately STACK with MARINE (premium scarce tiles = a spike, like A+B2 on peaks
+# in EX/MO); de-dupe later if too hot. Amt is keyed by Sfx (AQ/EX/MO).
+$waterTypes = [ordered]@{
+    NAVRIVER = @{ Reqs=@('<Requirement type="REQUIREMENT_PLOT_IS_RIVER"><Argument name="Navigable">true</Argument></Requirement>');
+                  Yields='YIELD_FOOD, YIELD_GOLD';                                                      Amt=@{AQ=2;EX=3;MO=4} }
+    MINRIVER = @{ Reqs=@('<Requirement type="REQUIREMENT_PLOT_IS_RIVER"><Argument name="Minor">true</Argument></Requirement>');
+                  Yields='YIELD_FOOD';                                                                  Amt=@{AQ=1;EX=2;MO=3} }
+    LAKE     = @{ Reqs=@('<Requirement type="REQUIREMENT_PLOT_IS_LAKE"/>');
+                  Yields='YIELD_FOOD, YIELD_HAPPINESS';                                                 Amt=@{AQ=2;EX=3;MO=4} }
+    MARINE   = @{ Reqs=@('<Requirement type="REQUIREMENT_PLOT_BIOME_TYPE_MATCHES"><Argument name="BiomeType">BIOME_MARINE</Argument></Requirement>');
+                  Yields='YIELD_FOOD, YIELD_GOLD, YIELD_SCIENCE';                                       Amt=@{AQ=1;EX=2;MO=3} }
+    REEF     = @{ Reqs=@('<Requirement type="REQUIREMENT_PLOT_FEATURE_TYPE_MATCHES"><Argument name="FeatureClassType">FEATURE_CLASS_AQUATIC</Argument></Requirement>');
+                  Yields='YIELD_SCIENCE, YIELD_CULTURE';                                                Amt=@{AQ=2;EX=3;MO=4} }
+    WATERNW  = @{ Reqs=@('<Requirement type="REQUIREMENT_PLOT_IS_NATURAL_WONDER"/>','<Requirement type="REQUIREMENT_PLOT_BIOME_TYPE_MATCHES"><Argument name="BiomeType">BIOME_MARINE</Argument></Requirement>');
+                  Yields='YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS, YIELD_SCIENCE, YIELD_FOOD'; Amt=@{AQ=3;EX=5;MO=7} }
+}
+# WATER LANE Option 4 - Tonga-style COASTAL FLOOR amount (per Age, keyed by Sfx). A FLAT, once-per-city +Food and
+# +Production just for the metropolis being coastal (>=1 owned coast tile). The safety net Option 2 can't give: a
+# tile-starved one-island start that works almost no water tiles still gets a guaranteed floor. ALWAYS-ON (tall +
+# hemisphere only, NO discovery gate; Chris 2026-06-27) - a floor must pay before you've explored, like C/B1. Balance
+# dial: it stacks on everything and a coast tile is common on normal maps, so keep it modest; lower if too generous.
+$waterFloorAmt = @{ AQ=2; EX=3; MO=4 }
+
 # HARD CUTOFF (2026-06-21): the per-hemisphere REWARD scaling is now BINARY, not geometric. Full bonus
 # at exactly 1 settlement in the hemisphere (the SOLO band), NOTHING at 2+. The mod's true intent is a strict
 # 1-Homeland + 1-Distant-Lands empire, so the old COMPACT (2-3 settlements -> half) / QUARTER (3-4 -> quarter)
@@ -496,6 +528,66 @@ function M-MountainAdj($sfx,$num,$hemi,$dl) {
     $cul = "`t<Modifier id=`"MA_${sfx}_MTN_ADJ_CUL${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_MtnCul${num}</Argument>$NL`t</Modifier>"
     $gld = "`t<Modifier id=`"MA_${sfx}_MTN_ADJ_GOLD${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_MtnGold${num}</Argument>$NL`t</Modifier>"
     "$cul$NL$gld"
+}
+# WONDER LANE "Arcadia embraces the waters" (ROADMAP item 2). The ceiling-breaker M3 gave the peaks, but for WATER:
+# on archipelago / sea-heavy maps a one-island metropolis is tile-starved, so once Arcadia awakens it draws bounty
+# from the surrounding water too. THREE parts, all gated like the peaks (Arcadia discovery + tall + hemisphere):
+#  (Option 2) M-WaterYield - per-water-type worked-tile yields. ONE EFFECT_PLOT_ADJUST_YIELD modifier per water type
+#      ($waterTypes), each with its OWN yield set + per-Age amount. Same effect/collection/gating as M-MountainYield -
+#      just swaps TERRAIN_MOUNTAIN for the per-type plot requirement. NB MARINE matches BOTH coast and ocean; in AQ
+#      ocean can't be worked so those plots are inert (coast still pays), EX needs the Option-3 grant, MO works ocean
+#      natively. not-urban (CITYCENTER/URBAN/WONDER inverse) so a water tile under a district doesn't double-pay.
+#  (Option 3) M-WaterUnlock - grant IMPROVEMENT_HAWAII_FISHING_BOAT (base game, RURAL on TERRAIN_OCEAN, no resource
+#      gate) so the tall player can WORK empty ocean. The literal sea-twin of M-MountainUnlock's INCA_MOUNTAIN grant
+#      (same effect/collection, sits 3 lines away in the Hawaii trait). EX-ONLY (AQ can't work ocean; MO works natively).
+#  (Option 1) M-WaterAdj - adjacency companion (Machu-Picchu wildcard model): every Building/Wonder adjacent to Coast
+#      gains +Gold and adjacent to a Navigable River gains +Production, per adjacent tile, +1/+2/+3 by Age via the
+#      MA_CoastGold#/MA_RiverProd# wildcard rules in data/shared/constructibles.xml.
+function M-WaterYield($sfx,$type,$wt,$hemi,$dl) {
+    $h = HemiArg $hemi
+    $reqs = @()
+    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>" }
+    $reqs += (Settle 2 $true 'false' $h)
+    $owner = "`t`t<OwnerRequirements>$NL$($reqs -join $NL)$NL`t`t</OwnerRequirements>$NL"
+    $plotHemi = switch ($hemi) {
+        'HL' { "`t`t`t<Requirement type=`"REQUIREMENT_PLOT_IS_HOMELANDS`"/>$NL" }
+        'DL' { "`t`t`t<Requirement inverse=`"true`" type=`"REQUIREMENT_PLOT_IS_HOMELANDS`"/>$NL" }
+        default { '' }
+    }
+    $plotReqs = (($wt.Reqs | ForEach-Object { "`t`t`t$_" }) -join $NL) + $NL
+    $amt = $wt.Amt[$sfx]
+    "`t<Modifier id=`"MA_${sfx}_WATER_${type}_YIELD${dl}`" collection=`"COLLECTION_PLAYER_PLOT_YIELDS`" effect=`"EFFECT_PLOT_ADJUST_YIELD`">$NL$owner`t`t<SubjectRequirements>$NL$plotHemi$plotReqs`t`t`t<Requirement type=`"REQUIREMENT_PLOT_DISTRICT_CLASS`" inverse=`"true`"><Argument name=`"DistrictClass`">CITYCENTER, URBAN, WONDER</Argument></Requirement>$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">$($wt.Yields)</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>$NL`t</Modifier>"
+}
+function M-WaterUnlock($sfx) {
+    $reqs = @()
+    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>" }
+    $reqs += (Settle $tallCap $true 'false' '')
+    $owner = "`t`t<OwnerRequirements>$NL$($reqs -join $NL)$NL`t`t</OwnerRequirements>$NL"
+    "`t<Modifier id=`"MA_${sfx}_WATER_UNLOCK`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_GRANT_CONSTRUCTIBLE_UNLOCK`">$NL$owner`t`t<Argument name=`"ConstructibleType`">IMPROVEMENT_HAWAII_FISHING_BOAT</Argument>$NL`t</Modifier>"
+}
+function M-WaterAdj($sfx,$num,$hemi,$dl) {
+    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
+    $gate = (BandGate 'SOLO' $h) -join $NL
+    $disc = if ($TestMode) { '' } else { "`t`t<OwnerRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>$NL`t`t</OwnerRequirements>$NL" }
+    $reqs = "`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$hc$gate$NL`t`t</SubjectRequirements>$NL"
+    $gld = "`t<Modifier id=`"MA_${sfx}_WATER_ADJ_GOLD${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_CoastGold${num}</Argument>$NL`t</Modifier>"
+    $prd = "`t<Modifier id=`"MA_${sfx}_WATER_ADJ_PROD${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_RiverProd${num}</Argument>$NL`t</Modifier>"
+    "$gld$NL$prd"
+}
+# WATER LANE Option 4 - Tonga-style COASTAL FLOOR. A flat, once-per-city +Food/+Production just for the metropolis
+# being coastal (REQUIREMENT_CITY_HAS_TERRAIN TERRAIN_COAST Amount=1 = the city owns >=1 coast tile). Tonga's signature
+# (DLC\tonga) is EFFECT_CITY_ADJUST_CONSTRUCTIBLE_YIELD on a beachfront Palace/City Hall; we use the cleaner city-coastal
+# gate (doesn't require the Palace itself on the beach, and AND-combines with the tall gate) + flat EFFECT_CITY_ADJUST_
+# YIELD, matching the rest of the kit (per-Age amount). ALWAYS-ON: tall + hemisphere only, NO discovery gate - a floor
+# must pay before you've explored, like the structural pieces C/B1. Two modifiers (base EFFECT_CITY_ADJUST_YIELD takes a
+# single YieldType - Food + Production split, mirroring base MOD_FOUNDER_BELIEF_DOMESTIC_FOOD/_PRODUCTION).
+function M-WaterFloor($sfx,$amt,$hemi,$dl) {
+    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
+    $gate = (BandGate 'SOLO' $h) -join $NL
+    $reqs = "`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_HAS_TERRAIN`"><Argument name=`"TerrainType`">TERRAIN_COAST</Argument><Argument name=`"Amount`">1</Argument></Requirement>$NL$hc$gate$NL`t`t</SubjectRequirements>$NL"
+    $food = "`t<Modifier id=`"MA_${sfx}_WATER_FLOOR_FOOD${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD`">$NL$reqs`t`t<Argument name=`"YieldType`">YIELD_FOOD</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>$NL`t</Modifier>"
+    $prod = "`t<Modifier id=`"MA_${sfx}_WATER_FLOOR_PROD${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD`">$NL$reqs`t`t<Argument name=`"YieldType`">YIELD_PRODUCTION</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>$NL`t</Modifier>"
+    "$food$NL$prod"
 }
 # workstream J: per-tier resource CAPACITY for the tall city (assign more resources -> +1 GDP each +
 # yields). SOLO-gated (full only at 1 settlement in the hemisphere) since it's a potent integer grant;
@@ -788,6 +880,21 @@ foreach ($age in $ages) {
         if ($hemi -ne 'DL') { $out += (M-WonderAppeal $sfx $wonderAppealAmt); $wrapIds += "MA_${sfx}_WONDER_APPEAL" }
         # WONDER LANE M3 unlock (player-wide, once): grant IMPROVEMENT_INCA_MOUNTAIN so the peaks are workable (Arcadia + tall).
         if ($hemi -ne 'DL') { $out += (M-MountainUnlock $sfx); $wrapIds += "MA_${sfx}_MOUNTAIN_UNLOCK" }
+        # ARCADIA EMBRACES THE WATERS (ROADMAP item 2): the M3 peak treatment, for water. Option 2 = per-water-type
+        # worked-tile yields, one modifier per type (each its own yield set + per-Age amount; discovery + tall +
+        # hemisphere gate). Lifts a tile-starved one-island metropolis's ceiling on archipelago / sea-heavy maps.
+        foreach ($wtKey in $waterTypes.Keys) {
+            $out += (M-WaterYield $sfx $wtKey $waterTypes[$wtKey] $hemi $dl); $wrapIds += "MA_${sfx}_WATER_${wtKey}_YIELD${dl}"
+        }
+        # WATER Option 1: adjacency companion - +Gold per adjacent Coast, +Production per adjacent Navigable River on every
+        # Building/Wonder (+1/+2/+3 by Age via MA_CoastGold#/MA_RiverProd#). Per-hemisphere; same Arcadia-discovery+tall gate.
+        $out += (M-WaterAdj $sfx $age.Preserve $hemi $dl); $wrapIds += "MA_${sfx}_WATER_ADJ_GOLD${dl}"; $wrapIds += "MA_${sfx}_WATER_ADJ_PROD${dl}"
+        # WATER Option 3 (EX ONLY, player-wide, once): grant IMPROVEMENT_HAWAII_FISHING_BOAT so ocean tiles become workable
+        # (AQ can't work ocean; MO works it natively). The sea-twin of the mountain-improvement unlock above.
+        if ($hemi -ne 'DL' -and $sfx -eq 'EX') { $out += (M-WaterUnlock $sfx); $wrapIds += "MA_${sfx}_WATER_UNLOCK" }
+        # WATER Option 4: Tonga-style coastal FLOOR - flat +Food/+Production for the metropolis being coastal. ALWAYS-ON
+        # (tall + hemisphere only, NO discovery gate) so a tile-starved island start has a guaranteed floor from turn 1.
+        $out += (M-WaterFloor $sfx $waterFloorAmt[$sfx] $hemi $dl); $wrapIds += "MA_${sfx}_WATER_FLOOR_FOOD${dl}"; $wrapIds += "MA_${sfx}_WATER_FLOOR_PROD${dl}"
 
         # TIER 2
         $out += "`t<!-- TIER 2 (Urban pop >= $($pops[1]))$(if($dl){' - distant lands'}) -->"
@@ -1179,7 +1286,8 @@ if ($fanAges) {
       "Discover a Natural Wonder to awaken Arcadia - an exploration unlock, not a tech. Then, while tall:",
       "Breathtaking rural tiles each gain +1 / +2 / +3 (by Age) Culture, Production, Happiness, Science and Food.",
       "Every Building and Wonder gains +1 / +2 / +3 (by Age) Culture and Gold for each adjacent Mountain.",
-      "Mountains become workable - terrace a peak and it yields the full +1 / +2 / +3 Arcadia set (Culture, Production, Happiness, Science, Food). In Exploration and Modern a Breathtaking peak stacks both the rural and mountain bonuses."
+      "Mountains become workable - terrace a peak and it yields the full +1 / +2 / +3 Arcadia set (Culture, Production, Happiness, Science, Food). In Exploration and Modern a Breathtaking peak stacks both the rural and mountain bonuses.",
+      "Water becomes bounty - every worked water tile yields by type (Navigable Rivers, Minor Rivers, Lakes, the open sea, Reefs and water Natural Wonders each give their own mix of Food, Gold, Science, Culture or Happiness, more in later Ages), and Buildings near Coast or a Navigable River gain Gold / Production. In Exploration you may work the open ocean, and a coastal city gains a flat Food / Production floor just for being on the sea - so a tile-starved island metropolis can still thrive."
     )
     $bb += @('', '[h2]Wonders & Arcadia[/h2]', $arcIntro, '[list]')
     foreach ($l in $arcLines) { $bb += "[*]$l" }

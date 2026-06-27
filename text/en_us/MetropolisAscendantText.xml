@@ -31,6 +31,9 @@
 		<Row Tag="LOC_MA_ARCADIA_PEAKS_DESCRIPTION">
 			<Text>Arcadia (the peaks): a worked Mountain tile gains [icon:YIELD_CULTURE] Culture, [icon:YIELD_PRODUCTION] Production, [icon:YIELD_HAPPINESS] Happiness, [icon:YIELD_SCIENCE] Science and [icon:YIELD_FOOD] Food (more in later Ages) - the same bounty as a Breathtaking tile. Once Arcadia awakens you may terrace Mountains to work them, and every Building beside a Mountain gains [icon:YIELD_CULTURE] Culture and [icon:YIELD_GOLD] Gold - turning the peaks that once capped your metropolis into its crown.</Text>
 		</Row>
+		<Row Tag="LOC_MA_ARCADIA_WATERS_DESCRIPTION">
+			<Text>Arcadia (the waters): once Arcadia awakens, the metropolis draws bounty from the surrounding water. Each worked water tile yields by type - Navigable Rivers give [icon:YIELD_FOOD] Food and [icon:YIELD_GOLD] Gold, Lakes give [icon:YIELD_FOOD] Food and [icon:YIELD_HAPPINESS] Happiness, the open sea gives [icon:YIELD_FOOD] Food, [icon:YIELD_GOLD] Gold and [icon:YIELD_SCIENCE] Science, Reefs give [icon:YIELD_SCIENCE] Science and [icon:YIELD_CULTURE] Culture, and water Natural Wonders give a large spike (more in later Ages). Buildings beside Coast gain [icon:YIELD_GOLD] Gold and beside a Navigable River gain [icon:YIELD_PRODUCTION] Production. In Exploration you may work the open ocean, and a coastal city gains a flat [icon:YIELD_FOOD] Food and [icon:YIELD_PRODUCTION] Production floor just for sitting on the sea - so even a single tile-starved island can feed a metropolis.</Text>
+		</Row>
 		<!-- Per-age, per-domain unlock notes (LOC_MA_<AQ|EX|MO>_NOTE_*) are GENERATED with live numbers into
 		     MetropolisAscendantNotes.generated.xml by tools/gen-ascendant.ps1 - do not add them here. -->
 		<Row Tag="LOC_MA_UNLOCK_NOTE">
