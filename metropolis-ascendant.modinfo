@@ -11,6 +11,7 @@
 [N]- One city, many towns — granary, mining, trade, fortress and resort benefits are all internalized into the single metropolis.
 [N]- Suzerain layer — bonuses scale with how many city-states you lead: reach, resources and influence without founding another city.
 [N]- Happiness pays off — keep the metropolis Joyous and it earns escalating Science and Culture per Urban Population (more while Ecstatic); specialists also cost less to maintain until the city is thriving.
+[N]- Wonders &amp; Arcadia — concentrate Wonders and natural beauty in one city, a strength a sprawling AI empire can't match. Wonders make adjacent Buildings happier and beautify the land; discover a Natural Wonder and Arcadia opens up — Breathtaking rural tiles, Buildings beside Mountains, and even terraced Mountain peaks all become productive (scaling each Age).
 [N]- A strict tall rule — every scaling bonus is full at exactly one settlement per hemisphere, and off at two or more.
 [N]- Spans all three Ages: Antiquity, Exploration and Modern.
 [N][N]Every bonus is described on the tech or civic node that unlocks it (mastery bonuses appear on the node's Mastery panel), so you always know what you are building toward.
@@ -59,6 +60,22 @@
 			</Actions>
 		</ActionGroup>
 
+		<!-- Shared constructible-adjacency definitions in their OWN action group per age (LoadOrder 105, before the
+		     modifiers at 110). ISOLATION: a data error here rolls back only this group, NOT the modifiers group, so a
+		     bad row can't take the whole mod down (it did 2026-06-26: a wrong table name nuked the age group + crashed).
+		     Kept per-age (not criteria="always") because the gameplay DB rebuilds each Age, so the rule must re-apply
+		     per Age the same way the modifiers do. -->
+		<ActionGroup id="antiquity-shared" scope="game" criteria="age-antiquity">
+			<Properties>
+				<LoadOrder>105</LoadOrder>
+			</Properties>
+			<Actions>
+				<UpdateDatabase>
+					<Item>data/shared/constructibles.xml</Item>
+				</UpdateDatabase>
+			</Actions>
+		</ActionGroup>
+
 		<ActionGroup id="antiquity" scope="game" criteria="age-antiquity">
 			<Properties>
 				<LoadOrder>110</LoadOrder>
@@ -71,6 +88,17 @@
 			</Actions>
 		</ActionGroup>
 
+		<ActionGroup id="exploration-shared" scope="game" criteria="age-exploration">
+			<Properties>
+				<LoadOrder>105</LoadOrder>
+			</Properties>
+			<Actions>
+				<UpdateDatabase>
+					<Item>data/shared/constructibles.xml</Item>
+				</UpdateDatabase>
+			</Actions>
+		</ActionGroup>
+
 		<ActionGroup id="exploration" scope="game" criteria="age-exploration">
 			<Properties>
 				<LoadOrder>110</LoadOrder>
@@ -79,6 +107,17 @@
 				<UpdateDatabase>
 					<Item>data/exploration/modifiers.xml</Item>
 					<Item>data/exploration/traditions.xml</Item>
+				</UpdateDatabase>
+			</Actions>
+		</ActionGroup>
+
+		<ActionGroup id="modern-shared" scope="game" criteria="age-modern">
+			<Properties>
+				<LoadOrder>105</LoadOrder>
+			</Properties>
+			<Actions>
+				<UpdateDatabase>
+					<Item>data/shared/constructibles.xml</Item>
 				</UpdateDatabase>
 			</Actions>
 		</ActionGroup>

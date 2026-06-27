@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Metropolis Ascendant - shared constructible adjacency definitions. HAND-AUTHORED (static; not emitted by
+     tools/gen-ascendant.ps1, which owns the per-age modifiers/traditions). Registered in every age ActionGroup
+     in the modinfo, BEFORE modifiers.xml, so the rule exists when the wonder-lane modifiers reference it.
+
+     MA_WonderHappiness (wonder-lane piece "C"): a BUILDING adjacent to a Wonder district gains +1 Happiness.
+     RequiresActivation -> inert until ACTIVATED per city by data/<age>/modifiers.xml (one binary modifier per
+     hemisphere, MA_<age>_WONDER_HAPPY_ADJ, EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY). BINARY benefit, gated
+     ONLY on the tall model (SOLO) - no tech-node gate (static-world property must not blink off at Age transitions)
+     and no population scaling. To change the magnitude, edit YieldChange below (the modifier just flips it on).
+     Recipe mirrors the base-game Classical Revival tradition (TRADITION_EX_ATTRIBUTE_CULTURAL_01 /
+     ExAttributeCultural01WonderHappiness in age-exploration/data/constructibles-shared.xml).
+
+     MA_MtnCul#/MA_MtnGold# (mountain-lane piece "B"): the Machu-Picchu WILDCARD - every Building AND Wonder adjacent
+     to a Mountain gains +# Culture / +# Gold (no ConstructibleClass = wildcard, applies to all constructibles, exactly
+     like MachuPikchuWildcardMountainCulture). Three values (1/2/3) per yield so each Age activates only its own rule
+     (AQ->MtnCul1, EX->MtnCul2, MO->MtnCul3) for clean +1/+2/+3 by Age without stacking. Activated per-hemisphere by
+     MA_<age>_MTN_ADJ_CUL/GOLD (M-MountainAdj), gated on Arcadia discovery + tall. -->
+<Database>
+	<Adjacency_YieldChanges>
+		<Row ID="MA_WonderHappiness" YieldType="YIELD_HAPPINESS" YieldChange="1" TilesRequired="1" AdjacentDistrict="DISTRICT_WONDER"/>
+		<Row ID="MA_MtnCul1"  YieldType="YIELD_CULTURE" YieldChange="1" TilesRequired="1" ProjectMaxYield="true" AdjacentTerrain="TERRAIN_MOUNTAIN"/>
+		<Row ID="MA_MtnCul2"  YieldType="YIELD_CULTURE" YieldChange="2" TilesRequired="1" ProjectMaxYield="true" AdjacentTerrain="TERRAIN_MOUNTAIN"/>
+		<Row ID="MA_MtnCul3"  YieldType="YIELD_CULTURE" YieldChange="3" TilesRequired="1" ProjectMaxYield="true" AdjacentTerrain="TERRAIN_MOUNTAIN"/>
+		<Row ID="MA_MtnGold1" YieldType="YIELD_GOLD"    YieldChange="1" TilesRequired="1" ProjectMaxYield="true" AdjacentTerrain="TERRAIN_MOUNTAIN"/>
+		<Row ID="MA_MtnGold2" YieldType="YIELD_GOLD"    YieldChange="2" TilesRequired="1" ProjectMaxYield="true" AdjacentTerrain="TERRAIN_MOUNTAIN"/>
+		<Row ID="MA_MtnGold3" YieldType="YIELD_GOLD"    YieldChange="3" TilesRequired="1" ProjectMaxYield="true" AdjacentTerrain="TERRAIN_MOUNTAIN"/>
+	</Adjacency_YieldChanges>
+	<Constructible_WildcardAdjacencies>
+		<Row YieldChangeId="MA_WonderHappiness" RequiresActivation="true" ConstructibleClass="BUILDING"/>
+		<Row YieldChangeId="MA_MtnCul1"  RequiresActivation="true"/>
+		<Row YieldChangeId="MA_MtnCul2"  RequiresActivation="true"/>
+		<Row YieldChangeId="MA_MtnCul3"  RequiresActivation="true"/>
+		<Row YieldChangeId="MA_MtnGold1" RequiresActivation="true"/>
+		<Row YieldChangeId="MA_MtnGold2" RequiresActivation="true"/>
+		<Row YieldChangeId="MA_MtnGold3" RequiresActivation="true"/>
+	</Constructible_WildcardAdjacencies>
+</Database>

@@ -62,6 +62,16 @@ Every scaling bonus is at FULL strength with one settlement per hemisphere and O
 - **Industrialization** (Tech): +2 Production per settlement under your Settlement Cap, and +Production on worked Camps, Mines, Quarries and Woodcutters.
 - **Globalism** (Civic): Suzerain bonuses scale with your Population. Draft a city-state's repeatable (Shareable) bonus to gain +1 of its yield per 3 Population (Science/Culture/Production/Gold/Food), or +2 Influence per Suzerain (Diplomatic). Each Suzerain grants +1 Resource capacity; Economic ones add +5 Trade Route range.
 
+## Wonders & Arcadia
+
+*Concentrate your Wonders and natural beauty into one city - an edge a sprawling AI empire can't match, because it spreads them thin across dozens of settlements.*
+
+- Wonders enrich the city: each Building next to a Wonder gains +1 Happiness, and your Wonders raise the Appeal of the surrounding land. (Active while tall.)
+- Discover a Natural Wonder to awaken Arcadia - an exploration unlock, not a tech. Then, while tall:
+- Breathtaking rural tiles each gain +1 / +2 / +3 (by Age) Culture, Production, Happiness, Science and Food.
+- Every Building and Wonder gains +1 / +2 / +3 (by Age) Culture and Gold for each adjacent Mountain.
+- Mountains become workable - terrace a peak and it yields the full +1 / +2 / +3 Arcadia set (Culture, Production, Happiness, Science, Food). In Exploration and Modern a Breathtaking peak stacks both the rural and mountain bonuses.
+
 ## Foundations
 
 Always on, no research needed: bonus Happiness and reduced specialist upkeep that grow with your city, plus +3 Influence per turn to help you win your first city-states.

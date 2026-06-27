@@ -25,10 +25,16 @@
 		<Row Tag="LOC_MA_RESEED_DESCRIPTION">
 			<Text>New Age head start: +[icon:YIELD_SCIENCE] Science and +[icon:YIELD_CULTURE] Culture per Urban [icon:YIELD_POPULATION] Population while your empire rebuilds. Active from the start of the Age until you research this Age's main bonus node, then your full bonuses take over. Fades as you add settlements; ends at four.</Text>
 		</Row>
+		<Row Tag="LOC_MA_ARCADIA_DESCRIPTION">
+			<Text>Arcadia: a Breathtaking rural tile gains [icon:YIELD_CULTURE] Culture, [icon:YIELD_PRODUCTION] Production, [icon:YIELD_HAPPINESS] Happiness, [icon:YIELD_SCIENCE] Science and [icon:YIELD_FOOD] Food (more in later Ages). Awakened by discovering a Natural Wonder; your own Wonders raise nearby Appeal, so cluster them in lush land to push tiles to Breathtaking.</Text>
+		</Row>
+		<Row Tag="LOC_MA_ARCADIA_PEAKS_DESCRIPTION">
+			<Text>Arcadia (the peaks): a worked Mountain tile gains [icon:YIELD_CULTURE] Culture, [icon:YIELD_PRODUCTION] Production, [icon:YIELD_HAPPINESS] Happiness, [icon:YIELD_SCIENCE] Science and [icon:YIELD_FOOD] Food (more in later Ages) - the same bounty as a Breathtaking tile. Once Arcadia awakens you may terrace Mountains to work them, and every Building beside a Mountain gains [icon:YIELD_CULTURE] Culture and [icon:YIELD_GOLD] Gold - turning the peaks that once capped your metropolis into its crown.</Text>
+		</Row>
 		<!-- Per-age, per-domain unlock notes (LOC_MA_<AQ|EX|MO>_NOTE_*) are GENERATED with live numbers into
 		     MetropolisAscendantNotes.generated.xml by tools/gen-ascendant.ps1 - do not add them here. -->
 		<Row Tag="LOC_MA_UNLOCK_NOTE">
-			<Text>Metropolis Ascendant unlocked. As your Urban [icon:YIELD_POPULATION] Population grows, a single tall city gains escalating bonuses tied to where you research them across the tech and culture trees: more Specialist slots, larger [icon:YIELD_SCIENCE] Science and [icon:YIELD_CULTURE] Culture adjacency, yields per Population, extra Great Work slots, faster Wonder production, and Suzerain bonuses that scale with the city-states you lead. Bonuses fade as you add settlements (Towns included) and end at four.</Text>
+			<Text>Metropolis Ascendant unlocked. As your Urban [icon:YIELD_POPULATION] Population grows, a single tall city gains escalating bonuses tied to where you research them across the tech and culture trees: more Specialist slots, larger [icon:YIELD_SCIENCE] Science and [icon:YIELD_CULTURE] Culture adjacency, yields per Population, extra Great Work slots, faster Wonder production, and Suzerain bonuses that scale with the city-states you lead. Build Wonders to enrich the metropolis: adjacent Buildings gain [icon:YIELD_HAPPINESS] Happiness and your Wonders raise the Appeal of the surrounding land - and once you discover a Natural Wonder, [B]Arcadia[/B] awakens: every Breathtaking rural tile flourishes with [icon:YIELD_CULTURE] Culture, [icon:YIELD_PRODUCTION] Production, [icon:YIELD_HAPPINESS] Happiness, [icon:YIELD_SCIENCE] Science and [icon:YIELD_FOOD] Food, and you may terrace Mountains to work them for [icon:YIELD_PRODUCTION] Production, [icon:YIELD_SCIENCE] Science and [icon:YIELD_CULTURE] Culture. Bonuses fade as you add settlements (Towns included) and end at four.</Text>
 		</Row>
 	</EnglishText>
 </Database>

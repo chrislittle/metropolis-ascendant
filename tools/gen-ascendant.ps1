@@ -73,7 +73,7 @@ $adjRules = [ordered]@{
 # Qajar-style early Food/Production, economic trade-route RANGE). The safety nets stay UNGATED (always-on).
 $ages = @(
     @{ Key='antiquity';   Sfx='AQ'; AgeName='Antiquity';   Node='NODE_TECH_AQ_CURRENCY';    TechName='Currency'; BonusAge='ANTIQUITY';
-       Pops=@(5,9,12);   Happiness=10; Wonders=@(20,10,5); GW=3; Collection=2; ResCap=@(2,2,2); Trade=2; Distant=$false;
+       Pops=@(5,9,12);   Happiness=10; Preserve=1; MtnDedup=$true; Wonders=@(20,10,5); GW=3; Collection=2; ResCap=@(2,2,2); Trade=2; Distant=$false;
        FanOut=$true; MilProd=1; UnderCapAmount=2; TradeRange=5; MilStrength=3;
        HubBuilding='BUILDING_MONUMENT'; HubNode='NODE_TECH_AQ_MASONRY';   # Hub Town bucket: +Influence on the Monument (yields Influence), gated behind Masonry
        FortNode='NODE_TECH_AQ_MILITARY_TRAINING';   # Fort Town bucket gets its OWN node (off Org Military, which was overloaded)
@@ -102,7 +102,7 @@ $ages = @(
          @{ Node='NODE_TECH_AQ_BRONZE_WORKING';       Key='PRODCAP'  }   # moved off Engineering (col5) onto Bronze Working (shares with Military prod)
          @{ Node='NODE_CIVIC_AQ_MAIN_CODE_OF_LAWS';   Key='SUZERAIN' } ) }
     @{ Key='exploration'; Sfx='EX'; AgeName='Exploration'; Node='NODE_TECH_EX_EDUCATION';   TechName='Education'; BonusAge='EXPLORATION';
-       Pops=@(8,14,20);  Happiness=12; Wonders=@(25,13,6); GW=3; Collection=2; ResCap=@(2,2,2); Trade=2; Distant=$true;
+       Pops=@(8,14,20);  Happiness=12; Preserve=2; Wonders=@(25,13,6); GW=3; Collection=2; ResCap=@(2,2,2); Trade=2; Distant=$true;
        FanOut=$true; MilProd=1; UnderCapAmount=2; TradeRange=5; MilStrength=3; TempleSlots=2;   # TempleSlots = town-spec "Religious Site" bucket, EX-only (relic storage), gated on the religion node
        HubBuilding='BUILDING_GUILDHALL'; HubNode='NODE_TECH_EX_GUILDS';   # Hub Town bucket: +Influence on the Guildhall (+6 Influence building), gated behind Guilds
        FortNode='NODE_TECH_EX_HERALDRY';   # Fort Town bucket gets its OWN node (off Authority, which was overloaded)
@@ -144,7 +144,7 @@ $ages = @(
          @{ Node='NODE_CIVIC_EX_BRANCH_THEOLOGY';   Key='RELIGION' }
          @{ Node='NODE_CIVIC_EX_MAIN_DIPLOMATIC_SERVICE'; Key='SUZERAIN' } ) }
     @{ Key='modern';      Sfx='MO'; AgeName='Modern';      Node='NODE_TECH_MO_ELECTRICITY'; TechName='Electricity'; BonusAge='MODERN';
-       Pops=@(10,16,24); Happiness=15; Wonders=@(30,15,8); GW=4; Collection=3; ResCap=@(3,3,3); Trade=3; Distant=$true;
+       Pops=@(10,16,24); Happiness=15; Preserve=3; Wonders=@(30,15,8); GW=4; Collection=3; ResCap=@(3,3,3); Trade=3; Distant=$true;
        FanOut=$true; MilProd=1; UnderCapAmount=2; TradeRange=5; MilStrength=3;   # NO TempleSlots: Modern has no religion/relic system, so the Temple/relic buckets + GW-culture amp stay EX-only by design
        HubBuilding='BUILDING_OPERA_HOUSE'; HubNode='NODE_TECH_MO_URBANIZATION';  # Hub Town bucket: +Influence on the Opera House (yields Influence), gated behind Urbanization (its unlock node)
        FortNode='NODE_TECH_MO_MILITARY_SCIENCE';   # Fort Town bucket on its own military node (Defensive Fortifications/Military Academy unlock here)
@@ -217,6 +217,13 @@ $fortGold   = 1       # +Gold on Fortified districts (the Fort Town gold-on-fort
 $religiousHappy = 2   # "Religious Site" Temple bucket: +Happiness on every Building (base value).
 $resortAppeal   = 1   # "Resort" bucket: +Gold & +Happiness on Appealing tiles.
 $resortNWPercent= 50  # "Resort" bucket: +% all yields on Natural-Wonder tiles (self-targets - only pays near a NW).
+$wonderAppealAmt = 2  # WONDER LANE B1: Appeal each of the player's wonders radiates to surrounding tiles. BINARY/flat
+                      # (population doesn't decide it), via the B&B engine effect EFFECT_PLAYER_GRANT_WONDER_APPEAL.
+                      # Feeds B2's Breathtaking rural ring + base appeal-happiness. =2 (Chris 2026-06-26, was 1): Charming
+                      # is a 2-wide band (Appeal 3-4) and Breathtaking is 5+, so +1 only flipped tiles already at 4; +2
+                      # lifts the WHOLE Charming ring (3 AND 4) to Breathtaking around a wonder (playtest: edge tiles didn't
+                      # flip at +1). Stacks per adjacent wonder. Static-world property so it's tall-gated only (no node/pop).
+                      # BALANCE DIAL: drop back toward 1 if Arcadia triggers too broadly at a Deity playtest.
 $gwCultureAmt   = 1   # ITEM 6 relic/Great-Work amplifier: +Culture per Great Work in the city. Relics/Codices/
                       # Artifacts/Art are all Great Works and the kit hoards GW slots (Palace + Temple + collection),
                       # so this directly rewards the surviving Culture/relic lane. EFFECT_CITY_ADJUST_YIELD_PER_GREAT_WORK.
@@ -380,6 +387,115 @@ function M-Adjacency($sfx,$tier,$node,$pop,$rule,$band,$div,$hemi,$dl) {
     $gate = (BandGate $band $h) -join $NL
     $frag = $adjRules[$rule]
     "`t<Modifier id=`"MA_${sfx}_T${tier}_ADJ_${frag}_${band}${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$hc$gate$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Adjacency_YieldChange`">$rule</Argument>$NL`t`t<Argument name=`"Amount`">1</Argument><Argument name=`"Divisor`">$div</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_TIER3_DESCRIPTION</Argument>$NL`t</Modifier>"
+}
+# WONDER LANE "C" - Happiness adjacency around Wonders (Classical Revival recipe). The custom rule
+# MA_WonderHappiness (defined in data/shared/constructibles.xml; RequiresActivation) = a BUILDING next to a Wonder
+# district gets +1 Happiness. This modifier just ACTIVATES it (EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY).
+# BINARY + STRUCTURAL, gated ONLY on the tall model (SOLO + hemisphere) - deliberately NO tech-node gate and NO
+# population tier (Chris, 2026-06-26; see memory civ7-age-transition-static-functions):
+#   - Wonder-adjacency is a STATIC-WORLD property; a per-Age node gate would make it blink OFF at every Age
+#     transition until re-research even though the wonder/world didn't change.
+#   - It's binary - population size doesn't decide whether a wonder confers Happiness - so no pop tiers / no scaling.
+#   - It self-scopes: no wonder (or no adjacent building) = nothing, so it needs no gate beyond "are you the tall city."
+# (To change the magnitude, edit MA_WonderHappiness's YieldChange in data/shared/constructibles.xml - not here.)
+# Delivered through the COLLECTION_MAJOR_PLAYERS attach wrapper. VERIFY in-game: (a) activation resolves through the
+# player attach wrapper, (b) DISTRICT_WONDER counts player-built wonders for the adjacent building.
+function M-WonderHappyAdj($sfx,$hemi,$dl) {
+    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
+    $gate = (BandGate 'SOLO' $h) -join $NL
+    "`t<Modifier id=`"MA_${sfx}_WONDER_HAPPY_ADJ${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$hc$gate$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"ConstructibleAdjacency`">MA_WonderHappiness</Argument>$NL`t</Modifier>"
+}
+# WONDER LANE "B2" - Appeal->yield "Preserve" ring. Mirrors the Heian Hoo-Do / TRAIT_MOD_APPEALING_CULTURE template
+# (DLC\heian\modules\data\civilizations-shared-gameeffects.xml): COLLECTION_PLAYER_PLOT_YIELDS + EFFECT_PLOT_ADJUST_YIELD
+# + REQUIREMENT_PLOT_HAS_APPEAL(UseAppealDoubleHappinessThreshold=BREATHTAKING) + REQUIREMENT_PLOT_DISTRICT_CLASS(RURAL).
+# Grants the AGE's amount of Cul/Prod/Happy/Sci/Food on every RURAL plot at Breathtaking appeal. Uses the PLAYER-rooted
+# plot collection so it delivers through the COLLECTION_MAJOR_PLAYERS attach wrapper (the city-context
+# COLLECTION_CITY_PLOT_YIELDS silently no-ops attached to a player). It's YIELDS, so node-gated (Wonders node) and
+# scales BY AGE (AQ 1 / EX 2 / MO 3; $age.Preserve) - yields grow per era while appeal mechanics stay pop-free (Chris
+# 2026-06-26). Tall-gated: SOLO (hemisphere-scoped settlement count) in OwnerRequirements like M-CombatStrength; the
+# plot is scoped to its hemisphere via REQUIREMENT_PLOT_IS_HOMELANDS (inverse=distant) so player-wide delivery doesn't
+# bleed the homeland ring onto distant tiles. (Tooltip LOC deferred to a text pass, like C.)
+function M-AppealYield($sfx,$amt,$hemi,$dl,$excludeMtn) {
+    $h = HemiArg $hemi
+    $reqs = @()
+    # DISCOVERY GATE (Chris 2026-06-26): Arcadia awakens once you've discovered a Natural Wonder - an EXPLORATION
+    # unlock, not a tree unlock. REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER (no FeatureType = ANY natural wonder;
+    # proven in-game by MOUNT_EVEREST_REVEAL on the same requirement). It's a YIELD so discovery-gating is fine even
+    # if it re-evaluates at an Age boundary. C/B1 stay always-on (no discovery gate) so they never blink + survive
+    # EX/MO advanced starts where no wonder is discovered yet. TestMode drops the gate (live from turn 1).
+    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>" }
+    $reqs += (Settle 2 $true 'false' $h)
+    $owner = "`t`t<OwnerRequirements>$NL$($reqs -join $NL)$NL`t`t</OwnerRequirements>$NL"
+    $plotHemi = switch ($hemi) {
+        'HL' { "`t`t`t<Requirement type=`"REQUIREMENT_PLOT_IS_HOMELANDS`"/>$NL" }
+        'DL' { "`t`t`t<Requirement inverse=`"true`" type=`"REQUIREMENT_PLOT_IS_HOMELANDS`"/>$NL" }
+        default { '' }
+    }
+    # DE-DUPE (Chris 2026-06-26): when $excludeMtn (AQ only), the rural ring SKIPS mountain tiles so a terraced peak gets
+    # ONLY the mountain yield (A), not A+B2. In EX/MO $excludeMtn is false, so a Breathtaking terraced mountain stacks BOTH
+    # A+B2 - a deliberate LATE-GAME power spike (like Civ 6 Preserves) to help 2 cities close the Deity yield gap.
+    $noMtn = if ($excludeMtn) { "`t`t`t<Requirement inverse=`"true`" type=`"REQUIREMENT_PLOT_TERRAIN_TYPE_MATCHES`"><Argument name=`"TerrainType`">TERRAIN_MOUNTAIN</Argument></Requirement>$NL" } else { '' }
+    "`t<Modifier id=`"MA_${sfx}_APPEAL_YIELD${dl}`" collection=`"COLLECTION_PLAYER_PLOT_YIELDS`" effect=`"EFFECT_PLOT_ADJUST_YIELD`">$NL$owner`t`t<SubjectRequirements>$NL$plotHemi$noMtn`t`t`t<Requirement type=`"REQUIREMENT_PLOT_DISTRICT_CLASS`"><Argument name=`"DistrictClass`">RURAL</Argument></Requirement>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLOT_HAS_APPEAL`"><Argument name=`"UseAppealDoubleHappinessThreshold`">true</Argument></Requirement>$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS, YIELD_SCIENCE, YIELD_FOOD</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_DESCRIPTION</Argument>$NL`t</Modifier>"
+}
+# WONDER LANE "B1" - wonders grant Appeal. EFFECT_PLAYER_GRANT_WONDER_APPEAL (arg Amount) on COLLECTION_OWNER: every
+# wonder the player owns radiates Amount Appeal to surrounding tiles ("expand Hoo-Do to all wonders" - native + player-
+# scoped). BINARY/flat (no pop), and NO tech-node gate - appeal-granting is a static-world property that must not blink
+# off at Age transitions (memory: civ7-age-transition-static-functions). Tall-gated on total settlement count (Settle
+# $tallCap, lenient player-level gate like the trade-route/range bonuses, so a 1-homeland+1-distant tall player keeps
+# it). Self-scopes: no wonder = nothing granted. Player-wide -> emit ONCE per age (guard to the non-DL pass).
+# NB EFFECT_PLAYER_GRANT_WONDER_APPEAL's only on-disk definition is in the Heian (Brush & Blade) DLC module, but it's an
+# ENGINE effect shipped with the 1.4.1 update -> should resolve without the DLC active. VERIFY (disable B&B, load): if it
+# errors/no-ops without the DLC, gate this behind a DLC-present check (the mod currently declares "No DLC required").
+function M-WonderAppeal($sfx,$amt) {
+    "`t<Modifier id=`"MA_${sfx}_WONDER_APPEAL`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_GRANT_WONDER_APPEAL`">$NL`t`t<SubjectRequirements>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t</Modifier>"
+}
+# WONDER LANE "M3" = ARCADIA, THE PEAKS. Once Arcadia is awake the metropolis draws bounty from adjacent MOUNTAINS too
+# (the apex of natural beauty). TWO parts:
+#  (1) M-MountainUnlock - grant the base-game IMPROVEMENT_INCA_MOUNTAIN "faux improvement" (EFFECT_PLAYER_GRANT_CONSTRUCTIBLE_UNLOCK,
+#      COLLECTION_OWNER) so the tall player can WORK mountain tiles. Nepal proves this works in ALL Ages (it reuses the same
+#      base improvement from Antiquity; its own comment: "The Incans are base game, so just reusing the same faux improvement").
+#  (2) M-MountainYield - yields on worked mountain tiles. Mirrors the Inca "Apus" yield (EFFECT_PLOT_ADJUST_YIELD on
+#      COLLECTION_PLAYER_PLOT_YIELDS, TerrainType=TERRAIN_MOUNTAIN + not-urban) = the SAME effect/collection as the rural ring
+#      (M-AppealYield), so it shares the DISCOVERY gate + tall + hemisphere scoping. Yields = Prod/Sci/Cul (peaks = industry/
+#      FULL ARCADIA 5-set (Cul/Prod/Happy/Sci/Food - treated as Breathtaking; Chris 2026-06-26), scaled by Age ($age.Preserve).
+# BALANCE: mountain yield applies to EVERY worked mountain (no Breathtaking gate, unlike the rural ring), so it's potent on
+# mountainous maps -> prime tuning dial (trim the yield set or the amount after a Deity playtest).
+# COMPANION: M-MountainAdj (Model B) layers the Machu-Picchu wildcard on top - every Building/Wonder adjacent to a Mountain
+# gains +Cul/+Gold per mountain (scaled 1/2/3 by Age), via the MA_MtnCul#/MA_MtnGold# wildcard rules in data/shared/constructibles.xml.
+function M-MountainUnlock($sfx) {
+    $reqs = @()
+    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>" }
+    $reqs += (Settle $tallCap $true 'false' '')
+    $owner = "`t`t<OwnerRequirements>$NL$($reqs -join $NL)$NL`t`t</OwnerRequirements>$NL"
+    "`t<Modifier id=`"MA_${sfx}_MOUNTAIN_UNLOCK`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_GRANT_CONSTRUCTIBLE_UNLOCK`">$NL$owner`t`t<Argument name=`"ConstructibleType`">IMPROVEMENT_INCA_MOUNTAIN</Argument>$NL`t</Modifier>"
+}
+function M-MountainYield($sfx,$amt,$hemi,$dl) {
+    $h = HemiArg $hemi
+    $reqs = @()
+    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>" }
+    $reqs += (Settle 2 $true 'false' $h)
+    $owner = "`t`t<OwnerRequirements>$NL$($reqs -join $NL)$NL`t`t</OwnerRequirements>$NL"
+    $plotHemi = switch ($hemi) {
+        'HL' { "`t`t`t<Requirement type=`"REQUIREMENT_PLOT_IS_HOMELANDS`"/>$NL" }
+        'DL' { "`t`t`t<Requirement inverse=`"true`" type=`"REQUIREMENT_PLOT_IS_HOMELANDS`"/>$NL" }
+        default { '' }
+    }
+    "`t<Modifier id=`"MA_${sfx}_MOUNTAIN_YIELD${dl}`" collection=`"COLLECTION_PLAYER_PLOT_YIELDS`" effect=`"EFFECT_PLOT_ADJUST_YIELD`">$NL$owner`t`t<SubjectRequirements>$NL$plotHemi`t`t`t<Requirement type=`"REQUIREMENT_PLOT_TERRAIN_TYPE_MATCHES`"><Argument name=`"TerrainType`">TERRAIN_MOUNTAIN</Argument></Requirement>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLOT_DISTRICT_CLASS`" inverse=`"true`"><Argument name=`"DistrictClass`">CITYCENTER, URBAN, WONDER</Argument></Requirement>$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS, YIELD_SCIENCE, YIELD_FOOD</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_PEAKS_DESCRIPTION</Argument>$NL`t</Modifier>"
+}
+# MOUNTAIN LANE "B" = Machu-Picchu WILDCARD. Activate MA_MtnCul#/MA_MtnGold# (data/shared/constructibles.xml) so every
+# BUILDING and WONDER adjacent to a Mountain gains +# Culture / +# Gold per mountain (# = $age.Preserve, i.e. +1/+2/+3 by
+# Age - each Age activates only its own numbered rule, no stacking). Same EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY
+# recipe as C + the base Machu Picchu (wildcard = no ConstructibleClass = all constructibles incl wonders).
+# COLLECTION_PLAYER_CITIES, gated on Arcadia discovery (OwnerRequirements) + tall SOLO + hemisphere (SubjectRequirements).
+# Emits one Culture + one Gold activation modifier per hemisphere. TestMode drops the discovery gate (live from turn 1).
+function M-MountainAdj($sfx,$num,$hemi,$dl) {
+    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
+    $gate = (BandGate 'SOLO' $h) -join $NL
+    $disc = if ($TestMode) { '' } else { "`t`t<OwnerRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>$NL`t`t</OwnerRequirements>$NL" }
+    $reqs = "`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$hc$gate$NL`t`t</SubjectRequirements>$NL"
+    $cul = "`t<Modifier id=`"MA_${sfx}_MTN_ADJ_CUL${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_MtnCul${num}</Argument>$NL`t</Modifier>"
+    $gld = "`t<Modifier id=`"MA_${sfx}_MTN_ADJ_GOLD${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_MtnGold${num}</Argument>$NL`t</Modifier>"
+    "$cul$NL$gld"
 }
 # workstream J: per-tier resource CAPACITY for the tall city (assign more resources -> +1 GDP each +
 # yields). SOLO-gated (full only at 1 settlement in the hemisphere) since it's a potent integer grant;
@@ -654,6 +770,24 @@ foreach ($age in $ages) {
             $out += (M-StagePayoff $sfx $sn $pops[0] 'HAPPINESS_STAGE_JOYOUS'   $yld $stageJoyousDiv   $hemi $dl); $wrapIds += "MA_${sfx}_STAGE_JOYOUS_${yn}${dl}"
             $out += (M-StagePayoff $sfx $sn $pops[0] 'HAPPINESS_STAGE_ECSTATIC' $yld $stageEcstaticDiv $hemi $dl); $wrapIds += "MA_${sfx}_STAGE_ECSTATIC_${yn}${dl}"
         }
+        # WONDER LANE C (STRUCTURAL, binary): activate "+1 Happiness to buildings adjacent to a Wonder". NO node/pop
+        # gate - static-world property, must not blink off at Age transitions; gated only on the tall model (SOLO +
+        # hemisphere) and self-scopes on having a wonder. (memory: civ7-age-transition-static-functions)
+        $out += (M-WonderHappyAdj $sfx $hemi $dl); $wrapIds += "MA_${sfx}_WONDER_HAPPY_ADJ${dl}"
+        # WONDER LANE B2 = ARCADIA (YIELDS): Breathtaking RURAL ring - +$($age.Preserve) Cul/Prod/Happy/Sci/Food on every
+        # rural Breathtaking tile. DISCOVERY-gated (discovered a Natural Wonder) + SOLO + hemisphere; scales BY AGE (AQ1/EX2/MO3).
+        $out += (M-AppealYield $sfx $age.Preserve $hemi $dl $age.MtnDedup); $wrapIds += "MA_${sfx}_APPEAL_YIELD${dl}"
+        # WONDER LANE M3 = Arcadia PEAKS (A): full Arcadia 5-set on worked MOUNTAIN tiles, same discovery+tall gate.
+        # Per-hemisphere (like the rural ring). The mountain-improvement UNLOCK that makes peaks workable is emitted once below.
+        $out += (M-MountainYield $sfx $age.Preserve $hemi $dl); $wrapIds += "MA_${sfx}_MOUNTAIN_YIELD${dl}"
+        # MOUNTAIN LANE B: Machu-Picchu wildcard - every Building/Wonder adjacent to a Mountain gains +Cul/+Gold per mountain
+        # (+1/+2/+3 by Age via the numbered MA_MtnCul#/MA_MtnGold# rules). Per-hemisphere; gated Arcadia discovery + tall.
+        $out += (M-MountainAdj $sfx $age.Preserve $hemi $dl); $wrapIds += "MA_${sfx}_MTN_ADJ_CUL${dl}"; $wrapIds += "MA_${sfx}_MTN_ADJ_GOLD${dl}"
+        # WONDER LANE B1 (STRUCTURAL, binary, player-wide): all the player's wonders radiate +$wonderAppealAmt Appeal to
+        # nearby tiles. NO node/pop gate (static-world); tall-gated on total settlements; emitted ONCE -> guard to non-DL.
+        if ($hemi -ne 'DL') { $out += (M-WonderAppeal $sfx $wonderAppealAmt); $wrapIds += "MA_${sfx}_WONDER_APPEAL" }
+        # WONDER LANE M3 unlock (player-wide, once): grant IMPROVEMENT_INCA_MOUNTAIN so the peaks are workable (Arcadia + tall).
+        if ($hemi -ne 'DL') { $out += (M-MountainUnlock $sfx); $wrapIds += "MA_${sfx}_MOUNTAIN_UNLOCK" }
 
         # TIER 2
         $out += "`t<!-- TIER 2 (Urban pop >= $($pops[1]))$(if($dl){' - distant lands'}) -->"
@@ -1038,6 +1172,20 @@ if ($fanAges) {
             $bb += $g; $md += $g
         }
     }
+    # WONDERS & ARCADIA - not node-gated (so not in the per-age node loop above); described here as its own lane.
+    $arcIntro = "Concentrate your Wonders and natural beauty into one city - an edge a sprawling AI empire can't match, because it spreads them thin across dozens of settlements."
+    $arcLines = @(
+      "Wonders enrich the city: each Building next to a Wonder gains +1 Happiness, and your Wonders raise the Appeal of the surrounding land. (Active while tall.)",
+      "Discover a Natural Wonder to awaken Arcadia - an exploration unlock, not a tech. Then, while tall:",
+      "Breathtaking rural tiles each gain +1 / +2 / +3 (by Age) Culture, Production, Happiness, Science and Food.",
+      "Every Building and Wonder gains +1 / +2 / +3 (by Age) Culture and Gold for each adjacent Mountain.",
+      "Mountains become workable - terrace a peak and it yields the full +1 / +2 / +3 Arcadia set (Culture, Production, Happiness, Science, Food). In Exploration and Modern a Breathtaking peak stacks both the rural and mountain bonuses."
+    )
+    $bb += @('', '[h2]Wonders & Arcadia[/h2]', $arcIntro, '[list]')
+    foreach ($l in $arcLines) { $bb += "[*]$l" }
+    $bb += '[/list]'
+    $md += @('', '## Wonders & Arcadia', '', "*$arcIntro*", '')
+    foreach ($l in $arcLines) { $md += "- $l" }
     $foundation = "Always on, no research needed: bonus Happiness and reduced specialist upkeep that grow with your city, plus +$suzPrimer Influence per turn to help you win your first city-states."
     $bb += @('', '[h2]Foundations[/h2]', $foundation)
     $md += @('', '## Foundations', '', $foundation)

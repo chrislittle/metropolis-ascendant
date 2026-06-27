@@ -226,6 +226,105 @@
 		<Argument name="Urban">true</Argument><Argument name="Rural">false</Argument>
 		<Argument name="Tooltip">LOC_MA_STAGE_DESCRIPTION</Argument>
 	</Modifier>
+	<Modifier id="MA_EX_WONDER_HAPPY_ADJ" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY">
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS" inverse="true"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="ConstructibleAdjacency">MA_WonderHappiness</Argument>
+	</Modifier>
+	<Modifier id="MA_EX_APPEAL_YIELD" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS"><Argument name="DistrictClass">RURAL</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_HAS_APPEAL"><Argument name="UseAppealDoubleHappinessThreshold">true</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS, YIELD_SCIENCE, YIELD_FOOD</Argument>
+		<Argument name="Amount">2</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_EX_MOUNTAIN_YIELD" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_TERRAIN_TYPE_MATCHES"><Argument name="TerrainType">TERRAIN_MOUNTAIN</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS, YIELD_SCIENCE, YIELD_FOOD</Argument>
+		<Argument name="Amount">2</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_PEAKS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_EX_MTN_ADJ_CUL" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS" inverse="true"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="ConstructibleAdjacency">MA_MtnCul2</Argument>
+	</Modifier>
+	<Modifier id="MA_EX_MTN_ADJ_GOLD" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS" inverse="true"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyHomelands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="ConstructibleAdjacency">MA_MtnGold2</Argument>
+	</Modifier>
+	<Modifier id="MA_EX_WONDER_APPEAL" collection="COLLECTION_OWNER" effect="EFFECT_PLAYER_GRANT_WONDER_APPEAL">
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument>
+				<Argument name="RequiredCount">3</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="Amount">2</Argument>
+	</Modifier>
+	<Modifier id="MA_EX_MOUNTAIN_UNLOCK" collection="COLLECTION_OWNER" effect="EFFECT_PLAYER_GRANT_CONSTRUCTIBLE_UNLOCK">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument>
+				<Argument name="RequiredCount">3</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<Argument name="ConstructibleType">IMPROVEMENT_INCA_MOUNTAIN</Argument>
+	</Modifier>
 	<!-- TIER 2 (Urban pop >= 14) -->
 	<Modifier id="MA_EX_T2_WORKER_CAP" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_WORKER_CAP">
 		<OwnerRequirements>
@@ -651,6 +750,84 @@
 		<Argument name="Amount">1</Argument><Argument name="Divisor">4</Argument>
 		<Argument name="Urban">true</Argument><Argument name="Rural">false</Argument>
 		<Argument name="Tooltip">LOC_MA_STAGE_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_EX_WONDER_HAPPY_ADJ_DL" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY">
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="ConstructibleAdjacency">MA_WonderHappiness</Argument>
+	</Modifier>
+	<Modifier id="MA_EX_APPEAL_YIELD_DL" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement inverse="true" type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS"><Argument name="DistrictClass">RURAL</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_HAS_APPEAL"><Argument name="UseAppealDoubleHappinessThreshold">true</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS, YIELD_SCIENCE, YIELD_FOOD</Argument>
+		<Argument name="Amount">2</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_EX_MOUNTAIN_YIELD_DL" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement inverse="true" type="REQUIREMENT_PLOT_IS_HOMELANDS"/>
+			<Requirement type="REQUIREMENT_PLOT_TERRAIN_TYPE_MATCHES"><Argument name="TerrainType">TERRAIN_MOUNTAIN</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLOT_DISTRICT_CLASS" inverse="true"><Argument name="DistrictClass">CITYCENTER, URBAN, WONDER</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS, YIELD_SCIENCE, YIELD_FOOD</Argument>
+		<Argument name="Amount">2</Argument>
+		<Argument name="Tooltip">LOC_MA_ARCADIA_PEAKS_DESCRIPTION</Argument>
+	</Modifier>
+	<Modifier id="MA_EX_MTN_ADJ_CUL_DL" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="ConstructibleAdjacency">MA_MtnCul2</Argument>
+	</Modifier>
+	<Modifier id="MA_EX_MTN_ADJ_GOLD_DL" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY">
+		<OwnerRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER"/>
+		</OwnerRequirements>
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_CITY_IS_CITY"/>
+			<Requirement type="REQUIREMENT_CITY_IS_DISTANT_LANDS"/>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument><Argument name="OnlyDistantlands">true</Argument>
+				<Argument name="RequiredCount">2</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="ConstructibleAdjacency">MA_MtnGold2</Argument>
 	</Modifier>
 	<!-- TIER 2 (Urban pop >= 14) - distant lands -->
 	<Modifier id="MA_EX_T2_WORKER_CAP_DL" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_WORKER_CAP">
@@ -1911,7 +2088,7 @@
 	     wrapper, which attaches every modifier below to each major player so they resolve their own
 	     collection + tech-node + pop + per-hemisphere anti-wide gates. -->
 	<Modifier id="MA_EX_ATTACH_ALL" collection="COLLECTION_MAJOR_PLAYERS" effect="EFFECT_ATTACH_MODIFIERS">
-		<Argument name="ModifierId">MA_EX_T1_WORKER_CAP, MA_EX_T1_SPECIALIST_UPKEEP, MA_EX_T1_HAPPINESS, MA_EX_T1_RESOURCE_CAP, MA_EX_STAGE_JOYOUS_SCIENCE, MA_EX_STAGE_ECSTATIC_SCIENCE, MA_EX_STAGE_JOYOUS_CULTURE, MA_EX_STAGE_ECSTATIC_CULTURE, MA_EX_T2_WORKER_CAP, MA_EX_T2_WONDERS_SOLO, MA_EX_T2_GREAT_WORKS, MA_EX_T2_RESOURCE_CAP, MA_EX_T2_TEMPLE_SLOTS, MA_EX_GW_CULTURE, MA_EX_T3_WORKER_CAP, MA_EX_T3_RESOURCE_CAP, MA_EX_T3_COLLECTION_SLOTS, MA_EX_TRADE_ROUTES, MA_EX_T3_SCIENCE_SOLO, MA_EX_T3_CULTURE_SOLO, MA_EX_T3_PRODUCTION_SOLO, MA_EX_T3_COMBAT_STRENGTH, MA_EX_UNDER_CAP_FOOD, MA_EX_UNDER_CAP_PRODUCTION, MA_EX_TRADE_RANGE_LAND, MA_EX_TRADE_RANGE_SEA, MA_EX_T1_WORKER_CAP_DL, MA_EX_T1_SPECIALIST_UPKEEP_DL, MA_EX_T1_HAPPINESS_DL, MA_EX_T1_RESOURCE_CAP_DL, MA_EX_STAGE_JOYOUS_SCIENCE_DL, MA_EX_STAGE_ECSTATIC_SCIENCE_DL, MA_EX_STAGE_JOYOUS_CULTURE_DL, MA_EX_STAGE_ECSTATIC_CULTURE_DL, MA_EX_T2_WORKER_CAP_DL, MA_EX_T2_WONDERS_SOLO_DL, MA_EX_T2_RESOURCE_CAP_DL, MA_EX_T2_TEMPLE_SLOTS_DL, MA_EX_GW_CULTURE_DL, MA_EX_T3_WORKER_CAP_DL, MA_EX_T3_RESOURCE_CAP_DL, MA_EX_T3_SCIENCE_SOLO_DL, MA_EX_T3_CULTURE_SOLO_DL, MA_EX_RESEED_SCIENCE, MA_EX_RESEED_CULTURE, MA_EX_SUZ_SCIENTIFIC, MA_EX_SUZ_CULTURAL, MA_EX_SUZ_MILITARISTIC, MA_EX_SUZ_ECONOMIC, MA_EX_SUZ_EXPANSIONIST, MA_EX_SUZ_DIPLOMATIC, MA_EX_SUZ_PRIMER, MA_EX_SUZ_RANGE_LAND, MA_EX_SUZ_RANGE_SEA, MA_EX_SUZ_RESOURCE_CAP, MA_EX_HUB_INFLUENCE, MA_EX_FORT_HEALTH, MA_EX_FORT_HEALING, MA_EX_FORT_GOLD, MA_EX_WAREHOUSE_FOOD, MA_EX_WAREHOUSE_PRODUCTION, MA_EX_WAREHOUSE_HAPPINESS, MA_EX_RELIGIOUS_HAPPINESS, MA_EX_RESORT_APPEAL, MA_EX_RESORT_NATURAL_WONDER, MA_EX_T1_ADJ_QUARTER_SCIENCE_SOLO, MA_EX_T1_ADJ_QUARTER_CULTURE_SOLO, MA_EX_T1_ADJ_WONDER_SCIENCE_SOLO, MA_EX_T1_ADJ_WONDER_CULTURE_SOLO, MA_EX_T1_ADJ_MOUNTAIN_CULTURE_SOLO, MA_EX_T1_ADJ_RESOURCE_SCIENCE_SOLO, MA_EX_T1_ADJ_NATURAL_WONDER_CULTURE_SOLO, MA_EX_T2_ADJ_QUARTER_SCIENCE_SOLO, MA_EX_T2_ADJ_QUARTER_CULTURE_SOLO, MA_EX_T2_ADJ_WONDER_SCIENCE_SOLO, MA_EX_T2_ADJ_WONDER_CULTURE_SOLO, MA_EX_T2_ADJ_MOUNTAIN_CULTURE_SOLO, MA_EX_T2_ADJ_RESOURCE_SCIENCE_SOLO, MA_EX_T2_ADJ_NATURAL_WONDER_CULTURE_SOLO, MA_EX_T3_ADJ_QUARTER_SCIENCE_SOLO, MA_EX_T3_ADJ_QUARTER_CULTURE_SOLO, MA_EX_T3_ADJ_WONDER_SCIENCE_SOLO, MA_EX_T3_ADJ_WONDER_CULTURE_SOLO, MA_EX_T3_ADJ_MOUNTAIN_CULTURE_SOLO, MA_EX_T3_ADJ_RESOURCE_SCIENCE_SOLO, MA_EX_T3_ADJ_NATURAL_WONDER_CULTURE_SOLO, MA_EX_T1_ADJ_QUARTER_SCIENCE_SOLO_DL, MA_EX_T1_ADJ_QUARTER_CULTURE_SOLO_DL, MA_EX_T1_ADJ_WONDER_SCIENCE_SOLO_DL, MA_EX_T1_ADJ_WONDER_CULTURE_SOLO_DL, MA_EX_T1_ADJ_MOUNTAIN_CULTURE_SOLO_DL, MA_EX_T1_ADJ_RESOURCE_SCIENCE_SOLO_DL, MA_EX_T1_ADJ_NATURAL_WONDER_CULTURE_SOLO_DL, MA_EX_T2_ADJ_QUARTER_SCIENCE_SOLO_DL, MA_EX_T2_ADJ_QUARTER_CULTURE_SOLO_DL, MA_EX_T2_ADJ_WONDER_SCIENCE_SOLO_DL, MA_EX_T2_ADJ_WONDER_CULTURE_SOLO_DL, MA_EX_T2_ADJ_MOUNTAIN_CULTURE_SOLO_DL, MA_EX_T2_ADJ_RESOURCE_SCIENCE_SOLO_DL, MA_EX_T2_ADJ_NATURAL_WONDER_CULTURE_SOLO_DL, MA_EX_T3_ADJ_QUARTER_SCIENCE_SOLO_DL, MA_EX_T3_ADJ_QUARTER_CULTURE_SOLO_DL, MA_EX_T3_ADJ_WONDER_SCIENCE_SOLO_DL, MA_EX_T3_ADJ_WONDER_CULTURE_SOLO_DL, MA_EX_T3_ADJ_MOUNTAIN_CULTURE_SOLO_DL, MA_EX_T3_ADJ_RESOURCE_SCIENCE_SOLO_DL, MA_EX_T3_ADJ_NATURAL_WONDER_CULTURE_SOLO_DL</Argument>
+		<Argument name="ModifierId">MA_EX_T1_WORKER_CAP, MA_EX_T1_SPECIALIST_UPKEEP, MA_EX_T1_HAPPINESS, MA_EX_T1_RESOURCE_CAP, MA_EX_STAGE_JOYOUS_SCIENCE, MA_EX_STAGE_ECSTATIC_SCIENCE, MA_EX_STAGE_JOYOUS_CULTURE, MA_EX_STAGE_ECSTATIC_CULTURE, MA_EX_WONDER_HAPPY_ADJ, MA_EX_APPEAL_YIELD, MA_EX_MOUNTAIN_YIELD, MA_EX_MTN_ADJ_CUL, MA_EX_MTN_ADJ_GOLD, MA_EX_WONDER_APPEAL, MA_EX_MOUNTAIN_UNLOCK, MA_EX_T2_WORKER_CAP, MA_EX_T2_WONDERS_SOLO, MA_EX_T2_GREAT_WORKS, MA_EX_T2_RESOURCE_CAP, MA_EX_T2_TEMPLE_SLOTS, MA_EX_GW_CULTURE, MA_EX_T3_WORKER_CAP, MA_EX_T3_RESOURCE_CAP, MA_EX_T3_COLLECTION_SLOTS, MA_EX_TRADE_ROUTES, MA_EX_T3_SCIENCE_SOLO, MA_EX_T3_CULTURE_SOLO, MA_EX_T3_PRODUCTION_SOLO, MA_EX_T3_COMBAT_STRENGTH, MA_EX_UNDER_CAP_FOOD, MA_EX_UNDER_CAP_PRODUCTION, MA_EX_TRADE_RANGE_LAND, MA_EX_TRADE_RANGE_SEA, MA_EX_T1_WORKER_CAP_DL, MA_EX_T1_SPECIALIST_UPKEEP_DL, MA_EX_T1_HAPPINESS_DL, MA_EX_T1_RESOURCE_CAP_DL, MA_EX_STAGE_JOYOUS_SCIENCE_DL, MA_EX_STAGE_ECSTATIC_SCIENCE_DL, MA_EX_STAGE_JOYOUS_CULTURE_DL, MA_EX_STAGE_ECSTATIC_CULTURE_DL, MA_EX_WONDER_HAPPY_ADJ_DL, MA_EX_APPEAL_YIELD_DL, MA_EX_MOUNTAIN_YIELD_DL, MA_EX_MTN_ADJ_CUL_DL, MA_EX_MTN_ADJ_GOLD_DL, MA_EX_T2_WORKER_CAP_DL, MA_EX_T2_WONDERS_SOLO_DL, MA_EX_T2_RESOURCE_CAP_DL, MA_EX_T2_TEMPLE_SLOTS_DL, MA_EX_GW_CULTURE_DL, MA_EX_T3_WORKER_CAP_DL, MA_EX_T3_RESOURCE_CAP_DL, MA_EX_T3_SCIENCE_SOLO_DL, MA_EX_T3_CULTURE_SOLO_DL, MA_EX_RESEED_SCIENCE, MA_EX_RESEED_CULTURE, MA_EX_SUZ_SCIENTIFIC, MA_EX_SUZ_CULTURAL, MA_EX_SUZ_MILITARISTIC, MA_EX_SUZ_ECONOMIC, MA_EX_SUZ_EXPANSIONIST, MA_EX_SUZ_DIPLOMATIC, MA_EX_SUZ_PRIMER, MA_EX_SUZ_RANGE_LAND, MA_EX_SUZ_RANGE_SEA, MA_EX_SUZ_RESOURCE_CAP, MA_EX_HUB_INFLUENCE, MA_EX_FORT_HEALTH, MA_EX_FORT_HEALING, MA_EX_FORT_GOLD, MA_EX_WAREHOUSE_FOOD, MA_EX_WAREHOUSE_PRODUCTION, MA_EX_WAREHOUSE_HAPPINESS, MA_EX_RELIGIOUS_HAPPINESS, MA_EX_RESORT_APPEAL, MA_EX_RESORT_NATURAL_WONDER, MA_EX_T1_ADJ_QUARTER_SCIENCE_SOLO, MA_EX_T1_ADJ_QUARTER_CULTURE_SOLO, MA_EX_T1_ADJ_WONDER_SCIENCE_SOLO, MA_EX_T1_ADJ_WONDER_CULTURE_SOLO, MA_EX_T1_ADJ_MOUNTAIN_CULTURE_SOLO, MA_EX_T1_ADJ_RESOURCE_SCIENCE_SOLO, MA_EX_T1_ADJ_NATURAL_WONDER_CULTURE_SOLO, MA_EX_T2_ADJ_QUARTER_SCIENCE_SOLO, MA_EX_T2_ADJ_QUARTER_CULTURE_SOLO, MA_EX_T2_ADJ_WONDER_SCIENCE_SOLO, MA_EX_T2_ADJ_WONDER_CULTURE_SOLO, MA_EX_T2_ADJ_MOUNTAIN_CULTURE_SOLO, MA_EX_T2_ADJ_RESOURCE_SCIENCE_SOLO, MA_EX_T2_ADJ_NATURAL_WONDER_CULTURE_SOLO, MA_EX_T3_ADJ_QUARTER_SCIENCE_SOLO, MA_EX_T3_ADJ_QUARTER_CULTURE_SOLO, MA_EX_T3_ADJ_WONDER_SCIENCE_SOLO, MA_EX_T3_ADJ_WONDER_CULTURE_SOLO, MA_EX_T3_ADJ_MOUNTAIN_CULTURE_SOLO, MA_EX_T3_ADJ_RESOURCE_SCIENCE_SOLO, MA_EX_T3_ADJ_NATURAL_WONDER_CULTURE_SOLO, MA_EX_T1_ADJ_QUARTER_SCIENCE_SOLO_DL, MA_EX_T1_ADJ_QUARTER_CULTURE_SOLO_DL, MA_EX_T1_ADJ_WONDER_SCIENCE_SOLO_DL, MA_EX_T1_ADJ_WONDER_CULTURE_SOLO_DL, MA_EX_T1_ADJ_MOUNTAIN_CULTURE_SOLO_DL, MA_EX_T1_ADJ_RESOURCE_SCIENCE_SOLO_DL, MA_EX_T1_ADJ_NATURAL_WONDER_CULTURE_SOLO_DL, MA_EX_T2_ADJ_QUARTER_SCIENCE_SOLO_DL, MA_EX_T2_ADJ_QUARTER_CULTURE_SOLO_DL, MA_EX_T2_ADJ_WONDER_SCIENCE_SOLO_DL, MA_EX_T2_ADJ_WONDER_CULTURE_SOLO_DL, MA_EX_T2_ADJ_MOUNTAIN_CULTURE_SOLO_DL, MA_EX_T2_ADJ_RESOURCE_SCIENCE_SOLO_DL, MA_EX_T2_ADJ_NATURAL_WONDER_CULTURE_SOLO_DL, MA_EX_T3_ADJ_QUARTER_SCIENCE_SOLO_DL, MA_EX_T3_ADJ_QUARTER_CULTURE_SOLO_DL, MA_EX_T3_ADJ_WONDER_SCIENCE_SOLO_DL, MA_EX_T3_ADJ_WONDER_CULTURE_SOLO_DL, MA_EX_T3_ADJ_MOUNTAIN_CULTURE_SOLO_DL, MA_EX_T3_ADJ_RESOURCE_SCIENCE_SOLO_DL, MA_EX_T3_ADJ_NATURAL_WONDER_CULTURE_SOLO_DL</Argument>
 	</Modifier>
 
 </GameEffects>
