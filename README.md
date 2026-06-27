@@ -81,6 +81,10 @@ from the config tables at the top of that script. Edit the config, then:
 It writes `data/*/modifiers.xml` + `traditions.xml` + the generated notes and bonus list, and self-validates
 the XML. Paths are derived from the script location — no setup required.
 
+## Roadmap
+
+Planned features and upcoming work are tracked as **[`enhancement` issues on GitHub](https://github.com/chrislittle/metropolis-ascendant/labels/enhancement)** — check there to see what's coming.
+
 ## Compatibility
 
 - Built and tested on Civilization VII **1.4.1**. No DLC required.
