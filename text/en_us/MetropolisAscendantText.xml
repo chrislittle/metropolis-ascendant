@@ -36,6 +36,27 @@
 		</Row>
 		<!-- Per-age, per-domain unlock notes (LOC_MA_<AQ|EX|MO>_NOTE_*) are GENERATED with live numbers into
 		     MetropolisAscendantNotes.generated.xml by tools/gen-ascendant.ps1 - do not add them here. -->
+		<!-- Victory-wonder recycle "Foundations" buildings (issue #1). The building/unlock/binding are GENERATED into
+		     data/modern/recycle.xml; these player-facing strings are hand-authored. NAME shows in the production list
+		     (Buildings section); DESCRIPTION/TOOLTIP show in the pop-out info panel. -->
+		<Row Tag="LOC_MA_RECLAIM_WORLDS_FAIR_NAME">
+			<Text>World's Fair Foundations</Text>
+		</Row>
+		<Row Tag="LOC_MA_RECLAIM_WORLDS_FAIR_DESCRIPTION">
+			<Text>Lay the groundwork for the World's Fair on a tile you have already built up. When this Building completes, that tile becomes the [B]World's Fair[/B] - so a packed metropolis can still raise its victory Wonder with no open tiles left. Build it over an obsolete earlier-Age district to reclaim that tile. Available only once you can already build the World's Fair (Cultural Hegemony mastery), and only while you remain a single dominant city. Costs the same as the Wonder; you also give up the Building it replaces.</Text>
+		</Row>
+		<Row Tag="LOC_MA_RECLAIM_WORLDS_FAIR_TOOLTIP">
+			<Text>Build this over an obsolete earlier-Age district to reclaim that tile; when it completes, the tile becomes the [B]World's Fair[/B]. For a tile-starved tall metropolis with no open space left for the victory Wonder. Costs the same as the Wonder, and you give up the Building it replaces. Available once you can build the World's Fair (Cultural Hegemony mastery) and while you remain a single dominant city. Don't build it if you already own the World's Fair — it won't convert.</Text>
+		</Row>
+		<Row Tag="LOC_MA_RECLAIM_MANHATTAN_NAME">
+			<Text>Manhattan Project Foundations</Text>
+		</Row>
+		<Row Tag="LOC_MA_RECLAIM_MANHATTAN_DESCRIPTION">
+			<Text>Lay the groundwork for the Manhattan Project on a tile you have already built up. When this Building completes, that tile becomes the [B]Manhattan Project[/B] - so a packed metropolis can still raise its victory Wonder with no open tiles left. Build it over an obsolete earlier-Age district to reclaim that tile. Available only once you can already build the Manhattan Project (Nuclear Fission), and only while you remain a single dominant city. Costs the same as the Wonder; you also give up the Building it replaces.</Text>
+		</Row>
+		<Row Tag="LOC_MA_RECLAIM_MANHATTAN_TOOLTIP">
+			<Text>Build this over an obsolete earlier-Age district to reclaim that tile; when it completes, the tile becomes the [B]Manhattan Project[/B]. For a tile-starved tall metropolis with no open space left for the victory Wonder. Costs the same as the Wonder, and you give up the Building it replaces. Available once you can build the Manhattan Project (Nuclear Fission) and while you remain a single dominant city. Don't build it if you already own the Manhattan Project — it won't convert.</Text>
+		</Row>
 		<Row Tag="LOC_MA_UNLOCK_NOTE">
 			<Text>Metropolis Ascendant unlocked. As your Urban [icon:YIELD_POPULATION] Population grows, a single tall city gains escalating bonuses tied to where you research them across the tech and culture trees: more Specialist slots, larger [icon:YIELD_SCIENCE] Science and [icon:YIELD_CULTURE] Culture adjacency, yields per Population, extra Great Work slots, faster Wonder production, and Suzerain bonuses that scale with the city-states you lead. Build Wonders to enrich the metropolis: adjacent Buildings gain [icon:YIELD_HAPPINESS] Happiness and your Wonders raise the Appeal of the surrounding land - and once you discover a Natural Wonder, [B]Arcadia[/B] awakens: every Breathtaking rural tile flourishes with [icon:YIELD_CULTURE] Culture, [icon:YIELD_PRODUCTION] Production, [icon:YIELD_HAPPINESS] Happiness, [icon:YIELD_SCIENCE] Science and [icon:YIELD_FOOD] Food, and you may terrace Mountains to work them for [icon:YIELD_PRODUCTION] Production, [icon:YIELD_SCIENCE] Science and [icon:YIELD_CULTURE] Culture. Bonuses fade as you add settlements (Towns included) and end at four.</Text>
 		</Row>

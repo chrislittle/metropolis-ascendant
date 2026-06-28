@@ -46,6 +46,10 @@ breadth-builders can't reach: a distinct option, not a checklist.
 - **Wonders & Arcadia.** Concentrate Wonders and natural beauty in one city — discover a Natural Wonder and your
   Breathtaking tiles, nearby mountains, terraced peaks and the surrounding waters all become productive (see the
   section above).
+- **Every victory stays open.** Going tall never walls off a win. When a packed metropolis has no open tile for a
+  Modern victory Wonder, raise its **Foundations** over an existing district and it completes into the World's Fair
+  or Manhattan Project in place — available only once you've earned that Wonder normally (Cultural Hegemony mastery /
+  Nuclear Fission), so it's pure tile relief, never a shortcut. All four victory paths stay reachable in a dense city.
 - **Strict tall rule.** Every scaling bonus is full at exactly one settlement per hemisphere and off at two or
   more (Towns included).
 

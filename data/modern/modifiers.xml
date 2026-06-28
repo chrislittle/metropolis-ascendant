@@ -2329,6 +2329,36 @@
 		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
 	</Modifier>
 
+	<!-- VICTORY-WONDER RECYCLE (issue #1): each MO 'Foundations' building (data/modern/recycle.xml) overbuilds an
+	     obsolete district; on completion its ConstructibleModifier below REPLACE-converts it into its victory Wonder
+	     on that tile. COLLECTION_OWNER + run-once, bound via <ConstructibleModifiers> (NOT the attach wrapper, so these
+	     are intentionally absent from MA_MO_ATTACH_ALL). Gated tall + not-already-owned; the building's unlock-node gate
+	     (recycle.xml) keeps it tile-relief, never a victory shortcut. -->
+	<Modifier id="MA_MO_RECLAIM_WORLDS_FAIR" collection="COLLECTION_OWNER" effect="EFFECT_PLAYER_REPLACE_CONSTRUCTIBLE" permanent="true" run-once="true">
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_CONSTRUCTIBLE" inverse="true"><Argument name="ConstructibleType">WONDER_WORLDS_FAIR</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument>
+				<Argument name="RequiredCount">3</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="Destroy">BUILDING_MA_WORLDS_FAIR_SITE</Argument>
+		<Argument name="Create">WONDER_WORLDS_FAIR</Argument>
+	</Modifier>
+	<Modifier id="MA_MO_RECLAIM_MANHATTAN" collection="COLLECTION_OWNER" effect="EFFECT_PLAYER_REPLACE_CONSTRUCTIBLE" permanent="true" run-once="true">
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_CONSTRUCTIBLE" inverse="true"><Argument name="ConstructibleType">WONDER_MANHATTAN_PROJECT</Argument></Requirement>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS" inverse="true">
+				<Argument name="OnlyCities">false</Argument><Argument name="OnlyTowns">false</Argument>
+				<Argument name="RequiredCount">3</Argument>
+				<Argument name="CountPerOwnSettlement">1</Argument><Argument name="CountPerConqueredSettlement">1</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="Destroy">BUILDING_MA_MANHATTAN_SITE</Argument>
+		<Argument name="Create">WONDER_MANHATTAN_PROJECT</Argument>
+	</Modifier>
+
 	<!-- DELIVERY WRAPPER: a COLLECTION_PLAYER_CITIES modifier bound directly via GameModifiers never
 	     attaches (game-level has no "the player" context). The base game wraps player bonuses in a
 	     COLLECTION_MAJOR_PLAYERS + EFFECT_ATTACH_MODIFIERS modifier; traditions.xml binds ONLY this

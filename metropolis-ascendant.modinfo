@@ -12,6 +12,7 @@
 [N]- Suzerain layer — bonuses scale with how many city-states you lead: reach, resources and influence without founding another city.
 [N]- Happiness pays off — keep the metropolis Joyous and it earns escalating Science and Culture per Urban Population (more while Ecstatic); specialists also cost less to maintain until the city is thriving.
 [N]- Wonders &amp; Arcadia — concentrate Wonders and natural beauty in one city, a strength a sprawling AI empire can't match. Wonders make adjacent Buildings happier and beautify the land; discover a Natural Wonder and Arcadia opens up — Breathtaking rural tiles, Buildings beside Mountains, and even terraced Mountain peaks all become productive (scaling each Age). Arcadia also embraces the waters — rivers, lakes, the open sea and reefs each yield by type, you can work the open ocean in Exploration, and coastal cities gain a flat yield floor, so a water-heavy or island map is never a dead end.
+[N]- Every victory stays open — if a packed metropolis has no open tile for a Modern victory Wonder, raise its Foundations over an existing district to complete it in place (only once you've earned the Wonder normally, never a shortcut), so all four victory paths stay reachable when you go tall.
 [N]- A strict tall rule — every scaling bonus is full at exactly one settlement per hemisphere, and off at two or more.
 [N]- Spans all three Ages: Antiquity, Exploration and Modern.
 [N][N]Every bonus is described on the tech or civic node that unlocks it (mastery bonuses appear on the node's Mastery panel), so you always know what you are building toward.
@@ -57,6 +58,16 @@
 					<Item>text/en_us/MetropolisAscendantText.xml</Item>
 					<Item>text/en_us/MetropolisAscendantNotes.generated.xml</Item>
 				</UpdateText>
+			</Actions>
+		</ActionGroup>
+
+		<!-- Icons for the victory-wonder "Foundations" buildings (issue #1). Icons load via UpdateIcons (the icon DB),
+		     globally (criteria="always") like the base game's art groups, not per-age. Reuses each target Wonder's blp icon. -->
+		<ActionGroup id="recycle-icons" scope="game" criteria="always">
+			<Actions>
+				<UpdateIcons>
+					<Item>data/icons/recycle-icons.xml</Item>
+				</UpdateIcons>
 			</Actions>
 		</ActionGroup>
 
@@ -130,6 +141,7 @@
 				<UpdateDatabase>
 					<Item>data/modern/modifiers.xml</Item>
 					<Item>data/modern/traditions.xml</Item>
+					<Item>data/modern/recycle.xml</Item>
 				</UpdateDatabase>
 			</Actions>
 		</ActionGroup>

@@ -313,6 +313,20 @@ $upkeepReliefMaxStage = 'HAPPINESS_STAGE_ECSTATIC'
 $ruleDomain = @{ QuarterScience='Science'; WonderScience='Science'; ResourceScience='Science';
                  QuarterCulture='Culture'; WonderCulture='Culture'; MountainCulture='Culture'; NaturalWonderCulture='Culture' }
 
+# VICTORY-WONDER RECYCLE (ROADMAP issue #1, 2026-06-28). MODERN-only "Foundations" BUILDINGs: a tall, packed
+# metropolis with no open tile can build one of these over an obsolete earlier-age district (buildings CAN overbuild
+# obsolete districts; wonders can't - that's the whole trick). On completion the building REPLACE-converts ITSELF
+# into the path's victory Wonder on that tile (1-step self-convert proven in-game 2026-06-28). The Foundations
+# building is defined in data/modern/recycle.xml; its convert Modifier (MA_MO_RECLAIM_<Loc>) lives in the MO
+# modifiers.xml and is bound via <ConstructibleModifiers> (NOT the attach wrapper). Gating keeps it tile-relief, never
+# a shortcut: (a) the building's UNLOCK node = the wonder's OWN unlock (so it only appears once you've earned the wonder
+# normally), (b) tall ($tallCap), (c) "don't already own the wonder" (no double-create). Cost = the wonder's own cost
+# (no discount; you also sacrifice a building -> only ever worth it when you have no open tile).
+$recycle = @(
+    @{ Loc='WORLDS_FAIR'; Building='BUILDING_MA_WORLDS_FAIR_SITE'; Wonder='WONDER_WORLDS_FAIR';      Node='NODE_CIVIC_MO_MAIN_HEGEMONY'; Depth=2; Cost=2100; Icon='blp:wondericon_worldsfair' }       # Culture: World's Fair, gated on Cultural Hegemony MASTERY (depth 2); reuses the wonder's icon
+    @{ Loc='MANHATTAN';   Building='BUILDING_MA_MANHATTAN_SITE';   Wonder='WONDER_MANHATTAN_PROJECT'; Node='NODE_TECH_MO_NUCLEAR_FISSION'; Depth=1; Cost=1800; Icon='blp:wondericon_manhattanproject' }   # Military: Manhattan Project, gated on Nuclear Fission (depth 1); reuses the wonder's icon
+)
+
 # Portable mod-root resolution (no hardcoded user paths). Works in BOTH layouts:
 #   - dev monorepo:   <repo>\tools\gen-ascendant.ps1  with the mod at <repo>\mods\<name>\
 #   - standalone repo: <repo>\tools\gen-ascendant.ps1  with the mod AT the repo root (<repo>\<name>.modinfo)
@@ -365,6 +379,17 @@ function BandGate($band, $hemiArg) {
         'COMPACT' { @((Settle 2 $false 'false' $hemiArg), (Settle 3 $true 'false' $hemiArg)) }
         'QUARTER' { @((Settle 3 $false 'false' $hemiArg), (Settle 4 $true 'false' $hemiArg)) }
     }
+}
+# Victory-wonder recycle (issue #1): the run-once REPLACE that turns a Foundations BUILDING into its victory Wonder.
+# COLLECTION_OWNER, bound to the building via <ConstructibleModifiers> (recycle.xml) so it fires on completion - NOT
+# in the attach wrapper. Gated tall ($tallCap) + "don't already own the wonder" (inverse REQUIREMENT_PLAYER_HAS_CONSTRUCTIBLE,
+# so it can never double-create). The building's UNLOCK node gate (recycle.xml) is what makes it tile-relief, not a shortcut.
+function M-Reclaim($r) {
+    $reqs  = "`t`t<SubjectRequirements>$NL"
+    $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_HAS_CONSTRUCTIBLE`" inverse=`"true`"><Argument name=`"ConstructibleType`">$($r.Wonder)</Argument></Requirement>$NL"
+    $reqs += (Settle $tallCap $true 'false' '') + $NL
+    $reqs += "`t`t</SubjectRequirements>$NL"
+    "`t<Modifier id=`"MA_MO_RECLAIM_$($r.Loc)`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_REPLACE_CONSTRUCTIBLE`" permanent=`"true`" run-once=`"true`">$NL$reqs`t`t<Argument name=`"Destroy`">$($r.Building)</Argument>$NL`t`t<Argument name=`"Create`">$($r.Wonder)</Argument>$NL`t</Modifier>"
 }
 
 # ---- modifier builders (each returns a full <Modifier>..</Modifier> at 1-tab indent) ----
@@ -1065,6 +1090,17 @@ foreach ($age in $ages) {
     }
     $out += ''
 
+    # ---- victory-wonder recycle convert modifiers (MODERN only; bound to the Foundations buildings in recycle.xml) ----
+    if ($age.Key -eq 'modern') {
+        $out += "`t<!-- VICTORY-WONDER RECYCLE (issue #1): each MO 'Foundations' building (data/modern/recycle.xml) overbuilds an"
+        $out += "`t     obsolete district; on completion its ConstructibleModifier below REPLACE-converts it into its victory Wonder"
+        $out += "`t     on that tile. COLLECTION_OWNER + run-once, bound via <ConstructibleModifiers> (NOT the attach wrapper, so these"
+        $out += "`t     are intentionally absent from MA_MO_ATTACH_ALL). Gated tall + not-already-owned; the building's unlock-node gate"
+        $out += "`t     (recycle.xml) keeps it tile-relief, never a victory shortcut. -->"
+        foreach ($r in $recycle) { $out += (M-Reclaim $r) }
+        $out += ''
+    }
+
     # ---- ATTACH_ALL delivery wrapper ----
     $out += "`t<!-- DELIVERY WRAPPER: a COLLECTION_PLAYER_CITIES modifier bound directly via GameModifiers never"
     $out += "`t     attaches (game-level has no `"the player`" context). The base game wraps player bonuses in a"
@@ -1112,6 +1148,59 @@ foreach ($age in $ages) {
     [xml](Get-Content -LiteralPath $trFile -Raw) | Out-Null   # validate or throw
     $rows = (Select-String -LiteralPath $trFile -Pattern '<Row ProgressionTreeNodeType=' -SimpleMatch).Count
     Write-Host "$($age.Key): traditions valid | $rows unlock rows"
+
+    # ---- GENERATED data/modern/recycle.xml (victory-wonder "Foundations" buildings + unlock rows + bindings) ----
+    # MODERN only. Defines each Foundations BUILDING and binds its convert Modifier (MA_MO_RECLAIM_*, emitted into
+    # modifiers.xml above, which loads first in the modern action group). Loaded by a <Item>data/modern/recycle.xml</Item>
+    # in the modinfo's modern ActionGroup (after modifiers.xml so the ConstructibleModifiers FK resolves).
+    if ($age.Key -eq 'modern') {
+        $rc = @('<?xml version="1.0" encoding="utf-8"?>')
+        $rc += '<!-- Metropolis Ascendant - victory-wonder recycle "Foundations" buildings. GENERATED by tools/gen-ascendant.ps1 -'
+        $rc += '     do not hand-edit (source of truth = the $recycle config). Each BUILDING overbuilds an obsolete district; its'
+        $rc += '     ConstructibleModifier (MA_MO_RECLAIM_*, in modifiers.xml) REPLACE-converts it into the victory Wonder on'
+        $rc += '     completion. Gated on the wonder''s own unlock node (TargetKind=KIND_CONSTRUCTIBLE below) + tall + not-owned. -->'
+        $rc += '<Database>'
+        $rc += "`t<Types>"
+        foreach ($r in $recycle) { $rc += "`t`t<Row Type=`"$($r.Building)`" Kind=`"KIND_CONSTRUCTIBLE`"/>" }
+        $rc += "`t</Types>"
+        $rc += "`t<Constructibles>"
+        foreach ($r in $recycle) { $rc += "`t`t<Row ConstructibleType=`"$($r.Building)`" Name=`"LOC_MA_RECLAIM_$($r.Loc)_NAME`" Description=`"LOC_MA_RECLAIM_$($r.Loc)_DESCRIPTION`" Tooltip=`"LOC_MA_RECLAIM_$($r.Loc)_TOOLTIP`" ConstructibleClass=`"BUILDING`" Cost=`"$($r.Cost)`" Population=`"0`" Age=`"AGE_MODERN`" RequiresUnlock=`"true`"/>" }
+        $rc += "`t</Constructibles>"
+        $rc += "`t<Buildings>"
+        foreach ($r in $recycle) { $rc += "`t`t<Row ConstructibleType=`"$($r.Building)`" Movable=`"false`"/>" }   # no Town attr = city-only
+        $rc += "`t</Buildings>"
+        $rc += "`t<Constructible_ValidDistricts>"
+        foreach ($r in $recycle) { $rc += "`t`t<Row ConstructibleType=`"$($r.Building)`" DistrictType=`"DISTRICT_URBAN`"/>" }   # overbuilds obsolete urban districts
+        $rc += "`t</Constructible_ValidDistricts>"
+        $rc += "`t<ProgressionTreeNodeUnlocks>"
+        foreach ($r in $recycle) { $rc += "`t`t<Row ProgressionTreeNodeType=`"$($r.Node)`" TargetKind=`"KIND_CONSTRUCTIBLE`" TargetType=`"$($r.Building)`" UnlockDepth=`"$($r.Depth)`"/>" }   # gated on the wonder's OWN unlock
+        $rc += "`t</ProgressionTreeNodeUnlocks>"
+        $rc += "`t<ConstructibleModifiers>"
+        foreach ($r in $recycle) { $rc += "`t`t<Row ConstructibleType=`"$($r.Building)`" ModifierId=`"MA_MO_RECLAIM_$($r.Loc)`"/>" }
+        $rc += "`t</ConstructibleModifiers>"
+        $rc += '</Database>'
+        $rcFile = Join-Path $root 'modern\recycle.xml'
+        Set-Content -LiteralPath $rcFile -Value (($rc -join $NL)) -NoNewline -Encoding UTF8
+        [xml](Get-Content -LiteralPath $rcFile -Raw) | Out-Null   # validate or throw
+        Write-Host "modern: recycle.xml valid | $($recycle.Count) Foundations buildings"
+
+        # Icons: map each Foundations building to its target Wonder's icon (so it reads as that Wonder in the build UI).
+        # Loaded via an <UpdateIcons> action group in the modinfo (NOT UpdateDatabase - icons use the icon DB).
+        $ic = @('<?xml version="1.0" encoding="utf-8"?>')
+        $ic += '<!-- Metropolis Ascendant - icons for the victory-wonder "Foundations" buildings. GENERATED by'
+        $ic += '     tools/gen-ascendant.ps1. Each reuses its target Wonder''s blp icon (no custom art). -->'
+        $ic += '<Database>'
+        $ic += "`t<IconDefinitions>"
+        foreach ($r in $recycle) { $ic += "`t`t<Row><ID>$($r.Building)</ID><Path>$($r.Icon)</Path></Row>" }
+        $ic += "`t</IconDefinitions>"
+        $ic += '</Database>'
+        $icDir = Join-Path $root 'icons'
+        if (-not (Test-Path $icDir)) { New-Item -ItemType Directory -Path $icDir | Out-Null }
+        $icFile = Join-Path $icDir 'recycle-icons.xml'
+        Set-Content -LiteralPath $icFile -Value (($ic -join $NL)) -NoNewline -Encoding UTF8
+        [xml](Get-Content -LiteralPath $icFile -Raw) | Out-Null   # validate or throw
+        Write-Host "modern: recycle-icons.xml valid | $($recycle.Count) icon rows"
+    }
 }
 
 # ---- GENERATED discoverability note TEXT (PER AGE, specific numbers, always in sync with the config) ----
