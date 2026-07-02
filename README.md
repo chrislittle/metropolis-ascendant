@@ -49,6 +49,9 @@ breadth-builders can't reach: a distinct option, not a checklist.
 - **Reach beyond your borders.** A small footprint shouldn't cost you resources. Build a **Surveyor** to claim a
   resource tile up to 5 tiles from your Settlements into your metropolis (spent after one claim), so one dense city
   can command resources a wide empire would spread across many.
+- **Raze what you can't hold.** A one-city empire can't keep conquests, so razing becomes a real tool: take a city by
+  force for a one-time burst of **Gold** and **Influence**, pillage its buildings for more, and raze it in a turn or
+  two instead of many. Tied to the tall playstyle — a conquer-and-keep empire gains none of it.
 - **Every victory stays open.** Going tall never walls off a win. When a packed metropolis has no open tile for a
   Modern victory Wonder, raise its **Foundations** over an existing district and it completes into the World's Fair
   or Manhattan Project in place — available only once you've earned that Wonder normally (Cultural Hegemony mastery /

@@ -284,6 +284,26 @@ $waterTypes = [ordered]@{
 # dial: it stacks on everything and a coast tile is common on normal maps, so keep it modest; lower if too generous.
 $waterFloorAmt = @{ AQ=2; EX=3; MO=4 }
 
+# RAZING LANE (issue #3). Player-wide, tall-gated. "Destroy what you can't hold" made viable for a one-city empire.
+# DESIGN (locked 2026-07-02 after in-game testing): every effect the player experiences is VISIBLE. Taking a city
+# by force pays an on-screen LUMP (Gold + Influence); sacking its buildings pays per-building pillage; razing is near-
+# instant. The old invisible ongoing bits were CUT: the -Influence offset (Item 1 - real but unseeable, and the base
+# capture dialog still hardcodes the "-N Influence" warning so the UX actively contradicted it), the tiny Sci/Cul
+# per-razed floor (Item 4), the ignore-capture-unrest (Item 7), and the war-cap (Item 6 - never applied + a non-problem).
+# The capture LUMP folds in Item 1's job VISIBLY: you see Influence jump when you take the city instead of an invisible
+# offset. Shape = Xerxes' MOD_GOLD/CULTURE_ON_CAPTURE_SETTLEMENT (proven): EFFECT_CITY_GRANT_YIELD on
+# COLLECTION_PLAYER_CITIES, permanent, gated REQUIREMENT_PLAYER_FIRST_TIME_SETTLEMENT_OCCUPATION (fires per capture).
+# Burn-tolerant tall gate (SOLO+1) since at the capture moment the just-taken city is your transient +1 settlement.
+# The yield-crater during the ~3-turn burn (SOLO bonus gate off while the burning city is your 2nd settlement) is
+# ACCEPTED and minimized by the maxed raze rate; zero-dip (an at-war OR-gate mod-wide) is PARKED - see docs/RAZING-PLAN.md.
+$razeCaptureGold     = 200 # one-time Gold LUMP per city captured by combat, ScaleByGameAge -> 200/400/600 (aligned to the 1.4.1 govt tiers)
+$razeCaptureInf      = 50  # one-time Influence LUMP per city captured by combat, ScaleByGameAge -> 50/100/150 (visibly softens razing's -Influence bleed)
+$razeRateBonus       = 999 # +raze rate (COLLECTION_PLAYER_CITIES). Deliberately past the point of diminishing returns to
+                           #   pin razing to its practical floor (in-game: pop-8 city 7->3 turns; smaller = faster). Harmless
+                           #   on non-razing cities. This keeps the over-allowance dip as short as the engine allows (~3 turns).
+$razePillageFlat     = 10  # +flat plunder per building your units pillage, per type (Gold + Science) - CONFIRMED in-game
+                           # (the +% all-plunder amp was REMOVED 2026-07-02 - never showed in the building-pillage preview; the flat per-building amp stands as the pillage reward)
+
 # HARD CUTOFF (2026-06-21): the per-hemisphere REWARD scaling is now BINARY, not geometric. Full bonus
 # at exactly 1 settlement in the hemisphere (the SOLO band), NOTHING at 2+. The mod's true intent is a strict
 # 1-Homeland + 1-Distant-Lands empire, so the old COMPACT (2-3 settlements -> half) / QUARTER (3-4 -> quarter)
@@ -792,6 +812,38 @@ function M-SuzerainDiplo($sfx,$shareBonus,$amt) {
 function M-Influence($sfx,$amt) {
     "`t<Modifier id=`"MA_${sfx}_SUZ_PRIMER`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_ADJUST_CONSTRUCTIBLE_YIELD`">$NL`t`t<SubjectRequirements>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_DIPLOMACY</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"ConstructibleType`">BUILDING_PALACE</Argument>$NL`t</Modifier>"
 }
+# ============================= RAZING LANE (issue #3) =============================
+# Player-wide, emitted once per FanOut age via the attach wrapper. Tall-gated so a wide conquer-and-keep empire
+# gains none of it. See docs/RAZING-PLAN.md. Everything the player experiences is VISIBLE (see config header).
+# TALL GATE: all three shipped effects run during the war/capture window (transiently +1 settlement), so all use
+# the BURN-TOLERANT gate (Settle $tallCap+1) - a wide empire (3+ founded/kept) is still excluded.
+# CAPTURE LUMP (folds in the old invisible Influence offset, VISIBLY): a one-time Gold + Influence burst per city
+# taken by combat. Exact clone of Xerxes' MOD_GOLD/CULTURE_ON_CAPTURE_SETTLEMENT (EFFECT_CITY_GRANT_YIELD on
+# COLLECTION_PLAYER_CITIES, permanent, gated REQUIREMENT_PLAYER_FIRST_TIME_SETTLEMENT_OCCUPATION -> fires per capture;
+# + REQUIREMENT_CITY_TRANSFER_TYPE_MATCHES BY_COMBAT so only forceful captures pay). ScaleByGameAge extra=100 scales
+# the base per Age (Gold 200 -> 200/400/600; Influence 50 -> 50/100/150). $yield = GOLD or DIPLOMACY.
+function M-RazeCapture($sfx,$yield,$amt) {
+    "`t<Modifier id=`"MA_${sfx}_RAZE_CAPTURE_$yield`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_GRANT_YIELD`" permanent=`"true`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_FIRST_TIME_SETTLEMENT_OCCUPATION`"/>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_TRANSFER_TYPE_MATCHES`"><Argument name=`"TransferType`">BY_COMBAT</Argument></Requirement>$NL$(Settle ($tallCap+1) $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_$yield</Argument>$NL`t`t<Argument name=`"Amount`" type=`"ScaleByGameAge`" extra=`"100`">$amt</Argument>$NL`t</Modifier>"
+}
+# Item 2: burn faster. The base game's only use (Qajar SOLTAN_MOD_RAIZING) is a UNIT-ABILITY modifier bound via
+# UnitAbilityModifiers -> ABILITY_SOLTAN (COLLECTION_UNIT_OCCUPIED_CITY, needs a garrisoned unit). Delivered via
+# OUR player attach wrapper that collection never resolves to a unit, so it silently did nothing (in-game confirmed
+# 2026-07-02: raze timer unchanged, unit on/off made no difference). FIX A: re-deliver as a plain city effect on
+# COLLECTION_PLAYER_CITIES (a settlement being razed is still one of your cities) - wrapper-deliverable, no garrison.
+# Burn-tolerant gate (SOLO+1) in SubjectRequirements since it runs during the 2-settlement burn window.
+# [TEST-WATCH: whether EFFECT_CITY_ADJUST_RAZE_RATE takes effect on COLLECTION_PLAYER_CITIES. If not -> Fix B: a
+# custom unit ability + grant chain (docs/RAZING-PLAN.md).]
+function M-RazeRate($sfx,$amt) {
+    "`t<Modifier id=`"MA_${sfx}_RAZE_RATE`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_RAZE_RATE`">$NL`t`t<SubjectRequirements>$NL$(Settle ($tallCap+1) $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t</Modifier>"
+}
+# Item 3a: +flat plunder per building your units pillage (COLLECTION_OWNER, per Sayyida EFFECT_ADD_PLAYER_UNITS_PILLAGE_BUILDING_PLUNDER).
+function M-RazePillageFlat($sfx,$plunder,$amt) {
+    "`t<Modifier id=`"MA_${sfx}_RAZE_PILLAGE_$plunder`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_ADD_PLAYER_UNITS_PILLAGE_BUILDING_PLUNDER`">$NL`t`t<SubjectRequirements>$NL$(Settle ($tallCap+1) $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"PlunderType`">$plunder</Argument>$NL`t</Modifier>"
+}
+# Items 3b / 6 / 1 / 4 / 7 all REMOVED 2026-07-02 (see config header): 3b (+% plunder, never showed) - 6 (war-cap,
+# never applied + non-problem) - 1 (Influence offset, invisible + contradicted by the base capture dialog) -
+# 4 (tiny Sci/Cul floor, invisible) - 7 (ignore capture unrest, minor + invisible). The VISIBLE capture LUMP replaces
+# the offset's job on-screen; pillage + fast burn stand.
 # TOWN-SPEC "TEMPLE" bucket (EX-only), internalized. The base Exploration Temple town specialization grants
 # +2 Great Work slots on BUILDING_TEMPLE to the connected city (SLOTS_ON_TEMPLES_IN_CITY_FROM_PROJECT,
 # EFFECT_CITY_ADJUST_GREAT_WORK_SLOTS, ConstructibleType=BUILDING_TEMPLE). We give the same to the metropolis,
@@ -1126,6 +1178,23 @@ foreach ($age in $ages) {
         $out += (M-SuzerainTradeRange $sfx 'DOMAIN_LAND' 'ECONOMIC' $suzTradeRangeAmt);    $wrapIds += "MA_${sfx}_SUZ_RANGE_LAND"
         $out += (M-SuzerainTradeRange $sfx 'DOMAIN_SEA' 'ECONOMIC' $suzTradeRangeAmt);     $wrapIds += "MA_${sfx}_SUZ_RANGE_SEA"
         $out += (M-SuzerainResourceCap $sfx $suzResCapAmt);                               $wrapIds += "MA_${sfx}_SUZ_RESOURCE_CAP"
+        $out += ''
+    }
+
+    # ---- RAZING LANE (issue #3; player-wide, emitted once) ----
+    # "Destroy what you can't hold" for a one-city empire, WITHOUT buffing wide conquest. All effects are VISIBLE:
+    # a one-time Gold + Influence LUMP per city taken by combat (folds in the old invisible Influence offset), the
+    # per-building pillage reward, and a near-instant burn. All burn-tolerant tall-gated; a wide conquer-and-keep
+    # empire is excluded. See M-Raze* + config header + docs/RAZING-PLAN.md.
+    if ($age.FanOut) {
+        $out += "`t<!-- RAZING (issue #3): make razing viable for a tall empire, all effects VISIBLE. Capture LUMP (Gold +"
+        $out += "`t     Influence per city taken by combat) + per-building pillage + near-instant burn. Burn-tolerant tall gate."
+        $out += "`t     (Cut as invisible/broken: Influence offset, Sci/Cul floor, ignore-unrest, war-cap, %plunder - see header.) -->"
+        $out += (M-RazeCapture $sfx 'GOLD' $razeCaptureGold);                $wrapIds += "MA_${sfx}_RAZE_CAPTURE_GOLD"
+        $out += (M-RazeCapture $sfx 'DIPLOMACY' $razeCaptureInf);            $wrapIds += "MA_${sfx}_RAZE_CAPTURE_DIPLOMACY"
+        $out += (M-RazeRate $sfx $razeRateBonus);                            $wrapIds += "MA_${sfx}_RAZE_RATE"
+        $out += (M-RazePillageFlat $sfx 'PLUNDER_GOLD' $razePillageFlat);    $wrapIds += "MA_${sfx}_RAZE_PILLAGE_PLUNDER_GOLD"
+        $out += (M-RazePillageFlat $sfx 'PLUNDER_SCIENCE' $razePillageFlat); $wrapIds += "MA_${sfx}_RAZE_PILLAGE_PLUNDER_SCIENCE"
         $out += ''
     }
 

@@ -34,6 +34,9 @@
 		<Row Tag="LOC_MA_ARCADIA_WATERS_DESCRIPTION">
 			<Text>Arcadia (the waters): once Arcadia awakens, the metropolis draws bounty from the surrounding water. Each worked water tile yields by type - Navigable Rivers give [icon:YIELD_FOOD] Food and [icon:YIELD_GOLD] Gold, Lakes give [icon:YIELD_FOOD] Food and [icon:YIELD_HAPPINESS] Happiness, the open sea gives [icon:YIELD_FOOD] Food, [icon:YIELD_GOLD] Gold and [icon:YIELD_SCIENCE] Science, Reefs give [icon:YIELD_SCIENCE] Science and [icon:YIELD_CULTURE] Culture, and water Natural Wonders give a large spike (more in later Ages). Buildings beside Coast gain [icon:YIELD_GOLD] Gold and beside a Navigable River gain [icon:YIELD_PRODUCTION] Production. In Exploration you may work the open ocean, and a coastal city gains a flat [icon:YIELD_FOOD] Food and [icon:YIELD_PRODUCTION] Production floor just for sitting on the sea - so even a single tile-starved island can feed a metropolis.</Text>
 		</Row>
+		<Row Tag="LOC_MA_RAZE_DESCRIPTION">
+			<Text>Raze what you can't hold: as a single dominant city you can't keep conquests, so razing is a real tool. Taking a city by force seizes its wealth - a one-time burst of [icon:YIELD_GOLD] Gold and [icon:YIELD_DIPLOMACY] Influence (larger in later Ages). Sack before you burn: pillaging a conquered city's buildings is more rewarding, and a large city is worth far more to plunder than a small town. Razing is near-instant, so a city you can't hold is gone in a turn or two. A sprawling conquer-and-keep empire gains none of this; razing still turns other leaders against you.</Text>
+		</Row>
 		<!-- Per-age, per-domain unlock notes (LOC_MA_<AQ|EX|MO>_NOTE_*) are GENERATED with live numbers into
 		     MetropolisAscendantNotes.generated.xml by tools/gen-ascendant.ps1 - do not add them here. -->
 		<!-- Victory-wonder recycle "Foundations" buildings (issue #1). The building/unlock/binding are GENERATED into
