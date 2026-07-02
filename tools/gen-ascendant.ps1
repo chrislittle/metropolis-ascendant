@@ -1722,6 +1722,22 @@ if ($fanAges) {
     $foundation = "Always on, no research needed: bonus Happiness and reduced specialist upkeep that grow with your city, plus +$suzPrimer Influence per turn to help you win your first city-states."
     $bb += @('', '[h2]Foundations[/h2]', $foundation)
     $md += @('', '## Foundations', '', $foundation)
+    # SURVEYOR (issue #12) - a buildable unit, not node-gated, so described here.
+    $surveyor = "A small footprint shouldn't cost you resources. Build a Surveyor in any Age to claim a resource tile up to 5 tiles from your Settlements into your metropolis - spent after a single claim, so one dense city can command resources a wide empire would spread across many. The resource keeps its normal yields; the power is the reach itself."
+    $bb += @('', '[h2]Tall Resource Reach - the Surveyor[/h2]', $surveyor)
+    $md += @('', '## Tall Resource Reach - the Surveyor', '', $surveyor)
+    # RAZING (issue #3) - player-wide, not node-gated, so described here. Numbers pull from the live config so they never drift.
+    $razeIntro = "A single dominant city can't keep the settlements it conquers, so razing becomes a real tool - tied to the tall playstyle, so a sprawling conquer-and-keep empire gains none of it."
+    $razeLines = @(
+      "Take a city by force: a one-time burst of +$razeCaptureGold / +$($razeCaptureGold*2) / +$($razeCaptureGold*3) (by Age) Gold and +$razeCaptureInf / +$($razeCaptureInf*2) / +$($razeCaptureInf*3) Influence the moment you capture it.",
+      "Sack before you burn: your units earn +$razePillageFlat Gold and +$razePillageFlat Science on top of the base plunder for each building they pillage - a large city is worth far more to sack than a small town.",
+      "Razing is near-instant - a city you can't hold is gone in a turn or two. While it burns it counts as a second settlement, so your tall bonuses briefly pause until it's razed (a short-term price for erasing a rival). Razing still turns other leaders against you."
+    )
+    $bb += @('', "[h2]Raze What You Can't Hold[/h2]", $razeIntro, '[list]')
+    foreach ($l in $razeLines) { $bb += "[*]$l" }
+    $bb += '[/list]'
+    $md += @('', "## Raze What You Can't Hold", '', "*$razeIntro*", '')
+    foreach ($l in $razeLines) { $md += "- $l" }
     $bbFile = Join-Path $modRoot 'docs\bonus-list.bbcode.txt'
     $mdFile = Join-Path $modRoot 'docs\bonus-list.md'
     Set-Content -LiteralPath $bbFile -Value (($bb -join $NL)) -NoNewline -Encoding UTF8

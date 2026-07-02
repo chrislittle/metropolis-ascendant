@@ -76,3 +76,15 @@ Every scaling bonus is at FULL strength with one settlement per hemisphere and O
 ## Foundations
 
 Always on, no research needed: bonus Happiness and reduced specialist upkeep that grow with your city, plus +3 Influence per turn to help you win your first city-states.
+
+## Tall Resource Reach - the Surveyor
+
+A small footprint shouldn't cost you resources. Build a Surveyor in any Age to claim a resource tile up to 5 tiles from your Settlements into your metropolis - spent after a single claim, so one dense city can command resources a wide empire would spread across many. The resource keeps its normal yields; the power is the reach itself.
+
+## Raze What You Can't Hold
+
+*A single dominant city can't keep the settlements it conquers, so razing becomes a real tool - tied to the tall playstyle, so a sprawling conquer-and-keep empire gains none of it.*
+
+- Take a city by force: a one-time burst of +200 / +400 / +600 (by Age) Gold and +50 / +100 / +150 Influence the moment you capture it.
+- Sack before you burn: your units earn +10 Gold and +10 Science on top of the base plunder for each building they pillage - a large city is worth far more to sack than a small town.
+- Razing is near-instant - a city you can't hold is gone in a turn or two. While it burns it counts as a second settlement, so your tall bonuses briefly pause until it's razed (a short-term price for erasing a rival). Razing still turns other leaders against you.
