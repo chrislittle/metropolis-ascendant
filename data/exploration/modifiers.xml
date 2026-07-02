@@ -1662,6 +1662,13 @@
 		<Argument name="Percent">50</Argument>
 	</Modifier>
 
+	<!-- SURVEYOR (issue #12): the CLAIM_RESOURCE charge-grant modifier (Antiquity + Exploration only - Modern's base
+	     game already binds it) is bound to ABILITY_CLAIM_RESOURCE via surveyor-bind.xml, NOT the attach wrapper. -->
+	<Modifier id="MA_EX_GRANT_CLAIM_CHARGE" collection="COLLECTION_OWNER" effect="EFFECT_GRANT_UNIT_ABILITY_CHARGE" permanent="true">
+		<Argument name="ChargedAbilityType">CHARGED_ABILITY_CLAIM_RESOURCE</Argument>
+		<Argument name="Amount">1</Argument>
+	</Modifier>
+
 	<!-- ADJACENCY REWARD: boost ALL 7 Science/Culture adjacency rules across the 3 pop tiers,
 	     HARD CUTOFF (full +1/+2/+3 at exactly 1 settlement in the hemisphere, nothing at 2+).
 	     On-design under 1.4.0: specialists pay out 100% of tile adjacency, so each point added here is

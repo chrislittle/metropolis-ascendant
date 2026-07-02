@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Metropolis Ascendant - Antiquity Surveyor bindings (issue #12). GENERATED - do not hand-edit.
+     Loads after modifiers.xml so the UnitAbilityModifiers FK to the charge-grant modifier resolves. -->
+<Database>
+	<UnitAbilityModifiers>
+		<Row UnitAbilityType="ABILITY_CLAIM_RESOURCE" ModifierId="MA_AQ_GRANT_CLAIM_CHARGE"/>
+	</UnitAbilityModifiers>
+</Database>

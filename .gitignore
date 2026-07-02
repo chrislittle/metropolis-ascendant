@@ -2,3 +2,8 @@
 .DS_Store
 Thumbs.db
 *.log
+# Locally-generated base-game data extractions (Firaxis content) - regenerate via tools/*.py; never commit/redistribute.
+references/effects-collections-catalog.md
+references/display-names.md
+references/progression-trees.md
+references/constructibles-catalog.md

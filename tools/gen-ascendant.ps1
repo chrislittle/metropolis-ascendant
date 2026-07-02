@@ -93,6 +93,8 @@ $ages = @(
          @{ Node='NODE_CIVIC_AQ_MAIN_MYSTICISM';      Key='CULTURE2' }
          @{ Node='NODE_CIVIC_AQ_MAIN_MYSTICISM';      Key='STAGE_CULTURE' }   # IDEA 1: happiness-stage Culture payoff
          @{ Node='NODE_TECH_AQ_CURRENCY';             Key='ECONOMIC' }
+         # (Surveyor note removed 2026-07-02: the unit has no unlock on Currency and no gated bonus - it's buildable from
+         #  turn 1 and self-documents in the build list, so a Currency-node note wrongly implied an unlock. See issue #12.)
          @{ Node='NODE_TECH_AQ_WHEEL';                Key='ECONOMIC2'}   # moved off Skilled Trades (col5) onto Wheel
          @{ Node='NODE_CIVIC_AQ_MAIN_CODE_OF_LAWS';   Key='TRADE'    }   # moved off Commerce (col6) onto Code of Laws (shares with Suzerain note)
          @{ Node='NODE_TECH_AQ_BRONZE_WORKING';       Key='MILITARY' }
@@ -134,6 +136,7 @@ $ages = @(
          @{ Node='NODE_CIVIC_EX_MAIN_PIETY';        Key='CULTURE2' }
          @{ Node='NODE_CIVIC_EX_MAIN_PIETY';        Key='STAGE_CULTURE' }   # IDEA 1: happiness-stage Culture payoff
          @{ Node='NODE_TECH_EX_GUILDS';             Key='ECONOMIC' }
+         # (Surveyor note removed 2026-07-02 - buildable from turn 1, no unlock/gated bonus; see issue #12.)
          @{ Node='NODE_CIVIC_EX_MAIN_MERCANTILISM'; Key='ECONOMIC2'}
          @{ Node='NODE_TECH_EX_CARTOGRAPHY';        Key='TRADE'    }
          @{ Node='NODE_TECH_EX_METALLURGY';         Key='MILITARY' }
@@ -175,6 +178,7 @@ $ages = @(
          @{ Node='NODE_CIVIC_MO_MAIN_NATURAL_HISTORY'; Key='CULTURE2' }
          @{ Node='NODE_CIVIC_MO_MAIN_NATURAL_HISTORY'; Key='STAGE_CULTURE' }   # IDEA 1: happiness-stage Culture payoff
          @{ Node='NODE_TECH_MO_ELECTRICITY';           Key='ECONOMIC' }
+         # (Surveyor note removed 2026-07-02 - buildable from turn 1, no unlock/gated bonus; see issue #12.)
          @{ Node='NODE_TECH_MO_ELECTRICITY';           Key='ECONOMIC2'}   # moved off Capitalism (col4) onto Electricity (consolidate resource cap)
          @{ Node='NODE_TECH_MO_COMBUSTION';            Key='TRADE'    }
          @{ Node='NODE_TECH_MO_MILITARY_SCIENCE';      Key='MILITARY' }   # moved off Mobilization (col4) onto Military Science (consolidate w/ Fort)
@@ -326,6 +330,64 @@ $recycle = @(
     @{ Loc='WORLDS_FAIR'; Building='BUILDING_MA_WORLDS_FAIR_SITE'; Wonder='WONDER_WORLDS_FAIR';      Node='NODE_CIVIC_MO_MAIN_HEGEMONY'; Depth=2; Cost=2100; Icon='blp:wondericon_worldsfair' }       # Culture: World's Fair, gated on Cultural Hegemony MASTERY (depth 2); reuses the wonder's icon
     @{ Loc='MANHATTAN';   Building='BUILDING_MA_MANHATTAN_SITE';   Wonder='WONDER_MANHATTAN_PROJECT'; Node='NODE_TECH_MO_NUCLEAR_FISSION'; Depth=1; Cost=1800; Icon='blp:wondericon_manhattanproject' }   # Military: Manhattan Project, gated on Nuclear Fission (depth 1); reuses the wonder's icon
 )
+
+# ================= TALL RESOURCE REACH - the SURVEYOR (ROADMAP issue #12, 2026-07-02) =================
+# A tall metropolis has a small footprint, so resources just out of reach stay out of reach. The Surveyor is a
+# dedicated civilian granted to the metropolis at population milestones (and also buildable) that carries the base
+# game's Prospector CLAIM_RESOURCE command: walk it to a resource tile within 5 hexes of a settlement and claim it
+# into your borders (native 5-hex reach, resources only - the empty bridge tiles stay unworkable at range 3, proven).
+# On top of each claimed resource's NORMAL benefit, the MA per-resource AMPLIFIER pays extra of THAT resource's OWN
+# characteristic yield (Flax->Science, Rubies->Gold, Rice->Food...), read data-driven from the base Resource_YieldChanges
+# table - so hoarding many resources in one city compounds. Full research + the proven claim wiring:
+# docs/SURVEYOR-RESOURCE-REACH-PLAN.md. The claim ability chain (ability type, UNIT_CLASS_PROSPECTOR tag, UnitAbilities/
+# UnitClass_Abilities/ChargedUnitAbilities + the charge-grant modifier) is MODERN-only in the base game, so it is
+# replicated into Antiquity + Exploration here; Modern needs only the unit tagged UNIT_CLASS_PROSPECTOR (proven).
+$surveyorAmplify  = @{ AQ=1; EX=1; MO=2 }     # UNUSED (Chris 2026-07-02): per-resource amplifier dropped - a claimed resource keeps
+                                               #   its base yields only (Arcadia Breathtaking/mountain/water already enrich tiles; no double-dip).
+                                               #   Kept for a possible future dial; M-ResourceReach + $resYields are retained but not emitted.
+$surveyorGrantTiers = @(1)                     # (unused while $surveyorGrantAges is empty) which pop tiers a granting Age would gift at.
+$surveyorGrantAges  = @()                      # NO FREE GRANT - the Surveyor is BUILDABLE-ONLY in every Age (Chris 2026-07-02). Reason:
+                                               #   the Surveyor self-consumes on claim (same command as the base Prospector, confirmed
+                                               #   in-game), so a milestone grant gated on "own fewer than 1" would re-grant a fresh free one
+                                               #   each time one is spent (unlimited), and a reliable "exactly once at pop 5" isn't achievable
+                                               #   (run-once doesn't fire deferred through the attach wrapper). Buildable-only sidesteps all of
+                                               #   that. To re-enable a grant, put an Age back here (e.g. @('AQ')) - M-GrantSurveyor still exists.
+$surveyorMoves    = 3                          # civilian movement (matches the base Prospector)
+$surveyorCost     = @{ AQ=30; EX=50; MO=70 }   # PRODUCTION cost when built (buildable is a 2nd source; also tall-gated)
+$surveyorCharges  = 1                          # CLAIMS PER SURVEYOR (Chris 2026-07-02, in-game: base Prospector ships 1 charge and self-
+                                               #   consumes on claim; keep that one-shot model). Each Surveyor claims $surveyorCharges resource,
+                                               #   then vanishes (same UNITCOMMAND_CLAIM_RESOURCE self-consume as the Prospector). Build another to expand.
+$surveyorRecharge = 999                        # charge recharge turns = 999 => NO regen (moot at 1 charge: the unit self-consumes before it could
+                                               #   recharge). One-shot by design; build more Surveyors to reach further.
+$surveyorOverrideModernRecharge = $false       # Modern's CHARGED_ABILITY_CLAIM_RESOURCE is SHARED with base America's Prospector, so leaving it
+                                               #   alone ($false) avoids changing America. Trade-off: a BUILT Modern Surveyor keeps the base 1-charge/
+                                               #   5-turn-recharge (reusable) rather than the AQ/EX 2-charges-capped. Set $true to force Modern to
+                                               #   $surveyorRecharge too (also changes AI America's Prospector). (Charge COUNT in MO stays base=1.)
+$surveyorUnit     = 'UNIT_MA_SURVEYOR'
+
+# Read each resource's characteristic yield from the installed base game (Resource_YieldChanges in resources.xml +
+# resources-v2.xml) so the per-resource amplifier auto-covers every resource (incl. future DLC) instead of a hand list.
+# This is the exact data the base per-resource modifiers (resources-gameeffects-v2.xml) key off. Deduped by resource+yield.
+$resYields = @()
+$__civ7 = if ($env:CIV7_ROOT -and (Test-Path $env:CIV7_ROOT)) { $env:CIV7_ROOT } else {
+    $__libs = @("C:\Program Files (x86)\Steam","C:\Program Files\Steam"); $__vdf = "C:\Program Files (x86)\Steam\steamapps\libraryfolders.vdf"
+    if (Test-Path $__vdf) { foreach ($__m in [regex]::Matches((Get-Content -LiteralPath $__vdf -Raw),'"path"\s*"([^"]+)"')) { $__libs += ($__m.Groups[1].Value -replace '\\\\','\') } }
+    $__found = $null; foreach ($__l in $__libs) { $__p = Join-Path $__l "steamapps\common\Sid Meier's Civilization VII"; if (Test-Path $__p) { $__found = $__p; break } }; $__found
+}
+if ($__civ7) {
+    $__seen = @{}
+    foreach ($__rf in @('Base\modules\base-standard\data\resources.xml','Base\modules\base-standard\data\resources-v2.xml')) {
+        $__pf = Join-Path $__civ7 $__rf
+        if (Test-Path $__pf) {
+            $__raw = Get-Content -LiteralPath $__pf -Raw
+            foreach ($__m in [regex]::Matches($__raw, 'ResourceType="(RESOURCE_[A-Z0-9_]+)"\s+YieldType="(YIELD_[A-Z]+)"\s+YieldChange="[0-9]+"')) {
+                $__k = "$($__m.Groups[1].Value)|$($__m.Groups[2].Value)"
+                if (-not $__seen[$__k]) { $__seen[$__k] = $true; $resYields += @{ Res=$__m.Groups[1].Value; Yield=$__m.Groups[2].Value } }
+            }
+        }
+    }
+}
+Write-Host "surveyor: resource-yield map = $($resYields.Count) resource/yield pairs$(if(-not $__civ7){' (INSTALL NOT FOUND - amplifier will be EMPTY; set CIV7_ROOT)'})"
 
 # Portable mod-root resolution (no hardcoded user paths). Works in BOTH layouts:
 #   - dev monorepo:   <repo>\tools\gen-ascendant.ps1  with the mod at <repo>\mods\<name>\
@@ -827,6 +889,46 @@ function M-SuzerainResourceCap($sfx,$amt) {
     "`t<Modifier id=`"MA_${sfx}_SUZ_RESOURCE_CAP`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_RESOURCE_CAP_PER_SUZERAIN`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t</Modifier>"
 }
 
+# ============================ TALL RESOURCE REACH - the SURVEYOR (issue #12) ============================
+# (1) MILESTONE GRANT: hand the metropolis a Surveyor as its Urban Pop crosses each tier threshold.
+#     CONTINUOUS + SELF-LIMITING, deliberately NOT run-once. Why: a run-once grant delivered through the attach
+#     wrapper evaluates at attach time (game start, pop < threshold) and does NOT re-fire when the pop requirement
+#     later becomes true (2026-07-02 in-game: nothing spawned at pop 5; there is also NO base precedent for a
+#     population-gated unit grant). The tier YIELD bonuses work at pop 5 because they are continuous (re-evaluated
+#     every turn) - so we make the grant continuous too, and cap it with a unit-count requirement instead of run-once:
+#     grant while (Urban Pop >= tier threshold) AND (player owns FEWER than $tier Surveyors). Tier1 tops up to 1,
+#     Tier2 to 2, Tier3 to 3 -> at most 3 from grants, EVER, no matter how often it evaluates (once you own 3, all
+#     three inverse-count gates are false). EFFECT_CITY_GRANT_UNIT (UnitType + Amount). Pop-gated + SOLO tall-gated;
+#     NOT node-gated (the unit has no unlock, so it's grantable/buildable from the start of the Age).
+function M-GrantSurveyor($sfx,$tier,$pop,$hemi,$dl) {
+    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
+    $gate = (BandGate 'SOLO' $h) -join $NL
+    $count = "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_HAS_AT_LEAST_NUM_UNIT_TYPE`" inverse=`"true`"><Argument name=`"UnitType`">$surveyorUnit</Argument><Argument name=`"Amount`">$tier</Argument><Argument name=`"CountReplacements`">false</Argument></Requirement>$NL"
+    "`t<Modifier id=`"MA_${sfx}_GRANT_SURVEYOR_T${tier}${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_GRANT_UNIT`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$count$hc$gate$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"UnitType`">$surveyorUnit</Argument>$NL`t`t<Argument name=`"Amount`">1</Argument>$NL`t</Modifier>"
+}
+# (2) CLAIM-CHARGE GRANT (Antiquity + Exploration ONLY - Modern's base game already binds this to ABILITY_CLAIM_
+#     RESOURCE via PROSPECTOR_MOD_GRANT_ABILITY_CHARGE, so re-adding it there would collide). Mirror of the base
+#     PROSPECTOR_MOD_GRANT_ABILITY_CHARGE: gives 1 charge of CHARGED_ABILITY_CLAIM_RESOURCE. Bound to the ability
+#     via the UnitAbilityModifiers row in surveyor-bind.xml - NOT the attach wrapper (so it is NOT in $wrapIds).
+function M-GrantClaimCharge($sfx) {
+    "`t<Modifier id=`"MA_${sfx}_GRANT_CLAIM_CHARGE`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_GRANT_UNIT_ABILITY_CHARGE`" permanent=`"true`">$NL`t`t<Argument name=`"ChargedAbilityType`">CHARGED_ABILITY_CLAIM_RESOURCE</Argument>$NL`t`t<Argument name=`"Amount`">$surveyorCharges</Argument>$NL`t</Modifier>"
+}
+# (3) PER-RESOURCE AMPLIFIER: on top of each resource's normal benefit, pay the metropolis extra of THAT resource's
+#     OWN characteristic yield, for every such resource it commands. One modifier per (resource,yield) pair, keyed off
+#     the base Resource_YieldChanges data ($resYields) so it covers all resources incl. DLC. EFFECT_CITY_ADJUST_YIELD_
+#     PER_RESOURCE (the base per-resource pattern, e.g. MOD_MANGOS_CITY_FLAT_CULTURE). COLLECTION_PLAYER_CITIES (pays in
+#     whichever city holds the resource - both hemispheres), gated on the resource lane node + SOLO tall. Returns the
+#     joined modifier XML; the caller collects each id into $wrapIds. Emitted ONCE per age (self-scopes per city).
+function M-ResourceReach($sfx,$node,$amt) {
+    $mods=@(); $ids=@()
+    foreach ($ry in $resYields) {
+        $rs = $ry.Res -replace '^RESOURCE_',''; $ys = $ry.Yield -replace '^YIELD_',''
+        $id = "MA_${sfx}_RREACH_${rs}_${ys}"; $ids += $id
+        $mods += "`t<Modifier id=`"$id`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD_PER_RESOURCE`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"YieldType`">$($ry.Yield)</Argument>$NL`t`t<Argument name=`"ResourceType`">$($ry.Res)</Argument>$NL`t`t<Argument name=`"PercentMultiplier`">false</Argument>$NL`t</Modifier>"
+    }
+    @{ Xml=($mods -join $NL); Ids=$ids }
+}
+
 foreach ($age in $ages) {
     $sfx=$age.Sfx; $node=$age.Node; $pops=$age.Pops; $N=$age.Nodes
     # Secondary-layer tall cap (Suzerain / town-spec / trade / hub / reseed): hard 1-per-hemisphere like the core.
@@ -965,6 +1067,14 @@ foreach ($age in $ages) {
                 $wrapIds += "MA_${sfx}_T3_${yname}_${band}${dl}"
             }
         }
+        # ---- SURVEYOR milestone grants (issue #12): one Surveyor at each Urban-Pop tier, run-once, per hemisphere ----
+        # AQ-only ($surveyorGrantAges): Antiquity hands them out free by tier; EX/MO are buildable-only (see config note).
+        if ($surveyorGrantAges -contains $sfx) {
+            $out += "`t<!-- SURVEYOR (issue #12): grant a resource-claiming Surveyor at each Urban-Pop tier (run-once, tall).$(if($dl){' Distant lands.'}) -->"
+            foreach ($t in $surveyorGrantTiers) {
+                $out += (M-GrantSurveyor $sfx $t $pops[$t-1] $hemi $dl); $wrapIds += "MA_${sfx}_GRANT_SURVEYOR_T${t}${dl}"
+            }
+        }
         # ---- FAN-OUT EXTRAS (Antiquity only; FanOut=$true). ----
         if ($age.FanOut -and $hemi -ne 'DL') {
             $out += "`t<!-- FAN-OUT: Military production-per-pop ($($N.Military)) + combat strength ($($N.MilitaryDeep));"
@@ -1066,6 +1176,18 @@ foreach ($age in $ages) {
         $out += ''
     }
 
+    # ---- SURVEYOR once-block (issue #12): claim-charge grant (AQ/EX only) ----
+    # NO per-resource amplifier (Chris 2026-07-02): a claimed resource keeps its normal base yields only. Arcadia's
+    # Breathtaking / mountain / water bonuses already enrich worked tiles, and stacking a per-resource amplifier on top
+    # would overpower a single tile. The Surveyor's tall-exclusive value is the REACH itself (pull ring-4/5 resources
+    # into the one metropolis), not extra yield. (M-ResourceReach + the $resYields reader are retained but unused.)
+    if ($age.FanOut) {
+        $out += "`t<!-- SURVEYOR (issue #12): the CLAIM_RESOURCE charge-grant modifier (Antiquity + Exploration only - Modern's base"
+        $out += "`t     game already binds it) is bound to ABILITY_CLAIM_RESOURCE via surveyor-bind.xml, NOT the attach wrapper. -->"
+        if ($sfx -ne 'MO') { $out += (M-GrantClaimCharge $sfx) }   # deliberately absent from $wrapIds (UnitAbility-bound)
+        $out += ''
+    }
+
     # ---- adjacency block (generated) ----
     $out += "`t<!-- ADJACENCY REWARD: boost ALL 7 Science/Culture adjacency rules across the 3 pop tiers,"
     $out += "`t     HARD CUTOFF (full +1/+2/+3 at exactly 1 settlement in the hemisphere, nothing at 2+)."
@@ -1149,6 +1271,150 @@ foreach ($age in $ages) {
     $rows = (Select-String -LiteralPath $trFile -Pattern '<Row ProgressionTreeNodeType=' -SimpleMatch).Count
     Write-Host "$($age.Key): traditions valid | $rows unlock rows"
 
+    # ---- GENERATED data/<age>/surveyor.xml (issue #12: the Surveyor unit + claim-ability plumbing + unlock) ----
+    # Loaded in the SHARED action group (LoadOrder 105, BEFORE modifiers.xml at 110) so the grant-unit + amplifier
+    # modifiers can reference UNIT_MA_SURVEYOR. The claim-ability chain (ABILITY_CLAIM_RESOURCE type, UNIT_CLASS_
+    # PROSPECTOR tag, UnitClass_Abilities/UnitAbilities/ChargedUnitAbilities) is Modern-only in the base game, so it
+    # is emitted for AQ/EX and OMITTED for MO (which already has it - re-adding would duplicate-insert and crash).
+    $isMO = ($age.Key -eq 'modern')
+    # 3D-model donor + flag icon for the Surveyor (no art of its own -> renders empty without a VisualRemap + icon).
+    # UNIFORM SCOUT across ALL ages (Chris 2026-07-02, forced by engine constraint): icons AND VisualRemaps register
+    # only from criteria="always" action groups (age-modern loads its own via always groups; our per-age groups showed
+    # a BLACK portrait in-game). A single-module mod therefore CANNOT differ the look per Age - one global look only.
+    # UNIT_SCOUT + blp:unitflag_scout live in base-standard (always loaded), so the Scout renders in every Age incl.
+    # Modern. (Prospector-in-Modern was the intent but its art is age-modern-only AND per-age groups don't register.)
+    # Donor = MIGRANT (Chris 2026-07-02): civilian model reads as a "surveyor" and stands out from the military Scouts you
+    # build early; its self-consuming charge also mirrors the Surveyor's one-shot claim. UNIT_MIGRANT is base-standard +
+    # CORE_CLASS_CIVILIAN so its 3D model + icons render in every Age (the live-render portrait needs a real model).
+    $surveyorDonor    = 'UNIT_MIGRANT'
+    $surveyorFlag     = 'blp:unitflag_immigrant'  # default-context row = map flag / small unit icon (Migrant's flag)
+    $surveyorPortrait = 'blp:fi_unit_migrant_64'  # FONTICON row = larger portrait in build/list panels
+    $su = @('<?xml version="1.0" encoding="utf-8"?>')
+    $su += "<!-- Metropolis Ascendant - $($age.AgeName) Surveyor (issue #12). GENERATED by tools/gen-ascendant.ps1 - do not hand-edit."
+    $su += '     The Surveyor is a civilian carrying the base Prospector CLAIM_RESOURCE command (tagged UNIT_CLASS_PROSPECTOR).'
+    if ($isMO) { $su += '     MODERN: only the unit + tag + unlock (base already defines the ability chain).' }
+    else       { $su += '     ANTIQUITY/EXPLORATION: also registers the claim-ability chain the base game only ships in Modern. -->' }
+    if ($isMO) { $su += '-->' }
+    $su += '<Database>'
+    $su += "`t<Types>"
+    $su += "`t`t<Row Type=`"$surveyorUnit`" Kind=`"KIND_UNIT`"/>"
+    if (-not $isMO) { $su += "`t`t<Row Type=`"ABILITY_CLAIM_RESOURCE`" Kind=`"KIND_ABILITY`"/>" }
+    $su += "`t</Types>"
+    if (-not $isMO) {
+        $su += "`t<Tags>"
+        $su += "`t`t<Row Tag=`"UNIT_CLASS_PROSPECTOR`" Category=`"UNIT_CLASS`"/>"
+        $su += "`t</Tags>"
+    }
+    $su += "`t<Units>"
+    $su += "`t`t<Row UnitType=`"$surveyorUnit`" Name=`"LOC_UNIT_MA_SURVEYOR_NAME`" Description=`"LOC_UNIT_MA_SURVEYOR_DESCRIPTION`" BaseSightRange=`"1`" BaseMoves=`"$surveyorMoves`" UnitMovementClass=`"UNIT_MOVEMENT_CLASS_FOOT`" Domain=`"DOMAIN_LAND`" CoreClass=`"CORE_CLASS_CIVILIAN`" FormationClass=`"FORMATION_CLASS_SUPPORT`" ZoneOfControl=`"false`" CostProgressionModel=`"COST_PROGRESSION_PREVIOUS_COPIES`" CostProgressionParam1=`"20`"/>"
+    $su += "`t</Units>"
+    $su += "`t<Unit_Costs>"
+    $su += "`t`t<Row UnitType=`"$surveyorUnit`" YieldType=`"YIELD_PRODUCTION`" Cost=`"$($surveyorCost[$sfx])`"/>"
+    $su += "`t</Unit_Costs>"
+    $su += "`t<TypeTags>"
+    $su += "`t`t<Row Type=`"$surveyorUnit`" Tag=`"UNIT_CLASS_PROSPECTOR`"/>"
+    $su += "`t</TypeTags>"
+    # (VISUAL: the Surveyor's VisualRemap is NOT here - VisualRemaps is not a gameplay-DB table, so it CANNOT load via
+    #  UpdateDatabase like this file ("no such table: VisualRemaps" crash). It is emitted to surveyor-visualremap.xml
+    #  below and loaded via a dedicated <UpdateVisualRemaps> action in the modinfo - see that file's generation.)
+    if (-not $isMO) {
+        $su += "`t<UnitClass_Abilities>"
+        $su += "`t`t<Row UnitAbilityType=`"ABILITY_CLAIM_RESOURCE`" UnitClassType=`"UNIT_CLASS_PROSPECTOR`"/>"
+        $su += "`t</UnitClass_Abilities>"
+        $su += "`t<UnitAbilities>"
+        $su += "`t`t<Row UnitAbilityType=`"ABILITY_CLAIM_RESOURCE`" Name=`"LOC_MA_SURVEYOR_CLAIM_NAME`" Description=`"LOC_MA_SURVEYOR_CLAIM_DESCRIPTION`"/>"
+        $su += "`t</UnitAbilities>"
+        $su += "`t<ChargedUnitAbilities>"
+        $su += "`t`t<Row UnitAbilityType=`"CHARGED_ABILITY_CLAIM_RESOURCE`" RechargeTurns=`"$surveyorRecharge`"/>"
+        $su += "`t</ChargedUnitAbilities>"
+    }
+    # NO ProgressionTreeNodeUnlocks: like the base Scout/Settler (which have no unlock row), a unit with no tech gate is
+    # BUILDABLE from the start of the Age - and, crucially, a locked unit can't be GRANTED, so gating it on Currency broke
+    # the Antiquity pop-milestone grants (2026-07-02 in-game: nothing spawned at pop 5, unit showed blocked by Currency).
+    # It carries no AI advisory hints, so the AI won't spam it; the tall-exclusive value is the AQ grants + the amplifier
+    # (both tall-gated). The per-resource amplifier still unlocks on the Economic node (a modifier gate, not a unit gate).
+    $su += '</Database>'
+    $suFile = Join-Path $root "$($age.Key)\surveyor.xml"
+    Set-Content -LiteralPath $suFile -Value (($su -join $NL)) -NoNewline -Encoding UTF8
+    [xml](Get-Content -LiteralPath $suFile -Raw) | Out-Null   # validate or throw
+    Write-Host "$($age.Key): surveyor.xml valid$(if($isMO){' (Modern: unit+tag+unlock only)'}else{' (AQ/EX: full ability chain)'})"
+
+    # ---- GENERATED data/surveyor-visualremap.xml (ONCE, GLOBAL - loaded via a dedicated <UpdateVisualRemaps> action in
+    #      the criteria="always" group, NOT UpdateDatabase - VisualRemaps is a separate visual-layer DB; UpdateDatabase
+    #      crashes "no such table: VisualRemaps"). GLOBAL (not per-age) because VisualRemaps register ONLY from always
+    #      groups (per-age groups don't register). Donor art = UNIT_SCOUT (base-standard, renders every Age).
+    #      🔑 DIRECTION (base REMAP_SCOUT_FOUNDER = From UNIT_SCOUT -> To UNIT_SCOUT_FOUNDER; PALACE -> PALACE_FOUNDER):
+    #      From = DONOR art (real unit whose model exists), To = the REQUESTED identity (our new unit). The selected-unit
+    #      PORTRAIT is a LIVE 3D render (unit-actions.js: WorldUI.requestPortrait + `live:/UNIT_MA_SURVEYOR`), so a
+    #      modelless unit shows a BLACK portrait + empty map model until this remap points our unit at the Scout art. -->
+    if ($age.Key -eq 'antiquity') {
+        $vr = @('<?xml version="1.0" encoding="utf-8"?>')
+        $vr += "<!-- Metropolis Ascendant - Surveyor visual remap (issue #12). GENERATED. Renders UNIT_MA_SURVEYOR using $surveyorDonor art in every Age. -->"
+        $vr += '<Database>'
+        $vr += "`t<VisualRemaps>"
+        $vr += "`t`t<Row>"
+        $vr += "`t`t`t<ID>REMAP_MA_SURVEYOR</ID>"
+        $vr += "`t`t`t<DisplayName>LOC_UNIT_MA_SURVEYOR_NAME</DisplayName>"
+        $vr += "`t`t`t<Kind>UNIT</Kind>"
+        $vr += "`t`t`t<From>$surveyorDonor</From>"
+        $vr += "`t`t`t<To>$surveyorUnit</To>"
+        $vr += "`t`t</Row>"
+        $vr += "`t</VisualRemaps>"
+        $vr += '</Database>'
+        $vrFile = Join-Path $root 'surveyor-visualremap.xml'
+        Set-Content -LiteralPath $vrFile -Value (($vr -join $NL)) -NoNewline -Encoding UTF8
+        [xml](Get-Content -LiteralPath $vrFile -Raw) | Out-Null   # validate or throw
+        Write-Host "surveyor-visualremap.xml valid (-> $surveyorDonor, global)"
+    }
+
+    # ---- GENERATED data/<age>/surveyor-bind.xml (loads at 110, AFTER modifiers.xml) ----
+    # AQ/EX: bind ABILITY_CLAIM_RESOURCE -> the charge-grant modifier (defined in modifiers.xml, this age group, above).
+    # MO: optionally force CHARGED_ABILITY_CLAIM_RESOURCE to one-shot to match AQ/EX (Update on the base row).
+    $sb = @('<?xml version="1.0" encoding="utf-8"?>')
+    $sb += "<!-- Metropolis Ascendant - $($age.AgeName) Surveyor bindings (issue #12). GENERATED - do not hand-edit."
+    $sb += '     Loads after modifiers.xml so the UnitAbilityModifiers FK to the charge-grant modifier resolves. -->'
+    $sb += '<Database>'
+    if (-not $isMO) {
+        $sb += "`t<UnitAbilityModifiers>"
+        $sb += "`t`t<Row UnitAbilityType=`"ABILITY_CLAIM_RESOURCE`" ModifierId=`"MA_${sfx}_GRANT_CLAIM_CHARGE`"/>"
+        $sb += "`t</UnitAbilityModifiers>"
+    } elseif ($surveyorOverrideModernRecharge) {
+        $sb += "`t<ChargedUnitAbilities>"
+        $sb += "`t`t<Update><Where UnitAbilityType=`"CHARGED_ABILITY_CLAIM_RESOURCE`"/><Set RechargeTurns=`"$surveyorRecharge`"/></Update>"
+        $sb += "`t</ChargedUnitAbilities>"
+    }
+    $sb += '</Database>'
+    $sbFile = Join-Path $root "$($age.Key)\surveyor-bind.xml"
+    Set-Content -LiteralPath $sbFile -Value (($sb -join $NL)) -NoNewline -Encoding UTF8
+    [xml](Get-Content -LiteralPath $sbFile -Raw) | Out-Null   # validate or throw
+    Write-Host "$($age.Key): surveyor-bind.xml valid"
+
+    # ---- GENERATED data/icons/surveyor-icons.xml (ONCE, GLOBAL - loaded via <UpdateIcons> in the criteria="always"
+    #      group, like recycle-icons). GLOBAL not per-age: the icon manager registers icons ONLY from always groups
+    #      (age-modern loads its own unit-icons via always groups; our per-age groups gave a BLACK portrait in-game).
+    #      One flag (blp:unitflag_scout, base-standard = every Age). The build-panel portrait uses this default-context
+    #      IconDefinitions row (the base Prospector shows fine with only its unitflag + no fonticon, proving that). -->
+    if ($age.Key -eq 'antiquity') {
+        # Two rows, mirroring the base Scout's FULL icon footprint (unit-icons.xml + text-icons.xml): the default-context
+        # row = the map/flag icon (blp:unitflag_scout); the FONTICON row = the larger PORTRAIT the selected-unit + build
+        # panels show (blp:fi_unit_scout_64). We only had the flag before -> the portrait square was BLACK. Both reuse
+        # base-standard Scout blps (present every Age). $surveyorFlag = unitflag_scout, $surveyorPortrait = fi_unit_scout_64.
+        $si = @('<?xml version="1.0" encoding="utf-8"?>')
+        $si += "<!-- Metropolis Ascendant - Surveyor icon (issue #12). GENERATED. Flag=$surveyorFlag, Portrait=$surveyorPortrait (Scout, every Age). -->"
+        $si += '<Database>'
+        $si += "`t<IconDefinitions>"
+        $si += "`t`t<Row><ID>$surveyorUnit</ID><Path>$surveyorFlag</Path></Row>"
+        $si += "`t`t<Row ID=`"$surveyorUnit`" Context=`"FONTICON`" IconSize=`"64`" Path=`"$surveyorPortrait`" />"
+        $si += "`t</IconDefinitions>"
+        $si += '</Database>'
+        $siDir = Join-Path $root 'icons'
+        if (-not (Test-Path $siDir)) { New-Item -ItemType Directory -Force -Path $siDir | Out-Null }
+        $siFile = Join-Path $siDir 'surveyor-icons.xml'
+        Set-Content -LiteralPath $siFile -Value (($si -join $NL)) -NoNewline -Encoding UTF8
+        [xml](Get-Content -LiteralPath $siFile -Raw) | Out-Null
+        Write-Host "surveyor-icons.xml valid ($surveyorFlag, global)"
+    }
+
     # ---- GENERATED data/modern/recycle.xml (victory-wonder "Foundations" buildings + unlock rows + bindings) ----
     # MODERN only. Defines each Foundations BUILDING and binds its convert Modifier (MA_MO_RECLAIM_*, emitted into
     # modifiers.xml above, which loads first in the modern action group). Loaded by a <Item>data/modern/recycle.xml</Item>
@@ -1225,6 +1491,7 @@ function Build-NoteText($a) {
       STAGE_SCIENCE = "While Joyous or happier: +1 [icon:YIELD_SCIENCE] Science per $stageJoyousDiv $upop, increasing further while Ecstatic."
       STAGE_CULTURE = "While Joyous or happier: +1 [icon:YIELD_CULTURE] Culture per $stageJoyousDiv $upop, increasing further while Ecstatic."
       ECONOMIC2= "+$rcC Resource capacity (T3; +$rcTot total)."
+      SURVEYOR = "Reach beyond your borders: build a [icon:YIELD_PRODUCTION] Surveyor to claim a resource up to 5 tiles from your Settlements, pulling it - with its normal yields - into your metropolis. Each Surveyor claims $surveyorCharges resource, then is spent; build more to gather resources a sprawling empire would need many cities to hold."
       TRADE    = "+$tr Trade Routes, +$trg Trade Route range (land and sea), and +[icon:YIELD_HAPPINESS] Happiness from Resources."
       MILITARY = "+1 [icon:YIELD_PRODUCTION] Production per $ppd $upop (T3)."
       MILITARY2= "+$ms Combat Strength in all combat."

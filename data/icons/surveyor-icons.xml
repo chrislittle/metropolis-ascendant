@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Metropolis Ascendant - Surveyor icon (issue #12). GENERATED. Flag=blp:unitflag_immigrant, Portrait=blp:fi_unit_migrant_64 (Scout, every Age). -->
+<Database>
+	<IconDefinitions>
+		<Row><ID>UNIT_MA_SURVEYOR</ID><Path>blp:unitflag_immigrant</Path></Row>
+		<Row ID="UNIT_MA_SURVEYOR" Context="FONTICON" IconSize="64" Path="blp:fi_unit_migrant_64" />
+	</IconDefinitions>
+</Database>

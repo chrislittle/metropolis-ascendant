@@ -46,6 +46,9 @@ breadth-builders can't reach: a distinct option, not a checklist.
 - **Wonders & Arcadia.** Concentrate Wonders and natural beauty in one city — discover a Natural Wonder and your
   Breathtaking tiles, nearby mountains, terraced peaks and the surrounding waters all become productive (see the
   section above).
+- **Reach beyond your borders.** A small footprint shouldn't cost you resources. Build a **Surveyor** to claim a
+  resource tile up to 5 tiles from your Settlements into your metropolis (spent after one claim), so one dense city
+  can command resources a wide empire would spread across many.
 - **Every victory stays open.** Going tall never walls off a win. When a packed metropolis has no open tile for a
   Modern victory Wonder, raise its **Foundations** over an existing district and it completes into the World's Fair
   or Manhattan Project in place — available only once you've earned that Wonder normally (Cultural Hegemony mastery /

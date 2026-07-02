@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Metropolis Ascendant - Surveyor visual remap (issue #12). GENERATED. Renders UNIT_MA_SURVEYOR using UNIT_MIGRANT art in every Age. -->
+<Database>
+	<VisualRemaps>
+		<Row>
+			<ID>REMAP_MA_SURVEYOR</ID>
+			<DisplayName>LOC_UNIT_MA_SURVEYOR_NAME</DisplayName>
+			<Kind>UNIT</Kind>
+			<From>UNIT_MIGRANT</From>
+			<To>UNIT_MA_SURVEYOR</To>
+		</Row>
+	</VisualRemaps>
+</Database>
