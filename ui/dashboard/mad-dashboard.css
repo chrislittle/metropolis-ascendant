@@ -1,0 +1,257 @@
+/* ma-bonus-dashboard — panel styling. Sizes in rem (game UI scales by root font). */
+
+.mad-frame {
+    width: 42rem;
+    max-height: 44rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.mad-title { font-size: 1.1rem; }
+.mad-subtitle {
+    font-size: 0.72rem;
+    letter-spacing: 0.15rem;
+    text-transform: uppercase;
+    opacity: 0.75;
+    margin-bottom: 0.35rem;
+}
+
+/* ---------------------------------------------------------------- vitals */
+.mad-vitals {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.3rem 1rem 0.5rem;
+    border-bottom: 0.0555555556rem solid rgba(255, 255, 255, 0.15);
+}
+.mad-status {
+    font-size: 0.95rem;
+    font-weight: bold;
+    letter-spacing: 0.12rem;
+}
+.mad-status.mad-ok  { color: #7fd98a; }
+.mad-status.mad-bad { color: #e8756a; }
+.mad-status-detail, .mad-pop, .mad-happy {
+    font-size: 0.72rem;
+    opacity: 0.85;
+    margin-top: 0.15rem;
+    text-align: center;
+}
+.mad-impact {
+    font-size: 0.78rem;
+    color: #ffd98f;
+    margin-top: 0.25rem;
+    text-align: center;
+}
+.mad-chip {
+    margin: 0.15rem 0 0.05rem 0.85rem;
+    font-size: 0.72rem;
+    color: #ffd98f;
+}
+.mad-static .mad-chip { margin-left: 0; }
+.mad-payout {
+    margin-top: 0.18rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    color: #ffd98f;
+}
+
+/* Suspended = the whole catalog dims; the vitals stay loud. */
+.mad-frame.mad-suspended .mad-lanes { opacity: 0.45; }
+
+/* --------------------------------------------------------------- filters */
+.mad-filters {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0.4rem 0.9rem;
+}
+.mad-filter {
+    position: relative;
+    padding: 0.15rem 0.9rem;
+    margin: 0 0.25rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+    border: 0.0555555556rem solid rgba(255, 255, 255, 0.25);
+    border-radius: 0.8rem;
+    opacity: 0.7;
+    pointer-events: auto;
+}
+.mad-filter:hover, .mad-filter:focus { opacity: 1; }
+.mad-filter.mad-filter-on {
+    opacity: 1;
+    border-color: rgba(255, 220, 150, 0.8);
+    background-color: rgba(255, 220, 150, 0.12);
+}
+.mad-counts {
+    margin-left: 0.8rem;
+    font-size: 0.72rem;
+    opacity: 0.7;
+}
+/* Expand all / Collapse all — right edge of the filter row, applies to the current view */
+.mad-tree-btn {
+    position: relative;
+    padding: 0.15rem 0.6rem;
+    margin: 0 0.15rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.06rem;
+    text-transform: uppercase;
+    border: 0.0555555556rem solid rgba(255, 255, 255, 0.25);
+    border-radius: 0.8rem;
+    opacity: 0.7;
+    pointer-events: auto;
+}
+.mad-tree-btn:hover, .mad-tree-btn:focus { opacity: 1; }
+
+/* Filtering is JS-driven (applyFilter): non-matching cards, static intros and
+   fully-empty lanes are hidden per view. */
+
+/* ---------------------------------------------------------------- lanes */
+.mad-scroll { flex: 1 1 auto; min-height: 0; }
+.mad-lanes { padding: 0.3rem 0.9rem 0.6rem; }
+
+.mad-lane { margin-bottom: 0.7rem; }
+.mad-lane-head {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    border-bottom: 0.0555555556rem solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 0.12rem;
+    pointer-events: auto;
+    cursor: pointer;
+}
+.mad-chevron {
+    width: 0.9rem;
+    font-size: 0.85rem;
+    color: #9a8f77;
+    text-align: center;
+    margin-right: 0.2rem;
+}
+.mad-spacer { flex: 1 1 auto; }
+.mad-lane-title {
+    font-size: 0.9rem;
+    font-weight: bold;
+    letter-spacing: 0.1rem;
+    text-transform: uppercase;
+}
+.mad-lane-pill {
+    margin-left: auto;
+    font-size: 0.68rem;
+    padding: 0.05rem 0.5rem;
+    border-radius: 0.7rem;
+    border: 0.0555555556rem solid rgba(255, 255, 255, 0.25);
+    opacity: 0.75;
+}
+.mad-lane-pill.mad-pill-lit {
+    color: #7fd98a;
+    border-color: rgba(127, 217, 138, 0.6);
+    opacity: 1;
+}
+.mad-lane-pill.mad-pill-paused {
+    color: #e0b45f;
+    border-color: rgba(224, 180, 95, 0.6);
+    opacity: 1;
+}
+
+/* static (non-node-gated) section intros */
+.mad-static { margin: 0.15rem 0 0.4rem; }
+/* ⚠ never use font-style:italic — the game fonts have no italic face and the
+   engine renders italic text INVISIBLE (base UI uses zero italics). */
+.mad-static-gate {
+    font-size: 0.72rem;
+    opacity: 0.8;
+    margin-bottom: 0.15rem;
+}
+.mad-static-gate.mad-static-on {
+    color: #7fd98a;
+    opacity: 0.95;
+}
+.mad-static-body {
+    font-size: 0.75rem;
+    line-height: 1.35;
+    opacity: 0.92;
+}
+
+/* ---------------------------------------------------------------- cards */
+.mad-card {
+    margin: 0.25rem 0;
+    padding: 0.3rem 0.5rem 0.35rem;
+    border: 0.0555555556rem solid rgba(255, 255, 255, 0.14);
+    border-radius: 0.2rem;
+    background-color: rgba(0, 0, 0, 0.25);
+}
+.mad-card.mad-active {
+    border-color: rgba(127, 217, 138, 0.45);
+    background-color: rgba(60, 110, 70, 0.18);
+}
+.mad-card.mad-locked { opacity: 0.62; }
+/* dormant = researched but not paying (e.g. Suzerain card with 0 city-states led) */
+.mad-card.mad-dormant {
+    border-color: rgba(224, 180, 95, 0.45);
+    background-color: rgba(110, 90, 40, 0.14);
+}
+.mad-card.mad-dormant .mad-dot { background-color: #e0b45f; }
+.mad-card.mad-dormant .mad-card-foot { color: #e0b45f; opacity: 0.85; }
+
+.mad-card-head {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.mad-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    margin-right: 0.4rem;
+    background-color: rgba(255, 255, 255, 0.35);
+}
+.mad-card.mad-active .mad-dot { background-color: #7fd98a; }
+.mad-card-title {
+    font-size: 0.82rem;
+    font-weight: bold;
+}
+.mad-card-kind {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08rem;
+    color: #9a8f77;
+    border: 0.0555555556rem solid rgba(255, 255, 255, 0.18);
+    border-radius: 0.6rem;
+    padding: 0.02rem 0.45rem;
+}
+.mad-locked-empty {
+    padding: 1.2rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #7fd98a;
+}
+
+.mad-card-body { margin: 0.15rem 0 0.15rem 0.85rem; }
+.mad-card-line {
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+.mad-card-line + .mad-card-line { margin-top: 0.1rem; }
+
+.mad-card-foot {
+    margin-left: 0.85rem;
+    font-size: 0.68rem;
+    opacity: 0.7;
+}
+.mad-card.mad-active .mad-card-foot { color: #7fd98a; opacity: 0.85; }
+
+/* ---------------------------------------------------------------- misc */
+.mad-empty {
+    padding: 1.2rem;
+    text-align: center;
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+.mad-draft-note {
+    padding: 0.2rem 0.9rem 0.45rem;
+    font-size: 0.62rem;
+    opacity: 0.5;
+    text-align: center;
+}

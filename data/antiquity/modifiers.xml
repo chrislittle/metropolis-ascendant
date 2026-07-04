@@ -119,6 +119,7 @@
 		</SubjectRequirements>
 		<Argument name="YieldType">YIELD_HAPPINESS</Argument>
 		<Argument name="Amount">10</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER1_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T1_RESOURCE_CAP" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_RESOURCE_CAP">
 		<OwnerRequirements>
@@ -495,6 +496,7 @@
 			</Requirement>
 		</SubjectRequirements>
 		<Argument name="Percent">20</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER2_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T2_GREAT_WORKS" collection="COLLECTION_PLAYER_CAPITAL_CITY" effect="EFFECT_CITY_ADJUST_GREAT_WORK_SLOTS">
 		<OwnerRequirements>
@@ -660,6 +662,7 @@
 		</SubjectRequirements>
 		<Argument name="Amount">2</Argument>
 		<Argument name="YieldType">YIELD_FOOD</Argument>
+		<Argument name="Tooltip">LOC_MA_UNDERCAP_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_UNDER_CAP_PRODUCTION" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_YIELD_PER_UNDER_SETTLEMENT_CAP">
 		<OwnerRequirements>
@@ -670,6 +673,7 @@
 		</SubjectRequirements>
 		<Argument name="Amount">2</Argument>
 		<Argument name="YieldType">YIELD_PRODUCTION</Argument>
+		<Argument name="Tooltip">LOC_MA_UNDERCAP_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_TRADE_RANGE_LAND" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_TRADE_ROUTE_RANGE">
 		<OwnerRequirements>
@@ -791,6 +795,7 @@
 		</SubjectRequirements>
 		<Argument name="YieldType">YIELD_DIPLOMACY</Argument>
 		<Argument name="Amount">2</Argument>
+		<Argument name="Tooltip">LOC_MA_AQ_NOTE_SUZERAIN</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_SUZ_PRIMER" collection="COLLECTION_OWNER" effect="EFFECT_PLAYER_ADJUST_CONSTRUCTIBLE_YIELD">
 		<SubjectRequirements>
@@ -856,7 +861,7 @@
 			</Requirement>
 		</SubjectRequirements>
 		<Argument name="YieldType">YIELD_GOLD</Argument>
-		<Argument name="Amount" type="ScaleByGameAge" extra="100">200</Argument>
+		<Argument name="Amount">200</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_RAZE_CAPTURE_DIPLOMACY" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_GRANT_YIELD" permanent="true">
 		<SubjectRequirements>
@@ -869,7 +874,7 @@
 			</Requirement>
 		</SubjectRequirements>
 		<Argument name="YieldType">YIELD_DIPLOMACY</Argument>
-		<Argument name="Amount" type="ScaleByGameAge" extra="100">50</Argument>
+		<Argument name="Amount">50</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_RAZE_RATE" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_RAZE_RATE">
 		<SubjectRequirements>
@@ -963,6 +968,7 @@
 		</SubjectRequirements>
 		<Argument name="YieldType">YIELD_GOLD</Argument>
 		<Argument name="Amount">1</Argument>
+		<Argument name="Tooltip">LOC_MA_AQ_NOTE_FORT</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_WAREHOUSE_FOOD" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_GRANT_WAREHOUSE_YIELD">
 		<OwnerRequirements>
@@ -977,6 +983,7 @@
 			</Requirement>
 		</SubjectRequirements>
 		<Argument name="WarehouseYieldChange">AQTownPastureFood, AQTownPlantationFood, AQTownDesertFloodplainFeatureFood, AQTownGrasslandFloodplainFeatureFood, AQTownPlainsFloodplainFeatureFood, AQTownTropicalFloodplainFeatureFood, AQTownTundraFloodplainFeatureFood, AQTownFlatTerrainFood, AQTownFishingBoatResourceFood, AQTownAtollFeatureFood, AQTownLotusFeatureFood, AQTownReefFeatureFood, AQTownColdReefFeatureFood, AQTownCoastTerrainFood, AQTownNavigableRiverFood</Argument>
+		<Argument name="Tooltip">LOC_MA_AQ_NOTE_FOODCAP</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_WAREHOUSE_PRODUCTION" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_GRANT_WAREHOUSE_YIELD">
 		<OwnerRequirements>
@@ -991,6 +998,7 @@
 			</Requirement>
 		</SubjectRequirements>
 		<Argument name="WarehouseYieldChange">AQTownClayPitResourceProduction, AQTownClayPitProduction, AQTownMineResourceProduction, AQTownQuarryProduction, AQTownRoughTerrainProduction, AQTownWoodcutterResourceProduction, AQTownCampProduction, AQTownVegetatedFeatureProduction</Argument>
+		<Argument name="Tooltip">LOC_MA_AQ_NOTE_PRODCAP</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_WAREHOUSE_HAPPINESS" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_GRANT_WAREHOUSE_YIELD">
 		<OwnerRequirements>
@@ -1005,6 +1013,7 @@
 			</Requirement>
 		</SubjectRequirements>
 		<Argument name="WarehouseYieldChange">AQHappinessProjectResourceHappiness</Argument>
+		<Argument name="Tooltip">LOC_MA_AQ_NOTE_TRADE</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_RESORT_APPEAL" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
 		<OwnerRequirements>
@@ -1020,6 +1029,7 @@
 		</SubjectRequirements>
 		<Argument name="YieldType">YIELD_GOLD, YIELD_HAPPINESS</Argument>
 		<Argument name="Amount">1</Argument>
+		<Argument name="Tooltip">LOC_MA_AQ_NOTE_RESORT</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_RESORT_NATURAL_WONDER" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
 		<OwnerRequirements>
@@ -1035,6 +1045,7 @@
 		</SubjectRequirements>
 		<Argument name="YieldType">YIELD_FOOD, YIELD_PRODUCTION, YIELD_GOLD, YIELD_SCIENCE, YIELD_CULTURE, YIELD_HAPPINESS, YIELD_DIPLOMACY</Argument>
 		<Argument name="Percent">50</Argument>
+		<Argument name="Tooltip">LOC_MA_AQ_NOTE_RESORT</Argument>
 	</Modifier>
 
 	<!-- SURVEYOR (issue #12): the CLAIM_RESOURCE charge-grant modifier (Antiquity + Exploration only - Modern's base
@@ -1064,7 +1075,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">QuarterScience</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER1_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T1_ADJ_QUARTER_CULTURE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">
 		<OwnerRequirements>
@@ -1081,7 +1092,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">QuarterCulture</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER1_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T1_ADJ_WONDER_SCIENCE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">
 		<OwnerRequirements>
@@ -1098,7 +1109,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">WonderScience</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER1_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T1_ADJ_WONDER_CULTURE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">
 		<OwnerRequirements>
@@ -1115,7 +1126,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">WonderCulture</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER1_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T1_ADJ_MOUNTAIN_CULTURE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">
 		<OwnerRequirements>
@@ -1132,7 +1143,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">MountainCulture</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER1_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T1_ADJ_RESOURCE_SCIENCE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">
 		<OwnerRequirements>
@@ -1149,7 +1160,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">ResourceScience</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER1_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T1_ADJ_NATURAL_WONDER_CULTURE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">
 		<OwnerRequirements>
@@ -1166,7 +1177,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">NaturalWonderCulture</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER1_DESCRIPTION</Argument>
 	</Modifier>
 	<!-- Adjacency tier 2 (pop >= 9) -->
 	<Modifier id="MA_AQ_T2_ADJ_QUARTER_SCIENCE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">
@@ -1184,7 +1195,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">QuarterScience</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER2_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T2_ADJ_QUARTER_CULTURE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">
 		<OwnerRequirements>
@@ -1201,7 +1212,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">QuarterCulture</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER2_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T2_ADJ_WONDER_SCIENCE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">
 		<OwnerRequirements>
@@ -1218,7 +1229,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">WonderScience</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER2_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T2_ADJ_WONDER_CULTURE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">
 		<OwnerRequirements>
@@ -1235,7 +1246,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">WonderCulture</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER2_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T2_ADJ_MOUNTAIN_CULTURE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">
 		<OwnerRequirements>
@@ -1252,7 +1263,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">MountainCulture</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER2_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T2_ADJ_RESOURCE_SCIENCE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">
 		<OwnerRequirements>
@@ -1269,7 +1280,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">ResourceScience</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER2_DESCRIPTION</Argument>
 	</Modifier>
 	<Modifier id="MA_AQ_T2_ADJ_NATURAL_WONDER_CULTURE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">
 		<OwnerRequirements>
@@ -1286,7 +1297,7 @@
 		</SubjectRequirements>
 		<Argument name="Adjacency_YieldChange">NaturalWonderCulture</Argument>
 		<Argument name="Amount">1</Argument><Argument name="Divisor">1</Argument>
-		<Argument name="Tooltip">LOC_MA_TIER3_DESCRIPTION</Argument>
+		<Argument name="Tooltip">LOC_MA_TIER2_DESCRIPTION</Argument>
 	</Modifier>
 	<!-- Adjacency tier 3 (pop >= 12) -->
 	<Modifier id="MA_AQ_T3_ADJ_QUARTER_SCIENCE_SOLO" collection="COLLECTION_PLAYER_CITIES" effect="EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT">

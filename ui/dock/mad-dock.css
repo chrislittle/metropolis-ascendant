@@ -1,0 +1,10 @@
+/* Custom dock-button icon: MA star-over-skyline emblem.
+   The base rule is `.ssb__button-icon.<modifierClass>` (2 classes) — this
+   descendant selector (3 classes) outranks it, so the modifierClass keeps
+   providing sizing/ring behavior while we swap only the art. */
+.ssb__button.tut-ma-dashboard .ssb__button-icon {
+    background-image: url("fs://game/metropolis-ascendant/ui/icons/mad-dock-icon.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}

@@ -8,27 +8,19 @@ extraordinary — a single, ever-denser metropolis that out-thinks, out-builds a
 times its size. A true tall overhaul: bonuses are at full strength only while you stay small, and switch off
 the moment you sprawl.
 
-## Wonders & Arcadia
+## The Bonus Dashboard
 
-Where a wide empire spreads its Wonders and natural beauty thin across dozens of cities, your one metropolis
-can **concentrate** them — a strength the AI never builds toward:
+Every Metropolis Ascendant bonus for the current Age in one read-only panel — press **F7** (remappable) or use
+its button in the sub-system dock:
 
-- **Wonders enrich the city around them.** Buildings next to a Wonder are happier, and your Wonders raise
-  the **Appeal** of the surrounding land.
-- **Discovering a Natural Wonder opens "Arcadia."** From then on, while you stay tall:
-  - Your **Breathtaking** rural tiles produce Culture, Production, Happiness, Science and Food.
-  - Your Buildings and Wonders draw Culture and Gold from nearby **Mountains**.
-  - **Mountains become workable** — terrace the peaks that used to wall your city in, and work them for the
-    full Arcadia bounty (no special civ required).
-  - **The waters pay too.** Navigable rivers, minor rivers, lakes, the open sea, reefs and water Natural
-    Wonders each yield by type; Buildings gain Gold by the Coast and Production by a Navigable River; in the
-    Exploration Age you can work the open ocean; and every coastal city gains a flat Food/Production floor — so
-    a water-heavy or island map is never a dead end for a tall city.
-- **It compounds where it's needed most.** Mountain and water yields grow richer each Age, so by the Modern era
-  two cities can hold their own against an empire of dozens.
-
-The AI has no reason to cradle one city among the peaks and pour Wonders into it — but you do. It's depth the
-breadth-builders can't reach: a distinct option, not a checklist.
+- **What's active, what's next.** Every bonus grouped by victory lane: lit when unlocked, grey with the tech or
+  civic that unlocks it when not — with All / Active / Locked views and collapsible lanes.
+- **Live figures.** A headline "Metropolis Ascendant right now" per-turn total plus per-bonus yield figures, read
+  from the game's own yield attribution (switch them off in *Options → Mods* for a plain catalog view).
+- **Vitals at a glance.** Your tall status — with a clear **SUSPENDED** banner if you go over the
+  one-per-hemisphere limit — plus Urban Population tier progress and your metropolis's happiness stage.
+- **Working sections.** The Surveyor section counts claimable resources within reach (4–5 hexes out), and the
+  Conquest section shows the current Age's real capture payouts.
 
 ## Key mechanics
 
@@ -43,9 +35,11 @@ breadth-builders can't reach: a distinct option, not a checklist.
 - **Happiness pays off.** A metropolis that runs happy compounds: while **Joyous** it earns escalating Science
   and Culture per Urban Population (more while **Ecstatic**), and specialists cost less to maintain until the
   city is thriving — turning the new staged-happiness system into a tall-exclusive strength.
-- **Wonders & Arcadia.** Concentrate Wonders and natural beauty in one city — discover a Natural Wonder and your
-  Breathtaking tiles, nearby mountains, terraced peaks and the surrounding waters all become productive (see the
-  section above).
+- **Wonders & Arcadia.** Concentrate Wonders and natural beauty in one city — a strength the AI never builds
+  toward. Buildings next to a Wonder are happier and Wonders raise the surrounding **Appeal**; discover a Natural
+  Wonder and Arcadia opens: your **Breathtaking** rural tiles, Buildings beside **Mountains** and even the peaks
+  themselves become productive, and the waters pay too — rivers, lakes, the open ocean, reefs and water Natural
+  Wonders each yield by type, growing richer each Age. A water-heavy or island map is never a dead end.
 - **Reach beyond your borders.** A small footprint shouldn't cost you resources. Build a **Surveyor** to claim a
   resource tile up to 5 tiles from your Settlements into your metropolis (spent after one claim), so one dense city
   can command resources a wide empire would spread across many.

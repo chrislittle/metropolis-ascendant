@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database>
+    <InputActions>
+        <Row ActionId="open-ma-dashboard" DeviceType="Keyboard" Name="LOC_MAD_HOTKEY_NAME" Description="LOC_MAD_HOTKEY_NAME"/>
+    </InputActions>
+    <InputContextConstraints>
+        <Row ActionId="open-ma-dashboard" ContextId="World"/>
+    </InputContextConstraints>
+    <InputActionDefaultGestures>
+        <Row ActionId="open-ma-dashboard" Index="0" GestureType="KBMouse" GestureData="KEY_F7"/>
+    </InputActionDefaultGestures>
+</Database>
