@@ -1,5 +1,21 @@
 <fxs-subsystem-frame class="mad-frame mad-show-all pointer-events-auto" tabindex="-1">
 	<div class="flex flex-col items-center" data-slot="header">
+		<div class="mad-logo" aria-label="Metropolis Ascendant">
+			<svg viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+				<g transform="translate(-150,62) scale(0.66)">
+					<path d="M500 60 L735 250 L690 250 L500 102 L310 250 L265 250 Z" fill="#caa03e" opacity="0.5"/>
+					<path d="M500 130 L660 260 L624 260 L500 160 L376 260 L340 260 Z" fill="#caa03e" opacity="0.5"/>
+					<g fill="#E7C062" stroke="#241704" stroke-width="4" stroke-linejoin="round">
+						<rect x="372" y="232" width="34" height="78"/><rect x="594" y="232" width="34" height="78"/>
+						<rect x="416" y="198" width="38" height="112"/><rect x="546" y="198" width="38" height="112"/>
+						<rect x="463" y="150" width="34" height="160"/><rect x="503" y="150" width="34" height="160"/>
+						<rect x="478" y="120" width="44" height="190"/><path d="M478 120 L500 70 L522 120 Z"/>
+					</g>
+					<path d="M500 36 L510 64 L539 64 L515 82 L524 110 L500 92 L476 110 L485 82 L461 64 L490 64 Z" fill="#E7C062" stroke="#241704" stroke-width="3" stroke-linejoin="round"/>
+					<rect x="320" y="312" width="360" height="10" rx="5" fill="#E7C062" stroke="#241704" stroke-width="3"/>
+				</g>
+			</svg>
+		</div>
 		<fxs-header class="mad-title tracking-100 justify-center flex" title="LOC_MAD_HEADER" data-slot="header"></fxs-header>
 		<div class="mad-subtitle" data-l10n-id="LOC_MAD_SUBHEADER"></div>
 	</div>
@@ -8,18 +24,29 @@
 	<div class="mad-vitals">
 		<div class="mad-status"></div>
 		<div class="mad-status-detail"></div>
+		<div class="mad-arcadia"></div>
 		<div class="mad-pop"></div>
 		<div class="mad-happy"></div>
+		<div class="mad-trade"></div>
 		<div class="mad-impact"></div>
 	</div>
 
+	<!-- Ascendancy per-branch progress bars -->
+	<div class="mad-progress"></div>
+
 	<!-- Filter row -->
 	<div class="mad-filters">
-		<fxs-activatable class="mad-filter mad-filter-all mad-filter-on"><span data-l10n-id="LOC_MAD_FILTER_ALL"></span></fxs-activatable>
-		<fxs-activatable class="mad-filter mad-filter-active"><span data-l10n-id="LOC_MAD_FILTER_ACTIVE"></span></fxs-activatable>
-		<fxs-activatable class="mad-filter mad-filter-locked"><span data-l10n-id="LOC_MAD_FILTER_LOCKED"></span></fxs-activatable>
+		<fxs-activatable class="mad-tab mad-tab-tree mad-tab-on"><span data-l10n-id="LOC_MAD_TAB_TREE"></span></fxs-activatable>
+		<fxs-activatable class="mad-tab mad-tab-branch"><span data-l10n-id="LOC_MAD_TAB_BRANCH"></span></fxs-activatable>
+		<fxs-activatable class="mad-tab mad-tab-triumph"><span data-l10n-id="LOC_MAD_TAB_TRIUMPH"></span></fxs-activatable>
+		<fxs-activatable class="mad-tab mad-tab-card"><span data-l10n-id="LOC_MAD_TAB_CARD"></span></fxs-activatable>
+		<fxs-activatable class="mad-tab mad-tab-core"><span data-l10n-id="LOC_MAD_TAB_CORE"></span></fxs-activatable>
+		<fxs-activatable class="mad-tab mad-tab-settle"><span data-l10n-id="LOC_MAD_TAB_SETTLE"></span></fxs-activatable>
+	</div>
+
+	<!-- Controls row (kept off the tab row so the tab set never wraps) -->
+	<div class="mad-controls">
 		<span class="mad-counts"></span>
-		<span class="mad-spacer"></span>
 		<fxs-activatable class="mad-tree-btn mad-expand-all"><span data-l10n-id="LOC_MAD_EXPAND_ALL"></span></fxs-activatable>
 		<fxs-activatable class="mad-tree-btn mad-collapse-all"><span data-l10n-id="LOC_MAD_COLLAPSE_ALL"></span></fxs-activatable>
 	</div>

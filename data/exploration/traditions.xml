@@ -9,22 +9,5 @@
 		<Row ModifierId="MA_EX_ATTACH_ALL"/>
 	</GameModifiers>
 	<ProgressionTreeNodeUnlocks>
-		<Row ProgressionTreeNodeType="NODE_TECH_EX_ASTRONOMY" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_SCIENCE" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_EX_ASTRONOMY" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_SCIENCE2" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_EX_ASTRONOMY" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_STAGE_SCIENCE" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_EX_CASTLES" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_CULTURE" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_EX_CASTLES" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_RESORT" UnlockDepth="2"/>
-		<Row ProgressionTreeNodeType="NODE_CIVIC_EX_MAIN_PIETY" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_CULTURE2" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_CIVIC_EX_MAIN_PIETY" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_STAGE_CULTURE" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_EX_GUILDS" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_ECONOMIC" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_CIVIC_EX_MAIN_MERCANTILISM" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_ECONOMIC2" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_EX_CARTOGRAPHY" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_TRADE" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_EX_METALLURGY" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_MILITARY" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_CIVIC_EX_MAIN_AUTHORITY" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_MILITARY2" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_EX_HERALDRY" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_FORT" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_EX_FEUDALISM" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_FOODCAP" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_EX_MACHINERY" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_PRODCAP" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_CIVIC_EX_BRANCH_THEOLOGY" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_RELIGION" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_CIVIC_EX_MAIN_DIPLOMATIC_SERVICE" TargetKind="KIND_MODIFIER" TargetType="MA_EX_NOTE_SUZERAIN" UnlockDepth="1"/>
 	</ProgressionTreeNodeUnlocks>
 </Database>

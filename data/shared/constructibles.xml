@@ -37,6 +37,22 @@
 		<Row ID="MA_RiverProd1" YieldType="YIELD_PRODUCTION" YieldChange="1" TilesRequired="1" ProjectMaxYield="true" AdjacentTerrain="TERRAIN_NAVIGABLE_RIVER"/>
 		<Row ID="MA_RiverProd2" YieldType="YIELD_PRODUCTION" YieldChange="2" TilesRequired="1" ProjectMaxYield="true" AdjacentTerrain="TERRAIN_NAVIGABLE_RIVER"/>
 		<Row ID="MA_RiverProd3" YieldType="YIELD_PRODUCTION" YieldChange="3" TilesRequired="1" ProjectMaxYield="true" AdjacentTerrain="TERRAIN_NAVIGABLE_RIVER"/>
+		<!-- A1 Frontier Food track (2026-07-14): FOOD-tagged buildings gain Food from an adjacent Mountain /
+		     Natural Wonder. Additive tiers - Homesteads activates the "2" rules, Fertile Valleys adds the "1"
+		     rules -> +3 cap. Inca IncaMountainFoodAdjacency pattern (ConstructibleTag="FOOD" scope, NOT the
+		     every-building wildcard, so it stays tall-safe and doesn't blanket every district). -->
+		<Row ID="MA_MtnFood2" YieldType="YIELD_FOOD" YieldChange="2" TilesRequired="1" ProjectMaxYield="true" AdjacentTerrain="TERRAIN_MOUNTAIN"/>
+		<Row ID="MA_MtnFood1" YieldType="YIELD_FOOD" YieldChange="1" TilesRequired="1" ProjectMaxYield="true" AdjacentTerrain="TERRAIN_MOUNTAIN"/>
+		<Row ID="MA_NWFood2"  YieldType="YIELD_FOOD" YieldChange="2" TilesRequired="1" AdjacentNaturalWonder="true"/>
+		<Row ID="MA_NWFood1"  YieldType="YIELD_FOOD" YieldChange="1" TilesRequired="1" AdjacentNaturalWonder="true"/>
+		<!-- Antiquity Fertile Valleys MASTERY (Chris 2026-07-14): the frontier's slopes also yield Production. -->
+		<Row ID="MA_MtnProd2" YieldType="YIELD_PRODUCTION" YieldChange="2" TilesRequired="1" ProjectMaxYield="true" AdjacentTerrain="TERRAIN_MOUNTAIN"/>
+		<Row ID="MA_NWProd2"  YieldType="YIELD_PRODUCTION" YieldChange="2" TilesRequired="1" AdjacentNaturalWonder="true"/>
+		<!-- The CUL-branch anchor package rows (MA_Anchor<Yield>#) do NOT live here: their
+		     AdjacentConstructible references are AGE-SPECIFIC (Amphitheater/Pavilion/Museum), and a
+		     FUTURE age's building fails FK validation in an earlier-age game -> LOAD CRASH (proven
+		     2026-07-21: "BUILDING_MUSEUM does not exist" killed an Exploration start). They are
+		     emitted per age by gen-ascendancy.ps1 into data/<age>/ascendancy-reqweights.xml. -->
 	</Adjacency_YieldChanges>
 	<Constructible_WildcardAdjacencies>
 		<Row YieldChangeId="MA_WonderHappiness" RequiresActivation="true" ConstructibleClass="BUILDING"/>
@@ -52,5 +68,14 @@
 		<Row YieldChangeId="MA_RiverProd1" RequiresActivation="true"/>
 		<Row YieldChangeId="MA_RiverProd2" RequiresActivation="true"/>
 		<Row YieldChangeId="MA_RiverProd3" RequiresActivation="true"/>
+		<!-- A1 Frontier Food (un-parked 2026-07-14 after the litmus proved the activate mechanism is
+		     single-count): FOOD-tag WILDCARD scope (Inca pattern) - covers every food building across all
+		     ages, no per-building age-scope FK crash. Activated on the Ascendancy Expansion nodes. -->
+		<Row YieldChangeId="MA_MtnFood2" RequiresActivation="true" ConstructibleTag="FOOD"/>
+		<Row YieldChangeId="MA_MtnFood1" RequiresActivation="true" ConstructibleTag="FOOD"/>
+		<Row YieldChangeId="MA_NWFood2"  RequiresActivation="true" ConstructibleTag="FOOD"/>
+		<Row YieldChangeId="MA_NWFood1"  RequiresActivation="true" ConstructibleTag="FOOD"/>
+		<Row YieldChangeId="MA_MtnProd2" RequiresActivation="true" ConstructibleTag="FOOD"/>
+		<Row YieldChangeId="MA_NWProd2"  RequiresActivation="true" ConstructibleTag="FOOD"/>
 	</Constructible_WildcardAdjacencies>
 </Database>

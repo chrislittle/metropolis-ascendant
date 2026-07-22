@@ -10,6 +10,26 @@
 import ContextManager from '/core/ui/context-manager/context-manager.js';
 import { InterfaceMode } from '/core/ui/interface-modes/interface-modes.js';
 import MadSettings from 'fs://game/metropolis-ascendant/ui/options/mad-options.js';
+import { MAD_EMBLEM_SVG } from 'fs://game/metropolis-ascendant/ui/cards/mad-card-brand.js';
+
+// Swap the dock button's icon for the inline-SVG emblem (always on — the classic PNG stays only as a
+// fallback in mad-dock.css if this decorator ever fails to run). Retries a few frames because the button
+// DOM lands a tick after addButton().
+function applyDockEmblem(panel, tries = 6) {
+    try {
+        const root = panel?.Root ?? document;
+        const icon = root.querySelector?.('.tut-ma-dashboard .ssb__button-icon')
+            ?? document.querySelector('.tut-ma-dashboard .ssb__button-icon');
+        if (icon) {
+            if (!icon.querySelector('.mad-emblem')) {
+                icon.classList.add('mad-dock-emblem');
+                icon.insertAdjacentHTML('beforeend', MAD_EMBLEM_SVG);
+            }
+            return;
+        }
+        if (tries > 0) requestAnimationFrame(() => applyDockEmblem(panel, tries - 1));
+    } catch (e) { /* cosmetic only */ }
+}
 
 Controls.loadStyle('fs://game/metropolis-ascendant/ui/dock/mad-dock.css');
 
@@ -60,6 +80,7 @@ class MadSubsystemDockDecorator {
             audio: 'unlocks',
             focusedAudio: 'data-audio-focus-small'
         });
+        applyDockEmblem(this._panel);
     }
 
     beforeDetach() {

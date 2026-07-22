@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Metropolis Ascendant - Surveyor icon (issue #12). GENERATED. Flag=blp:unitflag_immigrant, Portrait=blp:fi_unit_migrant_64 (Scout, every Age). -->
+<!-- Metropolis Ascendant - Surveyor icon (issue #12). GENERATED. Custom compass-rose glyph (ui/icons/, ImportFiles both scopes):
+     Flag=fs://game/metropolis-ascendant/ui/icons/surveyor-flag.png, Portrait=fs://game/metropolis-ascendant/ui/icons/surveyor-portrait.png. -->
 <Database>
 	<IconDefinitions>
-		<Row><ID>UNIT_MA_SURVEYOR</ID><Path>blp:unitflag_immigrant</Path></Row>
-		<Row ID="UNIT_MA_SURVEYOR" Context="FONTICON" IconSize="64" Path="blp:fi_unit_migrant_64" />
+		<Row><ID>UNIT_MA_SURVEYOR</ID><Path>fs://game/metropolis-ascendant/ui/icons/surveyor-flag.png</Path></Row>
+		<Row ID="UNIT_MA_SURVEYOR" Context="FONTICON" IconSize="64" Path="fs://game/metropolis-ascendant/ui/icons/surveyor-portrait.png" />
 	</IconDefinitions>
 </Database>

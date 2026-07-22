@@ -8,3 +8,16 @@
     background-repeat: no-repeat;
     background-position: center;
 }
+
+/* The dock decorator always adds .mad-dock-emblem + injects the inline-SVG logo, so we hide the PNG
+   above (kept only as a fallback if the decorator ever fails) and let the crisp vector fill the button. */
+.ssb__button.tut-ma-dashboard .ssb__button-icon.mad-dock-emblem {
+    background-image: none;
+    position: relative;
+}
+.ssb__button.tut-ma-dashboard .ssb__button-icon.mad-dock-emblem .mad-emblem {
+    position: absolute;
+    left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 86%; height: 86%;
+    display: block;
+}

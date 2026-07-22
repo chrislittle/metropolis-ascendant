@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Metropolis Ascendant - custom Antiquity pantheon "Goddess of the Plantation" (+1 Culture on
+     Plantations in Settlements with an Altar). Native shape, verified via gen2-pantheon-litmus
+     2026-07-15: belief auto-lists in the data-driven pantheon chooser, no acquisition wiring. -->
+<Database>
+	<Types>
+		<Row Type="PANTHEON_MA_PLANTATION" Kind="KIND_BELIEF"/>
+		<Row Type="PANTHEON_MA_BEASTS" Kind="KIND_BELIEF"/>
+	</Types>
+	<Beliefs>
+		<Row BeliefType="PANTHEON_MA_PLANTATION"
+		     Name="LOC_PANTHEON_MA_PLANTATION_NAME"
+		     Description="LOC_PANTHEON_MA_PLANTATION_DESCRIPTION"
+		     BeliefClassType="BELIEF_CLASS_PANTHEON" AISelectionBin="2"/>
+		<!-- Mistress of the Beasts: +1 Happiness on Pastures AND Camps (all animal resources). -->
+		<Row BeliefType="PANTHEON_MA_BEASTS"
+		     Name="LOC_PANTHEON_MA_BEASTS_NAME"
+		     Description="LOC_PANTHEON_MA_BEASTS_DESCRIPTION"
+		     BeliefClassType="BELIEF_CLASS_PANTHEON" AISelectionBin="2"/>
+	</Beliefs>
+	<BeliefModifiers>
+		<Row BeliefType="PANTHEON_MA_PLANTATION" ModifierID="MOD_MA_PLANTATION_CULTURE"/>
+		<!-- Two modifiers so the +1 Happiness lands on either improvement (a plot has one or the other). -->
+		<Row BeliefType="PANTHEON_MA_BEASTS" ModifierID="MOD_MA_BEASTS_PASTURE"/>
+		<Row BeliefType="PANTHEON_MA_BEASTS" ModifierID="MOD_MA_BEASTS_CAMP"/>
+	</BeliefModifiers>
+</Database>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database>
+	<EnglishText>
+		<Row Tag="LOC_PANTHEON_MA_PLANTATION_NAME">
+			<Text>Goddess of the Plantation</Text>
+		</Row>
+		<Row Tag="LOC_PANTHEON_MA_PLANTATION_DESCRIPTION">
+			<Text>+1 [icon:YIELD_CULTURE] Culture on Plantations in [TIP:LOC_PEDIA_CONCEPTS_SETTLEMENT_TOOLTIP]Settlements[/TIP] with an Altar.</Text>
+		</Row>
+		<Row Tag="LOC_PANTHEON_MA_BEASTS_NAME">
+			<Text>Mistress of the Beasts</Text>
+		</Row>
+		<Row Tag="LOC_PANTHEON_MA_BEASTS_DESCRIPTION">
+			<Text>+1 [icon:YIELD_HAPPINESS] Happiness and +1 [icon:YIELD_PRODUCTION] Production on Pastures and Camps in [TIP:LOC_PEDIA_CONCEPTS_SETTLEMENT_TOOLTIP]Settlements[/TIP] with an Altar.</Text>
+		</Row>
+	</EnglishText>
+</Database>

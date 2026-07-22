@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Custom pantheon icon: a grey/silver crop-rows-&-sun glyph on the Civ7 pantheon medallion (dark
+     disc, coppery ring), authored as SVG and rasterized to a 256px transparent PNG. ID = BeliefType. -->
+<Database>
+	<IconDefinitions>
+		<Row>
+			<ID>PANTHEON_MA_PLANTATION</ID>
+			<Path>fs://game/metropolis-ascendant/ui/icons/pantheon-plantation.png</Path>
+		</Row>
+		<Row>
+			<ID>PANTHEON_MA_BEASTS</ID>
+			<Path>fs://game/metropolis-ascendant/ui/icons/pantheon-beasts.png</Path>
+		</Row>
+	</IconDefinitions>
+</Database>

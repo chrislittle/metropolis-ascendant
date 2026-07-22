@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Goddess of the Plantation effect - native two-step Antiquity pantheon shape (cloned from base
+     Goddess of Festivals MOD_PANTHEON_URBAN_CULTURE): attach gated on REQUIREMENT_PLAYER_HAS_PANTHEON,
+     then +1 Culture on every Plantation tile in a Settlement with an Altar. The IMPROVEMENT_PLANTATION
+     gate auto-covers all 8 Antiquity plantation resources (Wine/Silk/Mangos/Incense/Flax/Cotton/Dates/
+     Rice) - list-proof. Altar gate kept (every base pantheon pays through the Altar). -->
+<GameEffects xmlns="GameEffects">
+	<Modifier id="MOD_MA_PLANTATION_CULTURE" collection="COLLECTION_MAJOR_PLAYERS" effect="EFFECT_ATTACH_MODIFIERS">
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLAYER_HAS_PANTHEON"/>
+		</SubjectRequirements>
+		<Argument name="ModifierId">ATTACH_MA_PLANTATION_CULTURE</Argument>
+	</Modifier>
+	<Modifier id="ATTACH_MA_PLANTATION_CULTURE" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLOT_HAS_CONSTRUCTIBLE">
+				<Argument name="ConstructibleType">IMPROVEMENT_PLANTATION</Argument>
+			</Requirement>
+			<Requirement type="REQUIREMENT_CITY_HAS_BUILDING">
+				<Argument name="BuildingType">BUILDING_ALTAR</Argument>
+			</Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_CULTURE</Argument>
+		<Argument name="Amount">1</Argument>
+		<Argument name="Tooltip">LOC_PANTHEON_MA_PLANTATION_NAME</Argument>
+	</Modifier>
+
+	<!-- Mistress of the Beasts: +1 Happiness AND +1 Production on Pastures and on Camps (Altar-gated).
+	     Two parallel chains, one per improvement, because a plot carries a Pasture OR a Camp (never
+	     both). Covers all Antiquity animal resources (Horses/Wool/Llamas + Camels/Hides/Ivory/Wild Game).
+	     Multi-yield = ONE modifier with a comma-separated YieldType + a single Amount (base-proven:
+	     MOD_HEIAN_HOO_DO_HALL_APPEAL_YIELDS uses "YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS"
+	     with Amount 1) - so Amount 1 pays +1 of EACH listed yield, not 1 split between them. -->
+	<Modifier id="MOD_MA_BEASTS_PASTURE" collection="COLLECTION_MAJOR_PLAYERS" effect="EFFECT_ATTACH_MODIFIERS">
+		<SubjectRequirements><Requirement type="REQUIREMENT_PLAYER_HAS_PANTHEON"/></SubjectRequirements>
+		<Argument name="ModifierId">ATTACH_MA_BEASTS_PASTURE</Argument>
+	</Modifier>
+	<Modifier id="ATTACH_MA_BEASTS_PASTURE" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLOT_HAS_CONSTRUCTIBLE"><Argument name="ConstructibleType">IMPROVEMENT_PASTURE</Argument></Requirement>
+			<Requirement type="REQUIREMENT_CITY_HAS_BUILDING"><Argument name="BuildingType">BUILDING_ALTAR</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_HAPPINESS, YIELD_PRODUCTION</Argument>
+		<Argument name="Amount">1</Argument>
+		<Argument name="Tooltip">LOC_PANTHEON_MA_BEASTS_NAME</Argument>
+	</Modifier>
+	<Modifier id="MOD_MA_BEASTS_CAMP" collection="COLLECTION_MAJOR_PLAYERS" effect="EFFECT_ATTACH_MODIFIERS">
+		<SubjectRequirements><Requirement type="REQUIREMENT_PLAYER_HAS_PANTHEON"/></SubjectRequirements>
+		<Argument name="ModifierId">ATTACH_MA_BEASTS_CAMP</Argument>
+	</Modifier>
+	<Modifier id="ATTACH_MA_BEASTS_CAMP" collection="COLLECTION_PLAYER_PLOT_YIELDS" effect="EFFECT_PLOT_ADJUST_YIELD">
+		<SubjectRequirements>
+			<Requirement type="REQUIREMENT_PLOT_HAS_CONSTRUCTIBLE"><Argument name="ConstructibleType">IMPROVEMENT_CAMP</Argument></Requirement>
+			<Requirement type="REQUIREMENT_CITY_HAS_BUILDING"><Argument name="BuildingType">BUILDING_ALTAR</Argument></Requirement>
+		</SubjectRequirements>
+		<Argument name="YieldType">YIELD_HAPPINESS, YIELD_PRODUCTION</Argument>
+		<Argument name="Amount">1</Argument>
+		<Argument name="Tooltip">LOC_PANTHEON_MA_BEASTS_NAME</Argument>
+	</Modifier>
+</GameEffects>

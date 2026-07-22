@@ -1,25 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Mod id="metropolis-ascendant" version="1"
+<Mod id="metropolis-ascendant" version="2"
 	xmlns="ModInfo">
 	<Properties>
 		<Name>Metropolis Ascendant</Name>
-		<Description>Metropolis Ascendant — one city per hemisphere. Make it the greatest the world has ever seen.
-[N][N]Most of Civ VII rewards going wide. Metropolis Ascendant flips that: you build one towering city per hemisphere (one Homeland, one Distant Lands) and pour everything into making it extraordinary — a single, ever-denser metropolis that out-thinks, out-builds and out-cultures empires many times its size. A true tall overhaul: bonuses are at full strength only while you stay small, and switch off the moment you sprawl.
+		<Description>Metropolis Ascendant — one metropolis, every victory. Build few cities and pour everything into making them extraordinary.
+[N][N]Most of Civ VII rewards going wide. Metropolis Ascendant flips that: you build few cities and pour everything into making them extraordinary — a dense, ever-growing metropolis that out-thinks, out-builds and out-cultures empires many times its size. It began as a tall overhaul layered onto the game's own trees; it has grown into a tall civilization system of its own. Your bonuses run at full strength only while your footprint stays within your earned allowance, and switch off the moment you overreach.
 [N][N]KEY MECHANICS
-[N]- Urban Population is power — your city's Urban Population (not rural) drives everything across three tiers (T1 / T2 / T3); specialists pay out full tile adjacency, so a dense city compounds fast.
-[N]- Build through the trees — bonuses fan out across the tech and culture trees by victory domain: Science, Culture, Economy, or a dedicated Military lane.
-[N]- One city, many towns — granary, mining, trade, fortress and resort benefits are all internalized into the single metropolis.
+[N]- The Ascendancy Tree — your metropolis researches its own civic tree: three roots, deepening masteries and a repeatable capstone, re-keyed to every Age. Route toward Science, Culture, Economy, Expansion, Military or Diplomacy and the city specializes accordingly. Every node's panel states exactly what it grants.
+[N]- Civic Boosts — every civic on the tree carries a Boost, a goal shown right on the node in the spirit of Civ VI's boosts. Steer your play toward it and that civic researches faster.
+[N]- Feats, Charters &amp; Dedications — fifteen Major feats mark the achievements of a towering city, and their rewards land the moment the Triumph fires: a Tradition with an extra slot, a named bonus package, a settlement Charter, or a next-Age Dedication. Charters are how you expand: you begin with a single city and earn your way toward more, never past four. Never map luck; always something you earned.
+[N]- Traditions — custom government cards written for one dense city, from steady per-population yields to sharp tradeoffs; the feat-earned ones carry across the Age transition and stack.
+[N]- Custom Pantheons — Goddess of the Plantation (+1 Culture on Plantations) and Mistress of the Beasts (+1 Happiness and +1 Production on Pastures and Camps), each with its own icon in the base chooser.
+[N]- Urban Population is power — your city's Urban Population (not rural) drives everything; specialists pay out full tile adjacency, so a dense city compounds fast.
 [N]- Suzerain layer — bonuses scale with how many city-states you lead: reach, resources and influence without founding another city.
 [N]- Happiness pays off — keep the metropolis Joyous and it earns escalating Science and Culture per Urban Population (more while Ecstatic); specialists also cost less to maintain until the city is thriving.
 [N]- Wonders &amp; Arcadia — concentrate Wonders and natural beauty in one city, a strength a sprawling AI empire can't match. Wonders make adjacent Buildings happier and beautify the land; discover a Natural Wonder and Arcadia opens up — Breathtaking rural tiles, Buildings beside Mountains, and even terraced Mountain peaks all become productive (scaling each Age). Arcadia also embraces the waters — rivers, lakes, the open sea and reefs each yield by type, you can work the open ocean in Exploration, and coastal cities gain a flat yield floor, so a water-heavy or island map is never a dead end.
 [N]- Reach beyond your borders — build a Surveyor to claim a resource tile up to 5 tiles from your Settlements into your metropolis (spent after one claim), so one dense city can command resources a wide empire would spread across many.
-[N]- Raze what you can't hold — a one-city empire can't keep conquests, so razing becomes a real tool: take a city by force for a one-time burst of Gold and Influence, pillage its buildings for more, and raze it in a turn or two. Tied to the tall playstyle — a conquer-and-keep empire gains none of it.
+[N]- Raze what you can't hold — a dense city can't keep conquests, so razing becomes a real tool: take a city by force for a one-time burst of Gold and Influence, pillage its buildings for more, and raze it in a turn or two. Tied to the tall playstyle — a conquer-and-keep empire gains none of it.
 [N]- Every victory stays open — if a packed metropolis has no open tile for a Modern victory Wonder, raise its Foundations over an existing district to complete it in place (only once you've earned the Wonder normally, never a shortcut), so all four victory paths stay reachable when you go tall.
-[N]- Know where you stand — a built-in Bonus Dashboard (F7, or its button in the sub-system dock) shows every bonus for the current Age: what's active, what's still locked and which tech or civic unlocks it, with live per-turn yield figures, your tall status, tier progress and happiness at a glance.
-[N]- A strict tall rule — every scaling bonus is full at exactly one settlement per hemisphere, and off at two or more.
+[N]- Know where you stand — a built-in Bonus Dashboard (button in the sub-system dock) shows every bonus for the current Age: what's active and what's next, your Ascendancy and mastery progress, the Settlements-vs-allowance track, boosted civics, tier progress and happiness at a glance. Install leonardfactory's Policy Yields Preview mod alongside and every bonus also shows a computed per-turn figure.
+[N]- The allowance rule — every bonus pays across all your settlements while you are at or under your earned allowance (Antiquity starts at 1; the floor is 2 from Exploration; feats earn the rest, hard max 4), and everything switches off the instant you exceed it.
 [N]- Spans all three Ages: Antiquity, Exploration and Modern.
-[N][N]Every bonus is described on the tech or civic node that unlocks it (mastery bonuses appear on the node's Mastery panel), so you always know what you are building toward.
-[N][N]TIERS — Urban Population thresholds: 5 / 9 / 12 in Antiquity, 8 / 14 / 20 in Exploration, 10 / 16 / 24 in Modern. Every scaling bonus is full at exactly one settlement in a hemisphere and off at two or more (Towns count) — no partial taper. The specialist cap and safety nets fade more leniently and never revoke a placed specialist.
+[N][N]Every Ascendancy civic states its bonuses and its Boost on the node panel, and every Triumph states exactly what it grants — you always know what you are building toward.
+[N][N]GROWTH MILESTONE — at 5 Urban Population in Antiquity, 8 in Exploration, 10 in Modern: your metropolis gains +10/+12/+15 Happiness (by Age), and its Specialists cost 50% less Food and Happiness upkeep until the city reaches Ecstatic.
 [N][N]Built and tested on Civilization VII 1.4.1. No DLC required. Experimental and actively tuned — feedback welcome.
 [N][N]Built and developed using Claude Code.</Description>
 		<Authors>Chris</Authors>
@@ -60,6 +63,8 @@
 				<UpdateText>
 					<Item>text/en_us/MetropolisAscendantText.xml</Item>
 					<Item>text/en_us/MetropolisAscendantNotes.generated.xml</Item>
+					<Item>text/en_us/AscendancyText.generated.xml</Item>
+					<Item>text/en_us/PantheonText.xml</Item>
 				</UpdateText>
 			</Actions>
 		</ActionGroup>
@@ -68,6 +73,14 @@
 		     globally (criteria="always") like the base game's art groups, not per-age. Reuses each target Wonder's blp icon. -->
 		<ActionGroup id="recycle-icons" scope="game" criteria="always">
 			<Actions>
+				<!-- Surveyor custom glyph (2026-07-12): raw PNG + extensionless twin, imported in BOTH scopes
+				     (Ireland-mod convention - the engine references textures by bare ID in some spots). -->
+				<ImportFiles>
+					<Item>ui/icons/surveyor-flag.png</Item>
+					<Item>ui/icons/surveyor-flag</Item>
+					<Item>ui/icons/surveyor-portrait.png</Item>
+					<Item>ui/icons/surveyor-portrait</Item>
+				</ImportFiles>
 				<UpdateIcons>
 					<Item>data/icons/recycle-icons.xml</Item>
 					<Item>data/icons/surveyor-icons.xml</Item>
@@ -88,6 +101,12 @@
 		     exactly this reason (base-game-main + base-game-shell). Same files, shell scope. -->
 		<ActionGroup id="surveyor-shell" scope="shell" criteria="always">
 			<Actions>
+				<ImportFiles>
+					<Item>ui/icons/surveyor-flag.png</Item>
+					<Item>ui/icons/surveyor-flag</Item>
+					<Item>ui/icons/surveyor-portrait.png</Item>
+					<Item>ui/icons/surveyor-portrait</Item>
+				</ImportFiles>
 				<UpdateIcons>
 					<Item>data/icons/recycle-icons.xml</Item>
 					<Item>data/icons/surveyor-icons.xml</Item>
@@ -95,6 +114,33 @@
 				<UpdateVisualRemaps>
 					<Item>data/surveyor-visualremap.xml</Item>
 				</UpdateVisualRemaps>
+			</Actions>
+		</ActionGroup>
+
+		<!-- Custom pantheon "Goddess of the Plantation" (2026-07-15). Icon (custom PNG) in an always
+		     game-scope group like the other icons; belief + effect in an age-antiquity group (pantheons
+		     are an Antiquity-only system). Belief auto-lists in the data-driven pantheon chooser. -->
+		<ActionGroup id="pantheon-icons" scope="game" criteria="always">
+			<Actions>
+				<ImportFiles>
+					<Item>ui/icons/pantheon-plantation.png</Item>
+					<Item>ui/icons/pantheon-beasts.png</Item>
+				</ImportFiles>
+				<UpdateIcons>
+					<Item>data/icons/pantheon-icons.xml</Item>
+				</UpdateIcons>
+			</Actions>
+		</ActionGroup>
+
+		<ActionGroup id="pantheon-aq" scope="game" criteria="age-antiquity">
+			<Properties>
+				<LoadOrder>108</LoadOrder>
+			</Properties>
+			<Actions>
+				<UpdateDatabase>
+					<Item>data/pantheon-gameeffects.xml</Item>
+					<Item>data/pantheon.xml</Item>
+				</UpdateDatabase>
 			</Actions>
 		</ActionGroup>
 
@@ -115,6 +161,20 @@
 			</Actions>
 		</ActionGroup>
 
+		<!-- GEN-2 Major reward Traditions: ALWAYS scope so an earned card's definition exists in
+		     every Age (G3 persistence law). LoadOrder 107 = after shared tables (105), before the
+		     per-age files (110) that bind TraditionModifiers to these rows. -->
+		<ActionGroup id="ascendancy-majors" scope="game" criteria="always">
+			<Properties>
+				<LoadOrder>107</LoadOrder>
+			</Properties>
+			<Actions>
+				<UpdateDatabase>
+					<Item>data/ascendancy-majors.xml</Item>
+				</UpdateDatabase>
+			</Actions>
+		</ActionGroup>
+
 		<ActionGroup id="antiquity" scope="game" criteria="age-antiquity">
 			<Properties>
 				<LoadOrder>110</LoadOrder>
@@ -124,6 +184,9 @@
 					<Item>data/antiquity/modifiers.xml</Item>
 					<Item>data/antiquity/traditions.xml</Item>
 					<Item>data/antiquity/surveyor-bind.xml</Item>
+					<Item>data/antiquity/ascendancy-effects.xml</Item>
+					<Item>data/antiquity/ascendancy-tree.xml</Item>
+					<Item>data/antiquity/ascendancy-reqweights.xml</Item>
 				</UpdateDatabase>
 			</Actions>
 		</ActionGroup>
@@ -149,6 +212,9 @@
 					<Item>data/exploration/modifiers.xml</Item>
 					<Item>data/exploration/traditions.xml</Item>
 					<Item>data/exploration/surveyor-bind.xml</Item>
+					<Item>data/exploration/ascendancy-effects.xml</Item>
+					<Item>data/exploration/ascendancy-tree.xml</Item>
+					<Item>data/exploration/ascendancy-reqweights.xml</Item>
 				</UpdateDatabase>
 			</Actions>
 		</ActionGroup>
@@ -175,6 +241,9 @@
 					<Item>data/modern/traditions.xml</Item>
 					<Item>data/modern/recycle.xml</Item>
 					<Item>data/modern/surveyor-bind.xml</Item>
+					<Item>data/modern/ascendancy-effects.xml</Item>
+					<Item>data/modern/ascendancy-tree.xml</Item>
+					<Item>data/modern/ascendancy-reqweights.xml</Item>
 				</UpdateDatabase>
 			</Actions>
 		</ActionGroup>
@@ -209,11 +278,31 @@
 					<Item>ui/dashboard/mad-dashboard.css</Item>
 					<Item>ui/dock/mad-dock.css</Item>
 					<Item>ui/icons/mad-dock-icon.png</Item>
+					<Item>ui/cards/mad-card-brand.css</Item>
 				</ImportFiles>
 				<UIScripts>
 					<Item>ui/options/mad-options.js</Item>
+					<!-- Generated yield-preview id manifest (gen-ascendancy.ps1); read lazily by the dashboard
+					     via Leonardfactory's lf-policies-yields-preview API when that mod is installed. -->
+					<Item>ui/dashboard/mad-preview-ids.js</Item>
 					<Item>ui/dashboard/mad-dashboard.js</Item>
+					<!-- Policy/Tradition card branding (Option B: lane colours + emblem badge). Exports
+					     MAD_EMBLEM_SVG, which the dock decorator imports for the "Emblem" icon option. -->
+					<Item>ui/cards/mad-card-brand.js</Item>
 					<Item>ui/dock/mad-dock-decorator.js</Item>
+					<!-- Surveyor selected-unit portrait fix (2026-07-12): repoints the live 3D render at the
+					     Migrant donor so the panel square isn't black (cosmetic, fail-safe decorator). -->
+					<Item>ui/surveyor/mad-surveyor-portrait.js</Item>
+					<!-- Ascendancy boost glow (2026-07-13): Civ6-style blue glow on nodes whose boost deed is
+					     earned. Reads the per-node MA_BOOST_* player property set by the boost markers. -->
+					<Item>ui/boostui/mad-boost-glow.js</Item>
+					<!-- MA-native card price tags (2026-07-22, task #27): live computed value chips on MA
+					     cards in the policy chooser. Formula manifest is generated (gen-ascendancy.ps1);
+					     the decorator computes from game state — works with or without the companion
+					     preview mod, and hides the companion's floor-copy-only (zero-reading) box on MA
+					     cards. Load order: formulas before the decorator. -->
+					<Item>ui/cards/mad-card-formulas.js</Item>
+					<Item>ui/cards/mad-card-chips.js</Item>
 				</UIScripts>
 				<UpdateText>
 					<Item>text/en_us/DashboardText.xml</Item>

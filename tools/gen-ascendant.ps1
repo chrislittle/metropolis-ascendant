@@ -50,15 +50,29 @@ $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSVersion.Major -lt 7) { throw "gen-ascendant.ps1 requires PowerShell 7+ (pwsh). Windows PowerShell 5.1 corrupts UTF-8 text on write. Run: pwsh -File tools\gen-ascendant.ps1 (or '& tools\gen-ascendant.ps1' from a pwsh session)." }
 $TestMode = $Test.IsPresent
 
-$adjRules = [ordered]@{
-    'QuarterScience'      = 'QUARTER_SCIENCE'
-    'QuarterCulture'      = 'QUARTER_CULTURE'
-    'WonderScience'       = 'WONDER_SCIENCE'
-    'WonderCulture'       = 'WONDER_CULTURE'
-    'MountainCulture'     = 'MOUNTAIN_CULTURE'
-    'ResourceScience'     = 'RESOURCE_SCIENCE'
-    'NaturalWonderCulture'= 'NATURAL_WONDER_CULTURE'
-}
+# ============ GEN-2 MIGRATION STRIP (2026-07-11) ============
+# The Ascendancy tree (tools/gen-ascendancy.ps1) now owns the migrated bonuses per the
+# GEN2-CONTENTS migration map: T3 per-pop rungs (Sci/Cul/Prod), the Joyous/Ecstatic stage
+# escalators, Wonder-production %, Great Work slots (Palace + per-building + EX Temples),
+# and the trade kit (routes/range/resource-Happiness). $Gen2Strip removes the v1 copies so
+# nothing double-ships; set $false to restore classic v1 output (rollback lever).
+$Gen2Strip = $true
+# Full-strip note keys (their whole bonus migrated to the Ascendancy tree). The Build-NoteText
+# rewording of SCIENCE/CULTURE2 (adjacency-half kept) is now OBSOLETE: A1 (2026-07-14) moved the
+# Science/Culture adjacency onto the Ascendancy tree too, so those halves no longer live on base.
+$gen2StrippedNoteKeys = @('SCIENCE2','STAGE_SCIENCE','STAGE_CULTURE','TRADE','MILITARY','CULTURE',
+                          'RESORT','FOODCAP','PRODCAP',   # A2 de-layer 2026-07-14: suppress base-node panel text for the dropped Resort + Warehouse Food/Prod bonuses
+                          'FORT',                          # A2 2026-07-14: orphan cleanup - Fort modifiers were retired 2026-07-13 (-> Musters/MIL1) but their base-node ad was left behind
+                          'RELIGION',                      # A3 2026-07-14: Religious Site bucket consolidated into Great Patrons (GW slots + relic-Culture) / happiness dropped; base Theology node -> vanilla
+                          'SCIENCE','CULTURE2','ECONOMIC','ECONOMIC2','MILITARY2',   # A4 sweep 2026-07-14 (Chris): stale v1 T1/T2/T3 notes - adjacency->Ascendancy (A1), specialist slots/resource cap/combat strength all migrated off base.
+                          'SUZERAIN')                      # 2026-07-14 (Chris): base civic tree must be fully VANILLA. The suzerain mechanic is explained by the dashboard Protectorates panel instead (no base-node note). Yields still fire (always-on modifiers).
+
+# A1 adjacency port (2026-07-14): ALL 7 base-node-gated adjacency rules moved off the base tech/civic
+# tree. The 5 Science/Culture rules -> Ascendancy SCI1/SCI2/CUL1/CUL2/REP1 (amplify base rules). The 2
+# Mountain/NW Culture rules -> REPLACED by the Ascendancy Frontier FOOD track (EXP1/EXP2, MA_MtnFood/
+# MA_NWFood, FOOD-tag scoped). So M-Adjacency now emits nothing (empty rule set); the base tree is
+# vanilla for adjacency. (The Arcadia mountain-culture wildcard MA_MtnCul is a SEPARATE system, kept.)
+$adjRules = [ordered]@{}
 
 # Per age: suffix, age/tech display names, host tech node, 3 tier population gates, flat Happiness
 # safety amount, the 3 wonder-% band values (solo/compact/quarter), Palace GW slot amount, the
@@ -207,7 +221,11 @@ $suzCity = [ordered]@{
     ECONOMIC     = 'YIELD_GOLD'
     EXPANSIONIST = 'YIELD_FOOD'
 }
-$suzPerPopDiv = 3  # per-pop divisor for suzerain yields: +1 yield per 3 Urban Pop (stacks on the node per-pop).
+$suzPerPopDiv = 4  # per-pop divisor for suzerain yields: +1 yield per 4 Urban Pop (stacks on the node per-pop).
+                   # GEN-2 DECOUPLE (Chris 2026-07-13): was 3, gated on the Shareable-bonus pick; now the stream
+                   # flows from SUZERAINTY OF THE TYPE itself (any bonus pick) and the rate is diluted 3->4 to
+                   # pay for the freedom. The Gen-2 Diplomacy deep node deepens back to per-3 (Div=12 top-up),
+                   # so the all-in ceiling equals the old shipped rate exactly.
                    # NB the unlock is BOOLEAN (drafting the type's Shareable bonus flips it on; a 2nd CS of that
                    # type doesn't stack - no per-pop-per-count effect exists), so magnitude lives in this divisor.
                    # Push to 2 for "doubles your per-pop in that domain"; raise back toward 5 if late-game too hot.
@@ -224,6 +242,12 @@ $fortGold   = 1       # +Gold on Fortified districts (the Fort Town gold-on-fort
 $religiousHappy = 2   # "Religious Site" Temple bucket: +Happiness on every Building (base value).
 $resortAppeal   = 1   # "Resort" bucket: +Gold & +Happiness on Appealing tiles.
 $resortNWPercent= 50  # "Resort" bucket: +% all yields on Natural-Wonder tiles (self-targets - only pays near a NW).
+# ARCADIA DISCOVERY GATE (LOCKED 2026-07-13, Chris = 30%): Arcadia awakens once the player has discovered
+# >= this PERCENT of the map's Natural Wonders (REQUIREMENT_PLAYER_DISCOVERED_X_NATURAL_WONDERS +
+# PercentageThreshold). 30% ~= 1 NW on Tiny / 2 on most sizes / 3 on Huge (map NW counts 3/4/5/6/7). Replaces
+# the old binary "discovered ANY NW" gate. The % requirement can't tell water from land NWs, so it counts all;
+# the design's separate "any water NW" water branch is a deferred edge-case refinement (2-water-NW map gap).
+$arcadiaNWPercent = 30
 $wonderAppealAmt = 2  # WONDER LANE B1: Appeal each of the player's wonders radiates to surrounding tiles. BINARY/flat
                       # (population doesn't decide it), via the B&B engine effect EFFECT_PLAYER_GRANT_WONDER_APPEAL.
                       # Feeds B2's Breathtaking rural ring + base appeal-happiness. =2 (2026-06-26, was 1): Charming
@@ -465,6 +489,34 @@ function BandGate($band, $hemiArg) {
         'QUARTER' { @((Settle 3 $false 'false' $hemiArg), (Settle 4 $true 'false' $hemiArg)) }
     }
 }
+# ---- GEN-2 PILLAR GATE (2026-07-19) ----------------------------------------------------------
+# The tall-engine pillars (Arcadia rural ring / peaks / waters, wonder-happiness, mountain+water
+# adjacency, coastal floor) now gate on TOTAL settlements vs the EARNED allowance - the exact
+# same windows as the Ascendancy tree. The old per-hemisphere SOLO band was v1's retired
+# one-per-hemisphere rule and wrongly killed the pillars in legal 2-3 settlement empires
+# (found in-game 2026-07-19: a 3/3 empire's capital mountains paid nothing). Hemisphere twins
+# are RETIRED for this family: one modifier, pays everywhere (total-footprint law - towns
+# count, placement free).
+# ⚠ REBUILT 2026-07-21 (2nd iteration, after the in-game proof that a Triumph condition is
+# evaluated ONCE at bind/attach and never re-evaluated - neither in-leaf on attached modifiers NOR
+# on always-bound wrappers; attachments persist in saves). Delivery now rides only PROVEN paths:
+#   W1 (floor)  -> the always ATTACH_ALL wrapper; count reqs in-leaf re-evaluate (proven).
+#   AQ/EX W2    -> the age's EXPANSION FEAT REWARD attach (fires at Triumph completion - proven;
+#                  handed to gen-ascendancy via tools/pillar-window-ids.json, since that script
+#                  owns the feat reward wiring and runs second in the publish pipeline).
+#   MO W2 (=3)  -> ATTACH_ALL, count-only: any legitimate 3 has a charter; only the punished
+#                  over-allowance state leaks.  MO W3 (=4) -> the MO feat reward (manifest).
+function PillarWindows($sfx) {
+    switch ($sfx) {
+        'AQ' { @( @{ W='_W1'; R=@((Settle 2 $true 'false' '')); Route='ALL' },
+                  @{ W='_W2'; R=@((Settle 2 $false 'false' ''), (Settle 3 $true 'false' '')); Route='REWARD' } ) }
+        'EX' { @( @{ W='_W1'; R=@((Settle 3 $true 'false' '')); Route='ALL' },
+                  @{ W='_W2'; R=@((Settle 3 $false 'false' ''), (Settle 4 $true 'false' '')); Route='REWARD' } ) }
+        'MO' { @( @{ W='_W1'; R=@((Settle 3 $true 'false' '')); Route='ALL' },
+                  @{ W='_W2'; R=@((Settle 3 $false 'false' ''), (Settle 4 $true 'false' '')); Route='ALL' },
+                  @{ W='_W3'; R=@((Settle 4 $false 'false' ''), (Settle 5 $true 'false' '')); Route='REWARD' } ) }
+    }
+}
 # Victory-wonder recycle (issue #1): the run-once REPLACE that turns a Foundations BUILDING into its victory Wonder.
 # COLLECTION_OWNER, bound to the building via <ConstructibleModifiers> (recycle.xml) so it fires on completion - NOT
 # in the attach wrapper. Gated tall ($tallCap) + "don't already own the wonder" (inverse REQUIREMENT_PLAYER_HAS_CONSTRUCTIBLE,
@@ -542,10 +594,9 @@ function M-Adjacency($sfx,$tier,$node,$pop,$rule,$band,$div,$hemi,$dl) {
 # (To change the magnitude, edit MA_WonderHappiness's YieldChange in data/shared/constructibles.xml - not here.)
 # Delivered through the COLLECTION_MAJOR_PLAYERS attach wrapper. VERIFY in-game: (a) activation resolves through the
 # player attach wrapper, (b) DISTRICT_WONDER counts player-built wonders for the adjacent building.
-function M-WonderHappyAdj($sfx,$hemi,$dl) {
-    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
-    $gate = (BandGate 'SOLO' $h) -join $NL
-    "`t<Modifier id=`"MA_${sfx}_WONDER_HAPPY_ADJ${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$hc$gate$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"ConstructibleAdjacency`">MA_WonderHappiness</Argument>$NL`t</Modifier>"
+function M-WonderHappyAdj($sfx,$win) {
+    $gate = ($win.R) -join $NL
+    "`t<Modifier id=`"MA_${sfx}_WONDER_HAPPY_ADJ$($win.W)`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$gate$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"ConstructibleAdjacency`">MA_WonderHappiness</Argument>$NL`t</Modifier>"
 }
 # WONDER LANE "B2" - Appeal->yield "Preserve" ring. Mirrors the Heian Hoo-Do / TRAIT_MOD_APPEALING_CULTURE template
 # (DLC\heian\modules\data\civilizations-shared-gameeffects.xml): COLLECTION_PLAYER_PLOT_YIELDS + EFFECT_PLOT_ADJUST_YIELD
@@ -557,27 +608,19 @@ function M-WonderHappyAdj($sfx,$hemi,$dl) {
 # static-world rule). Tall-gated: SOLO (hemisphere-scoped settlement count) in OwnerRequirements like M-CombatStrength; the
 # plot is scoped to its hemisphere via REQUIREMENT_PLOT_IS_HOMELANDS (inverse=distant) so player-wide delivery doesn't
 # bleed the homeland ring onto distant tiles. (Tooltip LOC deferred to a text pass, like C.)
-function M-AppealYield($sfx,$amt,$hemi,$dl,$excludeMtn) {
-    $h = HemiArg $hemi
+function M-AppealYield($sfx,$amt,$win,$excludeMtn) {
     $reqs = @()
     # DISCOVERY GATE (2026-06-26): Arcadia awakens once you've discovered a Natural Wonder - an EXPLORATION
-    # unlock, not a tree unlock. REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER (no FeatureType = ANY natural wonder;
-    # proven in-game by MOUNT_EVEREST_REVEAL on the same requirement). It's a YIELD so discovery-gating is fine even
-    # if it re-evaluates at an Age boundary. C/B1 stay always-on (no discovery gate) so they never blink + survive
-    # EX/MO advanced starts where no wonder is discovered yet. TestMode drops the gate (live from turn 1).
-    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>" }
-    $reqs += (Settle 2 $true 'false' $h)
+    # unlock, not a tree unlock. It's a YIELD so discovery-gating is fine even if it re-evaluates at an Age
+    # boundary. C/B1 stay always-on (no discovery gate) so they never blink + survive EX/MO advanced starts.
+    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_X_NATURAL_WONDERS`"><Argument name=`"PercentageThreshold`">$arcadiaNWPercent</Argument></Requirement>" }
+    $reqs += $win.R
     $owner = "`t`t<OwnerRequirements>$NL$($reqs -join $NL)$NL`t`t</OwnerRequirements>$NL"
-    $plotHemi = switch ($hemi) {
-        'HL' { "`t`t`t<Requirement type=`"REQUIREMENT_PLOT_IS_HOMELANDS`"/>$NL" }
-        'DL' { "`t`t`t<Requirement inverse=`"true`" type=`"REQUIREMENT_PLOT_IS_HOMELANDS`"/>$NL" }
-        default { '' }
-    }
     # DE-DUPE (2026-06-26): when $excludeMtn (AQ only), the rural ring SKIPS mountain tiles so a terraced peak gets
     # ONLY the mountain yield (A), not A+B2. In EX/MO $excludeMtn is false, so a Breathtaking terraced mountain stacks BOTH
     # A+B2 - a deliberate LATE-GAME power spike (like Civ 6 Preserves) to help 2 cities close the Deity yield gap.
     $noMtn = if ($excludeMtn) { "`t`t`t<Requirement inverse=`"true`" type=`"REQUIREMENT_PLOT_TERRAIN_TYPE_MATCHES`"><Argument name=`"TerrainType`">TERRAIN_MOUNTAIN</Argument></Requirement>$NL" } else { '' }
-    "`t<Modifier id=`"MA_${sfx}_APPEAL_YIELD${dl}`" collection=`"COLLECTION_PLAYER_PLOT_YIELDS`" effect=`"EFFECT_PLOT_ADJUST_YIELD`">$NL$owner`t`t<SubjectRequirements>$NL$plotHemi$noMtn`t`t`t<Requirement type=`"REQUIREMENT_PLOT_DISTRICT_CLASS`"><Argument name=`"DistrictClass`">RURAL</Argument></Requirement>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLOT_HAS_APPEAL`"><Argument name=`"UseAppealDoubleHappinessThreshold`">true</Argument></Requirement>$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS, YIELD_SCIENCE, YIELD_FOOD</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_DESCRIPTION</Argument>$NL`t</Modifier>"
+    "`t<Modifier id=`"MA_${sfx}_APPEAL_YIELD$($win.W)`" collection=`"COLLECTION_PLAYER_PLOT_YIELDS`" effect=`"EFFECT_PLOT_ADJUST_YIELD`">$NL$owner`t`t<SubjectRequirements>$NL$noMtn`t`t`t<Requirement type=`"REQUIREMENT_PLOT_DISTRICT_CLASS`"><Argument name=`"DistrictClass`">RURAL</Argument></Requirement>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLOT_HAS_APPEAL`"><Argument name=`"UseAppealDoubleHappinessThreshold`">true</Argument></Requirement>$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS, YIELD_SCIENCE, YIELD_FOOD</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_LABEL</Argument>$NL`t</Modifier>"
 }
 # WONDER LANE "B1" - wonders grant Appeal. EFFECT_PLAYER_GRANT_WONDER_APPEAL (arg Amount) on COLLECTION_OWNER: every
 # wonder the player owns radiates Amount Appeal to surrounding tiles ("expand Hoo-Do to all wonders" - native + player-
@@ -606,23 +649,17 @@ function M-WonderAppeal($sfx,$amt) {
 # gains +Cul/+Gold per mountain (scaled 1/2/3 by Age), via the MA_MtnCul#/MA_MtnGold# wildcard rules in data/shared/constructibles.xml.
 function M-MountainUnlock($sfx) {
     $reqs = @()
-    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>" }
+    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_X_NATURAL_WONDERS`"><Argument name=`"PercentageThreshold`">$arcadiaNWPercent</Argument></Requirement>" }
     $reqs += (Settle $tallCap $true 'false' '')
     $owner = "`t`t<OwnerRequirements>$NL$($reqs -join $NL)$NL`t`t</OwnerRequirements>$NL"
     "`t<Modifier id=`"MA_${sfx}_MOUNTAIN_UNLOCK`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_GRANT_CONSTRUCTIBLE_UNLOCK`">$NL$owner`t`t<Argument name=`"ConstructibleType`">IMPROVEMENT_INCA_MOUNTAIN</Argument>$NL`t</Modifier>"
 }
-function M-MountainYield($sfx,$amt,$hemi,$dl) {
-    $h = HemiArg $hemi
+function M-MountainYield($sfx,$amt,$win) {
     $reqs = @()
-    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>" }
-    $reqs += (Settle 2 $true 'false' $h)
+    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_X_NATURAL_WONDERS`"><Argument name=`"PercentageThreshold`">$arcadiaNWPercent</Argument></Requirement>" }
+    $reqs += $win.R
     $owner = "`t`t<OwnerRequirements>$NL$($reqs -join $NL)$NL`t`t</OwnerRequirements>$NL"
-    $plotHemi = switch ($hemi) {
-        'HL' { "`t`t`t<Requirement type=`"REQUIREMENT_PLOT_IS_HOMELANDS`"/>$NL" }
-        'DL' { "`t`t`t<Requirement inverse=`"true`" type=`"REQUIREMENT_PLOT_IS_HOMELANDS`"/>$NL" }
-        default { '' }
-    }
-    "`t<Modifier id=`"MA_${sfx}_MOUNTAIN_YIELD${dl}`" collection=`"COLLECTION_PLAYER_PLOT_YIELDS`" effect=`"EFFECT_PLOT_ADJUST_YIELD`">$NL$owner`t`t<SubjectRequirements>$NL$plotHemi`t`t`t<Requirement type=`"REQUIREMENT_PLOT_TERRAIN_TYPE_MATCHES`"><Argument name=`"TerrainType`">TERRAIN_MOUNTAIN</Argument></Requirement>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLOT_DISTRICT_CLASS`" inverse=`"true`"><Argument name=`"DistrictClass`">CITYCENTER, URBAN, WONDER</Argument></Requirement>$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS, YIELD_SCIENCE, YIELD_FOOD</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_PEAKS_DESCRIPTION</Argument>$NL`t</Modifier>"
+    "`t<Modifier id=`"MA_${sfx}_MOUNTAIN_YIELD$($win.W)`" collection=`"COLLECTION_PLAYER_PLOT_YIELDS`" effect=`"EFFECT_PLOT_ADJUST_YIELD`">$NL$owner`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLOT_TERRAIN_TYPE_MATCHES`"><Argument name=`"TerrainType`">TERRAIN_MOUNTAIN</Argument></Requirement>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLOT_DISTRICT_CLASS`" inverse=`"true`"><Argument name=`"DistrictClass`">CITYCENTER, URBAN, WONDER</Argument></Requirement>$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_CULTURE, YIELD_PRODUCTION, YIELD_HAPPINESS, YIELD_SCIENCE, YIELD_FOOD</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_PEAKS_LABEL</Argument>$NL`t</Modifier>"
 }
 # MOUNTAIN LANE "B" = Machu-Picchu WILDCARD. Activate MA_MtnCul#/MA_MtnGold# (data/shared/constructibles.xml) so every
 # BUILDING and WONDER adjacent to a Mountain gains +# Culture / +# Gold per mountain (# = $age.Preserve, i.e. +1/+2/+3 by
@@ -630,13 +667,12 @@ function M-MountainYield($sfx,$amt,$hemi,$dl) {
 # recipe as C + the base Machu Picchu (wildcard = no ConstructibleClass = all constructibles incl wonders).
 # COLLECTION_PLAYER_CITIES, gated on Arcadia discovery (OwnerRequirements) + tall SOLO + hemisphere (SubjectRequirements).
 # Emits one Culture + one Gold activation modifier per hemisphere. TestMode drops the discovery gate (live from turn 1).
-function M-MountainAdj($sfx,$num,$hemi,$dl) {
-    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
-    $gate = (BandGate 'SOLO' $h) -join $NL
-    $disc = if ($TestMode) { '' } else { "`t`t<OwnerRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>$NL`t`t</OwnerRequirements>$NL" }
-    $reqs = "`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$hc$gate$NL`t`t</SubjectRequirements>$NL"
-    $cul = "`t<Modifier id=`"MA_${sfx}_MTN_ADJ_CUL${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_MtnCul${num}</Argument>$NL`t</Modifier>"
-    $gld = "`t<Modifier id=`"MA_${sfx}_MTN_ADJ_GOLD${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_MtnGold${num}</Argument>$NL`t</Modifier>"
+function M-MountainAdj($sfx,$num,$win) {
+    $gate = ($win.R) -join $NL
+    $disc = if ($TestMode) { '' } else { "`t`t<OwnerRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_X_NATURAL_WONDERS`"><Argument name=`"PercentageThreshold`">$arcadiaNWPercent</Argument></Requirement>$NL`t`t</OwnerRequirements>$NL" }
+    $reqs = "`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$gate$NL`t`t</SubjectRequirements>$NL"
+    $cul = "`t<Modifier id=`"MA_${sfx}_MTN_ADJ_CUL$($win.W)`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_MtnCul${num}</Argument>$NL`t</Modifier>"
+    $gld = "`t<Modifier id=`"MA_${sfx}_MTN_ADJ_GOLD$($win.W)`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_MtnGold${num}</Argument>$NL`t</Modifier>"
     "$cul$NL$gld"
 }
 # WONDER LANE "Arcadia embraces the waters" (ROADMAP item 2). The ceiling-breaker M3 gave the peaks, but for WATER:
@@ -653,35 +689,28 @@ function M-MountainAdj($sfx,$num,$hemi,$dl) {
 #  (Option 1) M-WaterAdj - adjacency companion (Machu-Picchu wildcard model): every Building/Wonder adjacent to Coast
 #      gains +Gold and adjacent to a Navigable River gains +Production, per adjacent tile, +1/+2/+3 by Age via the
 #      MA_CoastGold#/MA_RiverProd# wildcard rules in data/shared/constructibles.xml.
-function M-WaterYield($sfx,$type,$wt,$hemi,$dl) {
-    $h = HemiArg $hemi
+function M-WaterYield($sfx,$type,$wt,$win) {
     $reqs = @()
-    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>" }
-    $reqs += (Settle 2 $true 'false' $h)
+    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_X_NATURAL_WONDERS`"><Argument name=`"PercentageThreshold`">$arcadiaNWPercent</Argument></Requirement>" }
+    $reqs += $win.R
     $owner = "`t`t<OwnerRequirements>$NL$($reqs -join $NL)$NL`t`t</OwnerRequirements>$NL"
-    $plotHemi = switch ($hemi) {
-        'HL' { "`t`t`t<Requirement type=`"REQUIREMENT_PLOT_IS_HOMELANDS`"/>$NL" }
-        'DL' { "`t`t`t<Requirement inverse=`"true`" type=`"REQUIREMENT_PLOT_IS_HOMELANDS`"/>$NL" }
-        default { '' }
-    }
     $plotReqs = (($wt.Reqs | ForEach-Object { "`t`t`t$_" }) -join $NL) + $NL
     $amt = $wt.Amt[$sfx]
-    "`t<Modifier id=`"MA_${sfx}_WATER_${type}_YIELD${dl}`" collection=`"COLLECTION_PLAYER_PLOT_YIELDS`" effect=`"EFFECT_PLOT_ADJUST_YIELD`">$NL$owner`t`t<SubjectRequirements>$NL$plotHemi$plotReqs`t`t`t<Requirement type=`"REQUIREMENT_PLOT_DISTRICT_CLASS`" inverse=`"true`"><Argument name=`"DistrictClass`">CITYCENTER, URBAN, WONDER</Argument></Requirement>$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">$($wt.Yields)</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>$NL`t</Modifier>"
+    "`t<Modifier id=`"MA_${sfx}_WATER_${type}_YIELD$($win.W)`" collection=`"COLLECTION_PLAYER_PLOT_YIELDS`" effect=`"EFFECT_PLOT_ADJUST_YIELD`">$NL$owner`t`t<SubjectRequirements>$NL$plotReqs`t`t`t<Requirement type=`"REQUIREMENT_PLOT_DISTRICT_CLASS`" inverse=`"true`"><Argument name=`"DistrictClass`">CITYCENTER, URBAN, WONDER</Argument></Requirement>$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">$($wt.Yields)</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_WATERS_LABEL</Argument>$NL`t</Modifier>"
 }
 function M-WaterUnlock($sfx) {
     $reqs = @()
-    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>" }
+    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_X_NATURAL_WONDERS`"><Argument name=`"PercentageThreshold`">$arcadiaNWPercent</Argument></Requirement>" }
     $reqs += (Settle $tallCap $true 'false' '')
     $owner = "`t`t<OwnerRequirements>$NL$($reqs -join $NL)$NL`t`t</OwnerRequirements>$NL"
     "`t<Modifier id=`"MA_${sfx}_WATER_UNLOCK`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_GRANT_CONSTRUCTIBLE_UNLOCK`">$NL$owner`t`t<Argument name=`"ConstructibleType`">IMPROVEMENT_HAWAII_FISHING_BOAT</Argument>$NL`t</Modifier>"
 }
-function M-WaterAdj($sfx,$num,$hemi,$dl) {
-    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
-    $gate = (BandGate 'SOLO' $h) -join $NL
-    $disc = if ($TestMode) { '' } else { "`t`t<OwnerRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_NATURAL_WONDER`"/>$NL`t`t</OwnerRequirements>$NL" }
-    $reqs = "`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$hc$gate$NL`t`t</SubjectRequirements>$NL"
-    $gld = "`t<Modifier id=`"MA_${sfx}_WATER_ADJ_GOLD${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_CoastGold${num}</Argument>$NL`t</Modifier>"
-    $prd = "`t<Modifier id=`"MA_${sfx}_WATER_ADJ_PROD${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_RiverProd${num}</Argument>$NL`t</Modifier>"
+function M-WaterAdj($sfx,$num,$win) {
+    $gate = ($win.R) -join $NL
+    $disc = if ($TestMode) { '' } else { "`t`t<OwnerRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_DISCOVERED_X_NATURAL_WONDERS`"><Argument name=`"PercentageThreshold`">$arcadiaNWPercent</Argument></Requirement>$NL`t`t</OwnerRequirements>$NL" }
+    $reqs = "`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$gate$NL`t`t</SubjectRequirements>$NL"
+    $gld = "`t<Modifier id=`"MA_${sfx}_WATER_ADJ_GOLD$($win.W)`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_CoastGold${num}</Argument>$NL`t</Modifier>"
+    $prd = "`t<Modifier id=`"MA_${sfx}_WATER_ADJ_PROD$($win.W)`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ACTIVATE_CONSTRUCTIBLE_ADJACENCY`">$NL$disc$reqs`t`t<Argument name=`"ConstructibleAdjacency`">MA_RiverProd${num}</Argument>$NL`t</Modifier>"
     "$gld$NL$prd"
 }
 # WATER LANE Option 4 - Tonga-style COASTAL FLOOR. A flat, once-per-city +Food/+Production just for the metropolis
@@ -691,12 +720,11 @@ function M-WaterAdj($sfx,$num,$hemi,$dl) {
 # YIELD, matching the rest of the kit (per-Age amount). ALWAYS-ON: tall + hemisphere only, NO discovery gate - a floor
 # must pay before you've explored, like the structural pieces C/B1. Two modifiers (base EFFECT_CITY_ADJUST_YIELD takes a
 # single YieldType - Food + Production split, mirroring base MOD_FOUNDER_BELIEF_DOMESTIC_FOOD/_PRODUCTION).
-function M-WaterFloor($sfx,$amt,$hemi,$dl) {
-    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
-    $gate = (BandGate 'SOLO' $h) -join $NL
-    $reqs = "`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_HAS_TERRAIN`"><Argument name=`"TerrainType`">TERRAIN_COAST</Argument><Argument name=`"Amount`">1</Argument></Requirement>$NL$hc$gate$NL`t`t</SubjectRequirements>$NL"
-    $food = "`t<Modifier id=`"MA_${sfx}_WATER_FLOOR_FOOD${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD`">$NL$reqs`t`t<Argument name=`"YieldType`">YIELD_FOOD</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>$NL`t</Modifier>"
-    $prod = "`t<Modifier id=`"MA_${sfx}_WATER_FLOOR_PROD${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD`">$NL$reqs`t`t<Argument name=`"YieldType`">YIELD_PRODUCTION</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_WATERS_DESCRIPTION</Argument>$NL`t</Modifier>"
+function M-WaterFloor($sfx,$amt,$win) {
+    $gate = ($win.R) -join $NL
+    $reqs = "`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_HAS_TERRAIN`"><Argument name=`"TerrainType`">TERRAIN_COAST</Argument><Argument name=`"Amount`">1</Argument></Requirement>$NL$gate$NL`t`t</SubjectRequirements>$NL"
+    $food = "`t<Modifier id=`"MA_${sfx}_WATER_FLOOR_FOOD$($win.W)`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD`">$NL$reqs`t`t<Argument name=`"YieldType`">YIELD_FOOD</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_WATERS_LABEL</Argument>$NL`t</Modifier>"
+    $prod = "`t<Modifier id=`"MA_${sfx}_WATER_FLOOR_PROD$($win.W)`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD`">$NL$reqs`t`t<Argument name=`"YieldType`">YIELD_PRODUCTION</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_WATERS_LABEL</Argument>$NL`t</Modifier>"
     "$food$NL$prod"
 }
 # workstream J: per-tier resource CAPACITY for the tall city (assign more resources -> +1 GDP each +
@@ -783,25 +811,28 @@ function M-Reseed($sfx,$hostNode,$pop,$yield,$div) {
 # the COLLECTION_MAJOR_PLAYERS attach wrapper like the rest of the kit.
 # NB: in-game "Influence" = YIELD_DIPLOMACY internally (the pantheon altar proves it).
 #
-# DESIGN (ROUTE A, 2026-06-20): flat per-CS yields are USELESS for a one-city tall player (CS count is
-# tiny; improvements are 1-per-city by meta). The ONLY axis that scales for tall is POPULATION. AND the CS
-# bonus system is a DRAFT from a per-type pool where most options are EXCLUSIVE (first-come, lockable by a
-# rival) except ONE per type marked Shareable="true" (the "+yield to Warehouse buildings" option, repeatable).
-# So: gate a PER-POP yield on having drafted that type's SHAREABLE bonus (the one we can always get), via
-# REQUIREMENT_PLAYER_ELIGIBLE_CS_BONUS. The CS is the UNLOCK, your pop is the MULTIPLIER. Share-bonus id is
-# uniform: CITY_STATE_<TYPE>_BONUS_<BonusAge>_7. Route A also overrides that bonus's menu DESCRIPTION text so
-# the player sees our add-on (see the generated text section). VERIFY in-game: ELIGIBLE_CS_BONUS fires on DRAFT.
+# DESIGN (2026-06-20; DECOUPLED 2026-07-13): flat per-CS yields are USELESS for a one-city tall player (CS
+# count is tiny; improvements are 1-per-city by meta). The ONLY axis that scales for tall is POPULATION. So we
+# grant a PER-POP yield keyed to the CITY-STATE TYPE you are Suzerain of. Suzerainty is the UNLOCK, your pop is
+# the MULTIPLIER. GATE = REQUIREMENT_PLAYER_HAS_X_TRIBUTARIES_OF_TYPE (base-verified) - i.e. simply HOLDING the
+# suzerainty, regardless of which bonus you draft. NOTHING is attached to the draft menu: no reward rides the
+# Shareable-bonus pick and no menu DESCRIPTION text is overridden (both were the pre-decouple "Route A" design,
+# now fully removed). The explanation lives on the civic SUZERAIN note + the dashboard's Protectorates panel.
 #
-# (1) Five CITY yields, PER-POP, unlocked by drafting that type's Shareable CS bonus. EFFECT_CITY_ADJUST_
-#     YIELD_PER_POPULATION (the effect the whole tall kit is built on), gated on the Shareable bonus + anti-wide.
+# (1) Five CITY yields, PER-POP, from SUZERAINTY OF THE TYPE itself (GEN-2 DECOUPLE 2026-07-13:
+#     the old REQUIREMENT_PLAYER_ELIGIBLE_CS_BONUS gate forced the Shareable pick every time and
+#     fought the Gen-2 improvement-picking feats; now any bonus pick qualifies - the tributary
+#     requirement is base-verified, Conqueror-set usage). $shareBonus param retained for caller
+#     compatibility, no longer read.
 function M-SuzerainPerPop($sfx,$shareBonus,$yield,$csType,$div) {
-    "`t<Modifier id=`"MA_${sfx}_SUZ_${csType}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD_PER_POPULATION`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_ELIGIBLE_CS_BONUS`"><Argument name=`"CityStateBonus`">$shareBonus</Argument></Requirement>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">$yield</Argument>$NL`t`t<Argument name=`"Amount`">1</Argument><Argument name=`"Divisor`">$div</Argument>$NL`t`t<Argument name=`"Urban`">true</Argument><Argument name=`"Rural`">false</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_${sfx}_NOTE_SUZERAIN</Argument>$NL`t</Modifier>"
+    "`t<Modifier id=`"MA_${sfx}_SUZ_${csType}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD_PER_POPULATION`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_HAS_X_TRIBUTARIES_OF_TYPE`"><Argument name=`"Amount`">1</Argument><Argument name=`"CityStateType`">$csType</Argument></Requirement>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">$yield</Argument>$NL`t`t<Argument name=`"Amount`">1</Argument><Argument name=`"Divisor`">$div</Argument>$NL`t`t<Argument name=`"Urban`">true</Argument><Argument name=`"Rural`">false</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_SUZERAIN_LABEL</Argument>$NL`t</Modifier>"
 }
 # (2) DIPLOMATIC->Influence. Influence is PLAYER-level (can't ride the per-pop city effect), so EFFECT_PLAYER_
 #     ADJUST_YIELD_PER_SUZERAIN (base: HOSPITALITY_MOD_SUZERAINS) grants +Amount YIELD_DIPLOMACY per TOTAL
-#     suzerain (any type) - a compounding loop. Gated on the DIPLOMATIC Shareable bonus + anti-wide.
+#     suzerain (any type) - a compounding loop. GEN-2 DECOUPLE: gated on Suzerainty of a DIPLOMATIC
+#     city-state (was the Diplomatic Shareable pick) + anti-wide.
 function M-SuzerainDiplo($sfx,$shareBonus,$amt) {
-    "`t<Modifier id=`"MA_${sfx}_SUZ_DIPLOMATIC`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_ADJUST_YIELD_PER_SUZERAIN`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_ELIGIBLE_CS_BONUS`"><Argument name=`"CityStateBonus`">$shareBonus</Argument></Requirement>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_DIPLOMACY</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_${sfx}_NOTE_SUZERAIN</Argument>$NL`t</Modifier>"
+    "`t<Modifier id=`"MA_${sfx}_SUZ_DIPLOMATIC`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_ADJUST_YIELD_PER_SUZERAIN`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_HAS_X_TRIBUTARIES_OF_TYPE`"><Argument name=`"Amount`">1</Argument><Argument name=`"CityStateType`">DIPLOMATIC</Argument></Requirement>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_DIPLOMACY</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_SUZERAIN_LABEL</Argument>$NL`t</Modifier>"
 }
 # (3) FREE-POP — REMOVED 2026-06-20. Was: each EXPANSIONIST CS adds free capital population via
 #     EFFECT_ADJUST_PLAYER_FREE_POLPULATION_CAPITAL_ON_CITY_STATE. Playtest showed it never fires through our
@@ -989,30 +1020,30 @@ function M-ResourceReach($sfx,$node,$amt) {
     @{ Xml=($mods -join $NL); Ids=$ids }
 }
 
+$pillarManifest = [ordered]@{}   # sfx -> Triumph-window pillar ids (handed to gen-ascendancy's feat rewards)
 foreach ($age in $ages) {
     $sfx=$age.Sfx; $node=$age.Node; $pops=$age.Pops; $N=$age.Nodes
-    # Secondary-layer tall cap (Suzerain / town-spec / trade / hub / reseed): hard 1-per-hemisphere like the core.
-    # AQ has no Distant Lands -> at most 1 settlement (fewer than 2); EX/MO -> at most 1 per hemisphere = 2 total
-    # (fewer than 3). At the next settlement these turn OFF (matching the core SOLO cutoff). The specialist CAP +
-    # the 2 safety nets keep their separate lenient non-revoking gate (Settle 4/5 'true') to avoid an over-cap spiral.
-    $tallCap = if ($age.Distant) { 3 } else { 2 }
+    # Secondary-layer tall cap (Suzerain streams / town-spec / trade / unlocks / wonder-appeal / reseed):
+    # GEN-2 RE-CUT 2026-07-19 - the old 1-per-hemisphere cap (2/3) wrongly cut this whole layer off in
+    # legal 2-3 settlement empires. Now = the AGE MAX + 1 ("fewer than max+1" = within the age's ceiling:
+    # AQ <=2, EX <=3, MO <=4). Deliberately LENIENT (age max, not exact earned allowance): this layer is
+    # binary/static-world pieces (unlocks, appeal radiation, per-suzerain streams) that must not blink;
+    # the exact-allowance windows live on the yield pillars (PillarWindows). The specialist CAP + the 2
+    # safety nets keep their separate lenient non-revoking gate (Settle 4/5 'true').
+    $tallCap = @{ 'AQ' = 3; 'EX' = 4; 'MO' = 5 }[$sfx]
     # NONE for AQ (no Distant Lands); HL (+ DL) for EX/MO.
     $hemis = if ($age.Distant) { @('HL','DL') } else { @('NONE') }
 
     $out = @()
     $out += '<?xml version="1.0" encoding="utf-8"?>'
     $out += "<!-- Metropolis Ascendant - $($age.AgeName) modifiers. GENERATED by tools/gen-ascendant.ps1 - do not hand-edit.$(if($TestMode){' [TEST BUILD: pop thresholds 2/4/6, tech gate removed - for fast validation only]'})"
-    $out += "     PER-HEMISPHERE model (item K) + HARD CUTOFF (2026-06-21): rewards are BINARY per hemisphere -"
-    $out += "     FULL at exactly 1 settlement in the hemisphere, NOTHING at 2+ (no geometric taper). Rewards"
-    $out += "     count ALL settlements (towns included); the specialist CAP + the 2 safety nets count CITIES"
-    $out += "     ONLY and keep a lenient non-revoking gate (off at 4+) so a slip never strands specialists."
-    if ($age.Distant) {
-        $out += "     Two sets: HOMELAND (REQUIREMENT_CITY_IS_DISTANT_LANDS inverse + OnlyHomelands) and DISTANT-LANDS"
-        $out += "     (_DL ids; REQUIREMENT_CITY_IS_DISTANT_LANDS + OnlyDistantlands). GREAT_WORKS (capital/Palace) and"
-        $out += "     COLLECTION_SLOTS (constructibles, can take no settlement req) are homeland-set / player-wide only."
-    } else {
-        $out += "     Antiquity has no Distant Lands, so this is a single unscoped set (plain total settlement count)."
-    }
+    $out += "     GEN-2 EARNED-ALLOWANCE model (2026-07-19): the pillar family (Arcadia rural/peaks/waters,"
+    $out += "     wonder-happiness, mountain/water adjacency, coastal floor) is WINDOWED on total settlements"
+    $out += "     vs the earned allowance - _W1 = the Age floor, _W2+ = the charter-Triumph slots - exactly"
+    $out += "     matching the Ascendancy tree's gate. Copies are mutually exclusive; each pays in EVERY"
+    $out += "     settlement (towns count; no hemisphere twins). The secondary layer (suzerain streams,"
+    $out += "     unlocks, wonder-appeal) keeps a lenient age-max gate; the specialist safety nets count"
+    $out += "     CITIES ONLY with a non-revoking gate so a slip never strands specialists."
     $out += "     TECH-NODE GATE: every reward + cap gates on $($age.Node) (MinDepth=1, REQUIRED or it silently"
     $out += "     never fires). The 2 safety nets are ungated (always-on via the GameModifiers binding). -->"
     $out += '<GameEffects xmlns="GameEffects">'
@@ -1023,6 +1054,7 @@ foreach ($age in $ages) {
     # EFFECT_PLAYER_ADJUST_SETTLEMENT_CAP Amount=0 = deliberate no-op. NOT in the attach wrapper.
     $out += "`t<!-- DISCOVERABILITY MARKERS: one no-op note modifier per gated node (see traditions.xml rows). -->"
     foreach ($note in $age.Notes) {
+        if ($Gen2Strip -and $gen2StrippedNoteKeys -contains $note.Key) { continue }   # migrated -> Ascendancy
         $noteId  = if ($note.Key -eq 'ALL') { "MA_${sfx}_UNLOCK_NOTE" } else { "MA_${sfx}_NOTE_$($note.Key)" }
         $noteLoc = if ($note.Key -eq 'ALL') { 'LOC_MA_UNLOCK_NOTE' }     else { "LOC_MA_${sfx}_NOTE_$($note.Key)" }   # per-age tag so EX/MO numbers differ from AQ
         $out += "`t<Modifier id=`"$noteId`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_ADJUST_SETTLEMENT_CAP`" permanent=`"true`">$NL`t`t<Argument name=`"Amount`">0</Argument>$NL`t`t<String context=`"Description`">$noteLoc</String>$NL`t</Modifier>"
@@ -1030,6 +1062,7 @@ foreach ($age in $ages) {
     $out += ''
 
     $wrapIds = @()
+    $pillarRewardIds = @()   # Triumph-window pillar ids -> the EXP feat reward (via the build manifest)
     foreach ($hemi in $hemis) {
         $dl = if ($hemi -eq 'DL') { '_DL' } else { '' }
         if ($hemi -eq 'HL')   { $out += "`t<!-- ===================== HOMELAND hemisphere set ===================== -->" }
@@ -1037,94 +1070,112 @@ foreach ($age in $ages) {
 
         # TIER 1
         $out += "`t<!-- TIER 1 (Urban pop >= $($pops[0]))$(if($dl){' - distant lands'}) -->"
-        $out += (M-WorkerCap $sfx 1 $N.Spine $pops[0] $hemi $dl); $wrapIds += "MA_${sfx}_T1_WORKER_CAP${dl}"
+        if (-not $Gen2Strip) { $out += (M-WorkerCap $sfx 1 $N.Spine $pops[0] $hemi $dl); $wrapIds += "MA_${sfx}_T1_WORKER_CAP${dl}" }   # RETIRED 2026-07-13 -> Gen-2 SCI2/CUL2/ECO2 masteries (+1 specialist each)
         $out += (M-Upkeep $sfx $pops[0] $hemi $dl);            $wrapIds += "MA_${sfx}_T1_SPECIALIST_UPKEEP${dl}"
         $out += (M-Happiness $sfx $pops[0] $age.Happiness $hemi $dl); $wrapIds += "MA_${sfx}_T1_HAPPINESS${dl}"
-        $out += (M-ResourceCap $sfx 1 $N.Economic $pops[0] $age.ResCap[0] $hemi $dl); $wrapIds += "MA_${sfx}_T1_RESOURCE_CAP${dl}"
+        if (-not $Gen2Strip) { $out += (M-ResourceCap $sfx 1 $N.Economic $pops[0] $age.ResCap[0] $hemi $dl); $wrapIds += "MA_${sfx}_T1_RESOURCE_CAP${dl}" }   # RETIRED 2026-07-13 -> Gen-2 ECO2 mastery (+2/+2/+3 all settlements) + Major cards (Capital)
         # IDEA 1: happiness-stage payoff lane (core mechanic; T1 pop floor; SOLO + hemisphere-scoped). Joyous +
         # Ecstatic gates STACK. Two stage-yields (Science+Culture) x two stages = 4 modifiers per hemisphere.
         $stageNode = @{ 'YIELD_SCIENCE'=$N.Science; 'YIELD_CULTURE'=$N.Culture }   # advertise each half on its domain node
-        foreach ($yld in $stageYields) {
-            $yn = ($yld -replace '^YIELD_',''); $sn = $stageNode[$yld]
-            $out += (M-StagePayoff $sfx $sn $pops[0] 'HAPPINESS_STAGE_JOYOUS'   $yld $stageJoyousDiv   $hemi $dl); $wrapIds += "MA_${sfx}_STAGE_JOYOUS_${yn}${dl}"
-            $out += (M-StagePayoff $sfx $sn $pops[0] 'HAPPINESS_STAGE_ECSTATIC' $yld $stageEcstaticDiv $hemi $dl); $wrapIds += "MA_${sfx}_STAGE_ECSTATIC_${yn}${dl}"
+        if (-not $Gen2Strip) {   # MIGRATED -> Ascendancy SCI2/CUL2 escalators
+            foreach ($yld in $stageYields) {
+                $yn = ($yld -replace '^YIELD_',''); $sn = $stageNode[$yld]
+                $out += (M-StagePayoff $sfx $sn $pops[0] 'HAPPINESS_STAGE_JOYOUS'   $yld $stageJoyousDiv   $hemi $dl); $wrapIds += "MA_${sfx}_STAGE_JOYOUS_${yn}${dl}"
+                $out += (M-StagePayoff $sfx $sn $pops[0] 'HAPPINESS_STAGE_ECSTATIC' $yld $stageEcstaticDiv $hemi $dl); $wrapIds += "MA_${sfx}_STAGE_ECSTATIC_${yn}${dl}"
+            }
         }
-        # WONDER LANE C (STRUCTURAL, binary): activate "+1 Happiness to buildings adjacent to a Wonder". NO node/pop
-        # gate - static-world property, must not blink off at Age transitions; gated only on the tall model (SOLO +
-        # hemisphere) and self-scopes on having a wonder. (memory: civ7-age-transition-static-functions)
-        $out += (M-WonderHappyAdj $sfx $hemi $dl); $wrapIds += "MA_${sfx}_WONDER_HAPPY_ADJ${dl}"
-        # WONDER LANE B2 = ARCADIA (YIELDS): Breathtaking RURAL ring - +$($age.Preserve) Cul/Prod/Happy/Sci/Food on every
-        # rural Breathtaking tile. DISCOVERY-gated (discovered a Natural Wonder) + SOLO + hemisphere; scales BY AGE (AQ1/EX2/MO3).
-        $out += (M-AppealYield $sfx $age.Preserve $hemi $dl $age.MtnDedup); $wrapIds += "MA_${sfx}_APPEAL_YIELD${dl}"
-        # WONDER LANE M3 = Arcadia PEAKS (A): full Arcadia 5-set on worked MOUNTAIN tiles, same discovery+tall gate.
-        # Per-hemisphere (like the rural ring). The mountain-improvement UNLOCK that makes peaks workable is emitted once below.
-        $out += (M-MountainYield $sfx $age.Preserve $hemi $dl); $wrapIds += "MA_${sfx}_MOUNTAIN_YIELD${dl}"
-        # MOUNTAIN LANE B: Machu-Picchu wildcard - every Building/Wonder adjacent to a Mountain gains +Cul/+Gold per mountain
-        # (+1/+2/+3 by Age via the numbered MA_MtnCul#/MA_MtnGold# rules). Per-hemisphere; gated Arcadia discovery + tall.
-        $out += (M-MountainAdj $sfx $age.Preserve $hemi $dl); $wrapIds += "MA_${sfx}_MTN_ADJ_CUL${dl}"; $wrapIds += "MA_${sfx}_MTN_ADJ_GOLD${dl}"
-        # WONDER LANE B1 (STRUCTURAL, binary, player-wide): all the player's wonders radiate +$wonderAppealAmt Appeal to
-        # nearby tiles. NO node/pop gate (static-world); tall-gated on total settlements; emitted ONCE -> guard to non-DL.
+        # ==== THE GEN-2 PILLAR FAMILY: windowed on the EARNED ALLOWANCE, hemisphere-free.
+        # Count windows live IN-LEAF (re-evaluate continuously - proven). Route='ALL' copies ride
+        # ATTACH_ALL; Route='REWARD' copies are handed to gen-ascendancy (pillar-window-ids.json)
+        # and attach via the age's Expansion FEAT REWARD - the only proven mid-session Triumph
+        # delivery (2026-07-21 rebuild: Triumph reqs are frozen at attach everywhere else).
+        # Emitted once (non-DL).
+        # ⚠ STRUCTURAL TIER (2026-07-21, run-5 attempt-4 in-game proof): ACTIVATION effects must
+        # NOT be windowed - the W1-off/W2-on handover at a count change processes the off first,
+        # and a deactivated adjacency rule does not re-fire (the Temple-slot twin of this bug
+        # evicted 4 slotted relics). Structural/capacity/activation effects = ONE copy, count
+        # ceiling <= the age max ($tallCap form, the lenient unlock tier) - never blinks in legal
+        # play; only crossing the age max (the punished state) drops them.
+        if ($hemi -ne 'DL') {
+            $structWin = @{ W = ''; R = @((Settle $tallCap $true 'false' '')) }
+            # WONDER LANE C (STRUCTURAL, binary): "+1 Happiness to buildings adjacent to a Wonder".
+            $out += (M-WonderHappyAdj $sfx $structWin); $wrapIds += "MA_${sfx}_WONDER_HAPPY_ADJ"
+            # MOUNTAIN LANE B (STRUCTURAL): Machu-Picchu wildcard (+Cul/+Gold per adjacent mountain).
+            $out += (M-MountainAdj $sfx $age.Preserve $structWin); $wrapIds += "MA_${sfx}_MTN_ADJ_CUL"; $wrapIds += "MA_${sfx}_MTN_ADJ_GOLD"
+            # WATER Option 1 (STRUCTURAL): +Gold per adjacent Coast, +Production per adjacent Navigable River.
+            $out += (M-WaterAdj $sfx $age.Preserve $structWin); $wrapIds += "MA_${sfx}_WATER_ADJ_GOLD"; $wrapIds += "MA_${sfx}_WATER_ADJ_PROD"
+            foreach ($w in (PillarWindows $sfx)) {
+                $winIds = @()
+                # WONDER LANE B2 = ARCADIA (YIELDS): Breathtaking RURAL ring, +$($age.Preserve) of the 5-set.
+                $out += (M-AppealYield $sfx $age.Preserve $w $age.MtnDedup); $winIds += "MA_${sfx}_APPEAL_YIELD$($w.W)"
+                # WONDER LANE M3 = Arcadia PEAKS: full 5-set on worked MOUNTAIN tiles.
+                $out += (M-MountainYield $sfx $age.Preserve $w); $winIds += "MA_${sfx}_MOUNTAIN_YIELD$($w.W)"
+                # ARCADIA EMBRACES THE WATERS: per-water-type worked-tile yields.
+                foreach ($wtKey in $waterTypes.Keys) {
+                    $out += (M-WaterYield $sfx $wtKey $waterTypes[$wtKey] $w); $winIds += "MA_${sfx}_WATER_${wtKey}_YIELD$($w.W)"
+                }
+                # WATER Option 4: Tonga-style coastal FLOOR (no discovery gate - pays from turn 1).
+                $out += (M-WaterFloor $sfx $waterFloorAmt[$sfx] $w); $winIds += "MA_${sfx}_WATER_FLOOR_FOOD$($w.W)"; $winIds += "MA_${sfx}_WATER_FLOOR_PROD$($w.W)"
+                if ($w.Route -eq 'REWARD') { $pillarRewardIds += $winIds }
+                else                        { $wrapIds += $winIds }
+            }
+        }
+        # WONDER LANE B1 (STRUCTURAL, binary, player-wide): wonders radiate +$wonderAppealAmt Appeal.
+        # Lenient age-max tall gate ($tallCap); emitted ONCE -> guard to non-DL.
         if ($hemi -ne 'DL') { $out += (M-WonderAppeal $sfx $wonderAppealAmt); $wrapIds += "MA_${sfx}_WONDER_APPEAL" }
-        # WONDER LANE M3 unlock (player-wide, once): grant IMPROVEMENT_INCA_MOUNTAIN so the peaks are workable (Arcadia + tall).
+        # WONDER LANE M3 unlock (player-wide, once): IMPROVEMENT_INCA_MOUNTAIN so peaks are workable.
         if ($hemi -ne 'DL') { $out += (M-MountainUnlock $sfx); $wrapIds += "MA_${sfx}_MOUNTAIN_UNLOCK" }
-        # ARCADIA EMBRACES THE WATERS (ROADMAP item 2): the M3 peak treatment, for water. Option 2 = per-water-type
-        # worked-tile yields, one modifier per type (each its own yield set + per-Age amount; discovery + tall +
-        # hemisphere gate). Lifts a tile-starved one-island metropolis's ceiling on archipelago / sea-heavy maps.
-        foreach ($wtKey in $waterTypes.Keys) {
-            $out += (M-WaterYield $sfx $wtKey $waterTypes[$wtKey] $hemi $dl); $wrapIds += "MA_${sfx}_WATER_${wtKey}_YIELD${dl}"
-        }
-        # WATER Option 1: adjacency companion - +Gold per adjacent Coast, +Production per adjacent Navigable River on every
-        # Building/Wonder (+1/+2/+3 by Age via MA_CoastGold#/MA_RiverProd#). Per-hemisphere; same Arcadia-discovery+tall gate.
-        $out += (M-WaterAdj $sfx $age.Preserve $hemi $dl); $wrapIds += "MA_${sfx}_WATER_ADJ_GOLD${dl}"; $wrapIds += "MA_${sfx}_WATER_ADJ_PROD${dl}"
-        # WATER Option 3 (EX ONLY, player-wide, once): grant IMPROVEMENT_HAWAII_FISHING_BOAT so ocean tiles become workable
-        # (AQ can't work ocean; MO works it natively). The sea-twin of the mountain-improvement unlock above.
+        # WATER Option 3 (EX ONLY, player-wide, once): IMPROVEMENT_HAWAII_FISHING_BOAT for workable ocean.
         if ($hemi -ne 'DL' -and $sfx -eq 'EX') { $out += (M-WaterUnlock $sfx); $wrapIds += "MA_${sfx}_WATER_UNLOCK" }
-        # WATER Option 4: Tonga-style coastal FLOOR - flat +Food/+Production for the metropolis being coastal. ALWAYS-ON
-        # (tall + hemisphere only, NO discovery gate) so a tile-starved island start has a guaranteed floor from turn 1.
-        $out += (M-WaterFloor $sfx $waterFloorAmt[$sfx] $hemi $dl); $wrapIds += "MA_${sfx}_WATER_FLOOR_FOOD${dl}"; $wrapIds += "MA_${sfx}_WATER_FLOOR_PROD${dl}"
 
         # TIER 2
         $out += "`t<!-- TIER 2 (Urban pop >= $($pops[1]))$(if($dl){' - distant lands'}) -->"
-        $out += (M-WorkerCap $sfx 2 $N.Spine $pops[1] $hemi $dl); $wrapIds += "MA_${sfx}_T2_WORKER_CAP${dl}"
-        for ($b=0; $b -lt $bandList.Count; $b++) {
-            $band=$bandList[$b]
-            $out += (M-Wonders $sfx $N.Wonders $pops[1] $band $age.Wonders[$b] $hemi $dl)
-            $wrapIds += "MA_${sfx}_T2_WONDERS_${band}${dl}"
+        if (-not $Gen2Strip) { $out += (M-WorkerCap $sfx 2 $N.Spine $pops[1] $hemi $dl); $wrapIds += "MA_${sfx}_T2_WORKER_CAP${dl}" }   # RETIRED -> Gen-2 masteries
+        if (-not $Gen2Strip) {   # MIGRATED -> Ascendancy CUL2 (wonder %) / SCI2 (GW slots)
+            for ($b=0; $b -lt $bandList.Count; $b++) {
+                $band=$bandList[$b]
+                $out += (M-Wonders $sfx $N.Wonders $pops[1] $band $age.Wonders[$b] $hemi $dl)
+                $wrapIds += "MA_${sfx}_T2_WONDERS_${band}${dl}"
+            }
+            if ($hemi -ne 'DL') {   # great works = homeland/capital only
+                $out += (M-GreatWorks $sfx $N.Science $pops[1] $age.GW $hemi); $wrapIds += "MA_${sfx}_T2_GREAT_WORKS"
+            }
         }
-        if ($hemi -ne 'DL') {   # great works = homeland/capital only
-            $out += (M-GreatWorks $sfx $N.Science $pops[1] $age.GW $hemi); $wrapIds += "MA_${sfx}_T2_GREAT_WORKS"
-        }
-        $out += (M-ResourceCap $sfx 2 $N.Economic $pops[1] $age.ResCap[1] $hemi $dl); $wrapIds += "MA_${sfx}_T2_RESOURCE_CAP${dl}"
+        if (-not $Gen2Strip) { $out += (M-ResourceCap $sfx 2 $N.Economic $pops[1] $age.ResCap[1] $hemi $dl); $wrapIds += "MA_${sfx}_T2_RESOURCE_CAP${dl}" }   # RETIRED -> Gen-2 ECO2 mastery
         # TOWN-SPEC Temple bucket (EX-only): +Great Work slots on Temples (relic storage) on the religion node.
         # Per-hemisphere (the distant city's temples too); integer/binary SOLO band like the other slot grants.
         if ($age.TempleSlots) {
-            $out += (M-TempleSlots $sfx 2 $N.Religion $pops[1] $age.TempleSlots $hemi $dl); $wrapIds += "MA_${sfx}_T2_TEMPLE_SLOTS${dl}"
+            if (-not $Gen2Strip) {   # MIGRATED -> Ascendancy CUL2 EX (Temple GW slots)
+                $out += (M-TempleSlots $sfx 2 $N.Religion $pops[1] $age.TempleSlots $hemi $dl); $wrapIds += "MA_${sfx}_T2_TEMPLE_SLOTS${dl}"
+            }
             # ITEM 6: relic/Great-Work Culture amplifier - EX-only (RELICS are the cultural Great Works and only
             # arrive in the religion age; in AQ Great Works = Codices = science-flavored, so culture-per-GW would
             # be off-theme AND over-boost AQ culture, which is already dominant). Gated on the SAME religion node
             # (Theology) as the Temple relic-slots so relic STORAGE and relic->CULTURE travel together; the effect
             # can't filter to relics-only, but EX hoards are relic-heavy. Auto-extends to MO when MO gets TempleSlots.
-            $out += (M-GreatWorkYield $sfx $N.Religion $pops[1] 'YIELD_CULTURE' $gwCultureAmt $hemi $dl); $wrapIds += "MA_${sfx}_GW_CULTURE${dl}"
+            if (-not $Gen2Strip) { $out += (M-GreatWorkYield $sfx $N.Religion $pops[1] 'YIELD_CULTURE' $gwCultureAmt $hemi $dl); $wrapIds += "MA_${sfx}_GW_CULTURE${dl}" }   # A3 2026-07-14: RE-HOMED -> Ascendancy CUL2 EX (gwyield spec)
         }
 
         # TIER 3
         $out += "`t<!-- TIER 3 (Urban pop >= $($pops[2]))$(if($dl){' - distant lands'}) -->"
-        $out += (M-WorkerCap $sfx 3 $N.Spine $pops[2] $hemi $dl); $wrapIds += "MA_${sfx}_T3_WORKER_CAP${dl}"
+        if (-not $Gen2Strip) { $out += (M-WorkerCap $sfx 3 $N.Spine $pops[2] $hemi $dl); $wrapIds += "MA_${sfx}_T3_WORKER_CAP${dl}" }   # RETIRED -> Gen-2 masteries
         # Economic DEEPEN: tier-3 resource cap moves to the EconomicDeep node (Wheel) - research Wheel to
         # deepen your resource economy on top of Currency's tier 1-2 cap.
-        $out += (M-ResourceCap $sfx 3 $N.EconomicDeep $pops[2] $age.ResCap[2] $hemi $dl); $wrapIds += "MA_${sfx}_T3_RESOURCE_CAP${dl}"
-        if ($hemi -ne 'DL') {   # collection slots + trade routes = player-wide, homeland set only
+        if (-not $Gen2Strip) { $out += (M-ResourceCap $sfx 3 $N.EconomicDeep $pops[2] $age.ResCap[2] $hemi $dl); $wrapIds += "MA_${sfx}_T3_RESOURCE_CAP${dl}" }   # RETIRED -> Gen-2 ECO2 mastery
+        if ((-not $Gen2Strip) -and $hemi -ne 'DL') {   # MIGRATED -> Ascendancy SCI2 (collection slots) / ECO1+ECO2 (routes)
             $out += (M-CollectionSlots $sfx $N.Science $age.Collection); $wrapIds += "MA_${sfx}_T3_COLLECTION_SLOTS"
             $out += (M-TradeRoutes $sfx $N.Commerce $age.Trade); $wrapIds += "MA_${sfx}_TRADE_ROUTES"
         }
         # Two-node model: per-pop yields are each domain's DEEPEN node. Science -> Mathematics; Culture -> Mysticism civic.
-        $perPopNode = @{ 'YIELD_SCIENCE'=$N.ScienceDeep; 'YIELD_CULTURE'=$N.CultureDeep }
-        foreach ($yld in @('YIELD_SCIENCE','YIELD_CULTURE')) {
-            $yname = ($yld -replace '^YIELD_','')
-            for ($b=0; $b -lt $bandList.Count; $b++) {
-                $band=$bandList[$b]
-                $out += (M-PerPop $sfx $perPopNode[$yld] $pops[2] $band $yld $perPopDiv[$band] $hemi $dl)
-                $wrapIds += "MA_${sfx}_T3_${yname}_${band}${dl}"
+        if (-not $Gen2Strip) {   # MIGRATED -> Ascendancy SCI1/CUL1 entry rungs
+            $perPopNode = @{ 'YIELD_SCIENCE'=$N.ScienceDeep; 'YIELD_CULTURE'=$N.CultureDeep }
+            foreach ($yld in @('YIELD_SCIENCE','YIELD_CULTURE')) {
+                $yname = ($yld -replace '^YIELD_','')
+                for ($b=0; $b -lt $bandList.Count; $b++) {
+                    $band=$bandList[$b]
+                    $out += (M-PerPop $sfx $perPopNode[$yld] $pops[2] $band $yld $perPopDiv[$band] $hemi $dl)
+                    $wrapIds += "MA_${sfx}_T3_${yname}_${band}${dl}"
+                }
             }
         }
         # ---- SURVEYOR milestone grants (issue #12): one Surveyor at each Urban-Pop tier, run-once, per hemisphere ----
@@ -1139,23 +1190,31 @@ foreach ($age in $ages) {
         if ($age.FanOut -and $hemi -ne 'DL') {
             $out += "`t<!-- FAN-OUT: Military production-per-pop ($($N.Military)) + combat strength ($($N.MilitaryDeep));"
             $out += "`t     Qajar under-settlement-cap Food ($($N.FoodCap)) / Production ($($N.ProdCap)); trade-route RANGE ($($N.Commerce)). -->"
-            for ($b=0; $b -lt $bandList.Count; $b++) {
-                $band=$bandList[$b]
-                $out += (M-PerPop $sfx $N.Military $pops[2] $band 'YIELD_PRODUCTION' $perPopDiv[$band] $hemi $dl)
-                $wrapIds += "MA_${sfx}_T3_PRODUCTION_${band}${dl}"
+            if (-not $Gen2Strip) {   # MIGRATED -> Ascendancy IND1 (prod rung)
+                for ($b=0; $b -lt $bandList.Count; $b++) {
+                    $band=$bandList[$b]
+                    $out += (M-PerPop $sfx $N.Military $pops[2] $band 'YIELD_PRODUCTION' $perPopDiv[$band] $hemi $dl)
+                    $wrapIds += "MA_${sfx}_T3_PRODUCTION_${band}${dl}"
+                }
             }
-            $out += (M-CombatStrength $sfx $N.MilitaryDeep $age.MilStrength); $wrapIds += "MA_${sfx}_T3_COMBAT_STRENGTH"
-            $out += (M-UnderCapYield $sfx 'YIELD_FOOD' $age.UnderCapAmount $N.FoodCap);       $wrapIds += "MA_${sfx}_UNDER_CAP_FOOD"
-            $out += (M-UnderCapYield $sfx 'YIELD_PRODUCTION' $age.UnderCapAmount $N.ProdCap); $wrapIds += "MA_${sfx}_UNDER_CAP_PRODUCTION"
-            $out += (M-TradeRange $sfx $N.Commerce 'DOMAIN_LAND' $age.TradeRange); $wrapIds += "MA_${sfx}_TRADE_RANGE_LAND"
-            $out += (M-TradeRange $sfx $N.Commerce 'DOMAIN_SEA' $age.TradeRange);  $wrapIds += "MA_${sfx}_TRADE_RANGE_SEA"
+            if (-not $Gen2Strip) { $out += (M-CombatStrength $sfx $N.MilitaryDeep $age.MilStrength); $wrapIds += "MA_${sfx}_T3_COMBAT_STRENGTH" }   # RETIRED 2026-07-13 -> Esprit de Corps card is the (opt-in) offense
+            # A2 de-layer 2026-07-14 (Chris ruling): DELETE the under-cap dividend (Food + Production). It was
+            # a unique tall reward but base-node-gated; Chris chose full removal over re-homing. Base tree -> vanilla.
+            if (-not $Gen2Strip) { $out += (M-UnderCapYield $sfx 'YIELD_FOOD' $age.UnderCapAmount $N.FoodCap);       $wrapIds += "MA_${sfx}_UNDER_CAP_FOOD" }
+            if (-not $Gen2Strip) { $out += (M-UnderCapYield $sfx 'YIELD_PRODUCTION' $age.UnderCapAmount $N.ProdCap); $wrapIds += "MA_${sfx}_UNDER_CAP_PRODUCTION" }
+            if (-not $Gen2Strip) {   # MIGRATED -> Ascendancy ECO2 (route range)
+                $out += (M-TradeRange $sfx $N.Commerce 'DOMAIN_LAND' $age.TradeRange); $wrapIds += "MA_${sfx}_TRADE_RANGE_LAND"
+                $out += (M-TradeRange $sfx $N.Commerce 'DOMAIN_SEA' $age.TradeRange);  $wrapIds += "MA_${sfx}_TRADE_RANGE_SEA"
+            }
         }
         $out += ''
     }
 
     # ---- AGE-TRANSITION RESEED (EX/MO only; player-wide, not hemisphere-scoped, emitted once) ----
-    # See M-Reseed: per-pop Science+Culture bridge live from age turn 1, off once the host node is researched.
-    if ($age.Sfx -ne 'AQ') {
+    # A2 de-layer 2026-07-14 (Chris ruling): DELETE the per-pop Science+Culture age-flip bridge. Base tree -> vanilla.
+    # (Was gated on the base host node; Gen-2 Ascendancy cards now carry the tall payoff. Re-open the Exploration
+    #  tall gap here if playtests show a slump right after an age flip.)
+    if (-not $Gen2Strip -and $age.Sfx -ne 'AQ') {
         $out += "`t<!-- RESEED: turn-1 per-pop Science+Culture bridge for the tall player; switches OFF once the"
         $out += "`t     host node ($($age.Node)) is researched and the gated kit takes over. Fills the early-age valley. -->"
         $out += (M-Reseed $sfx $age.Node $pops[0] 'YIELD_SCIENCE' $perPopDiv.SOLO); $wrapIds += "MA_${sfx}_RESEED_SCIENCE"
@@ -1164,18 +1223,17 @@ foreach ($age in $ages) {
     }
 
     # ---- SUZERAIN LAYER (Phase 3; FanOut ages only; player-wide, emitted once) ----
-    # See M-Suzerain et al.: auto-scaling yields per suzerained CS type + free pop per Expansionist + a flat
-    # influence primer to fund winning the first city-states. The width-substitute for a one-city empire.
+    # See M-Suzerain et al.: auto-scaling PER-POP yields keyed to each suzerained CS type + a flat influence
+    # primer to fund winning the first city-states. The width-substitute for a one-city empire.
     if ($age.FanOut) {
         $ba = $age.BonusAge
-        $out += "`t<!-- SUZERAIN (Route A): PER-POP yield unlocked by drafting each type's SHAREABLE city-state bonus"
-        $out += "`t     (CITY_STATE_<TYPE>_BONUS_${ba}_7, the one repeatable option). +Influence per total suzerain"
-        $out += "`t     (Diplomatic shareable); flat Influence primer. (Free-pop removed - one-shot grant can't gate.) -->"
+        $out += "`t<!-- SUZERAIN: per-pop yield keyed to holding suzerainty of each CS TYPE (gate = HAS_X_TRIBUTARIES_OF_TYPE,"
+        $out += "`t     NOT the bonus pick - nothing rides the draft menu). +Influence per total suzerain (Diplomatic);"
+        $out += "`t     flat Influence primer. (Free-pop removed - one-shot grant can't gate.) -->"
         foreach ($cs in $suzCity.Keys) {
-            $share = "CITY_STATE_${cs}_BONUS_${ba}_7"
-            $out += (M-SuzerainPerPop $sfx $share $suzCity[$cs] $cs $suzPerPopDiv); $wrapIds += "MA_${sfx}_SUZ_${cs}"
+            $out += (M-SuzerainPerPop $sfx $null $suzCity[$cs] $cs $suzPerPopDiv); $wrapIds += "MA_${sfx}_SUZ_${cs}"   # 2nd arg (shareBonus) vestigial: decoupled, no longer read
         }
-        $out += (M-SuzerainDiplo $sfx "CITY_STATE_DIPLOMATIC_BONUS_${ba}_7" $suzDiploAmt); $wrapIds += "MA_${sfx}_SUZ_DIPLOMATIC"
+        $out += (M-SuzerainDiplo $sfx $null $suzDiploAmt); $wrapIds += "MA_${sfx}_SUZ_DIPLOMATIC"
         # FREE-POP REMOVED 2026-06-20 (playtest: pop stayed flat). EFFECT_ADJUST_PLAYER_FREE_POLPULATION_CAPITAL_
         # ON_CITY_STATE is a ONE-SHOT grant tied to the become-suzerain event; our ELIGIBLE_CS_BONUS requirement
         # only flips true AFTER that moment, so the grant window is missed. No continuous "pop per CS" alternative
@@ -1226,30 +1284,38 @@ foreach ($age in $ages) {
         $out += "`t       Religious Site -> +Happiness per Building (religion node; pairs with the temple slots above)"
         $out += "`t       Resort         -> +Gold/Happiness on appeal tiles + % all yields on Natural-Wonder tiles (Wonders node) -->"
         # -- Hub Town --
-        $out += (M-HubInfluence $sfx $age.HubNode $age.HubBuilding $hubInfluenceAmt);      $wrapIds += "MA_${sfx}_HUB_INFLUENCE"
+        # A2 de-layer 2026-07-14 (Chris ruling): DELETE Hub influence. Redundant with the Gen-2 DIP-line flat
+        # Diplomacy floor; MA no longer bolts town-focus rewards onto base civic nodes.
+        if (-not $Gen2Strip) { $out += (M-HubInfluence $sfx $age.HubNode $age.HubBuilding $hubInfluenceAmt);      $wrapIds += "MA_${sfx}_HUB_INFLUENCE" }
         # -- Fort Town (durability + gold on fortifications) -- on its OWN node ($age.FortNode), off the
         #    overloaded Military-deepen node (which keeps just combat strength).
-        $out += (M-FortHealth $sfx $age.FortNode $fortHealth);                             $wrapIds += "MA_${sfx}_FORT_HEALTH"
-        $out += (M-FortHealing $sfx $age.FortNode $fortHeal);                              $wrapIds += "MA_${sfx}_FORT_HEALING"
+        if (-not $Gen2Strip) { $out += (M-FortHealth $sfx $age.FortNode $fortHealth);                             $wrapIds += "MA_${sfx}_FORT_HEALTH" }   # RETIRED 2026-07-13 -> Gen-2 MIL1 (Musters) on-node reward
+        if (-not $Gen2Strip) { $out += (M-FortHealing $sfx $age.FortNode $fortHeal);                              $wrapIds += "MA_${sfx}_FORT_HEALING" }   # RETIRED -> Gen-2 MIL1
         $fortGoldReq = "`t`t`t<Requirement type=`"REQUIREMENT_PLOT_HAS_CONSTRUCTIBLE`"><Argument name=`"Tag`">FORTIFICATION</Argument><Argument name=`"CurrentAgeOnly`">false</Argument></Requirement>"
         $fortGoldYld = "`t`t<Argument name=`"YieldType`">YIELD_GOLD</Argument>$NL`t`t<Argument name=`"Amount`">$fortGold</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_${sfx}_NOTE_FORT</Argument>"
-        $out += (M-PlotYield $sfx 'FORT_GOLD' $age.FortNode $fortGoldReq $fortGoldYld);    $wrapIds += "MA_${sfx}_FORT_GOLD"
+        if (-not $Gen2Strip) { $out += (M-PlotYield $sfx 'FORT_GOLD' $age.FortNode $fortGoldReq $fortGoldYld);    $wrapIds += "MA_${sfx}_FORT_GOLD" }   # RETIRED -> Gen-2 MIL1
         # -- Farming/Fishing + Mining + Trade-Outpost warehouses (power up rural tiles / resource happiness) --
-        $out += (M-Warehouse $sfx 'WAREHOUSE_FOOD' $N.FoodCap $warehouse[$sfx].Food "LOC_MA_${sfx}_NOTE_FOODCAP");       $wrapIds += "MA_${sfx}_WAREHOUSE_FOOD"
-        $out += (M-Warehouse $sfx 'WAREHOUSE_PRODUCTION' $N.ProdCap $warehouse[$sfx].Prod "LOC_MA_${sfx}_NOTE_PRODCAP"); $wrapIds += "MA_${sfx}_WAREHOUSE_PRODUCTION"
-        $out += (M-Warehouse $sfx 'WAREHOUSE_HAPPINESS' $N.Commerce $warehouse[$sfx].Happy "LOC_MA_${sfx}_NOTE_TRADE");$wrapIds += "MA_${sfx}_WAREHOUSE_HAPPINESS"
+        # A2 de-layer 2026-07-14 (Chris ruling): RETIRE all three warehouses. Food + Production fold into vanilla
+        # town specialization; Happiness dropped too (House of Wares already rewards resources via Gold).
+        if (-not $Gen2Strip) { $out += (M-Warehouse $sfx 'WAREHOUSE_FOOD' $N.FoodCap $warehouse[$sfx].Food "LOC_MA_${sfx}_NOTE_FOODCAP");       $wrapIds += "MA_${sfx}_WAREHOUSE_FOOD" }
+        if (-not $Gen2Strip) { $out += (M-Warehouse $sfx 'WAREHOUSE_PRODUCTION' $N.ProdCap $warehouse[$sfx].Prod "LOC_MA_${sfx}_NOTE_PRODCAP"); $wrapIds += "MA_${sfx}_WAREHOUSE_PRODUCTION" }
+        if (-not $Gen2Strip) { $out += (M-Warehouse $sfx 'WAREHOUSE_HAPPINESS' $N.Commerce $warehouse[$sfx].Happy "LOC_MA_${sfx}_NOTE_TRADE");$wrapIds += "MA_${sfx}_WAREHOUSE_HAPPINESS" }
         # -- Religious Site happiness (EX only - the religion node only exists where TempleSlots is set) --
-        if ($age.TempleSlots) {
+        # A3 de-layer 2026-07-14 (Chris ruling): DROP the +Happiness-per-Building piece. No religion track in the
+        # Ascendancy tree; MA happiness comes from the happiness-stage system + wonder-adjacency (shipped core).
+        if (-not $Gen2Strip -and $age.TempleSlots) {
             $out += (M-BuildingHappiness $sfx $N.Religion $religiousHappy);                 $wrapIds += "MA_${sfx}_RELIGIOUS_HAPPINESS"
         }
         # -- Resort (appeal tiles + Natural-Wonder tiles; the NW % self-targets so it only pays near a wonder) --
         #    On the Wonders node's MASTERY (MinDepth=2), so that node's first tier carries only wonder-%.
         $resortAppealReq = "`t`t`t<Requirement type=`"REQUIREMENT_PLOT_HAS_APPEAL`"><Argument name=`"UseAppealHappinessThreshold`">true</Argument></Requirement>"
+        # A2 de-layer 2026-07-14 (Chris ruling): DROP the Resort bonus. Gen-2 "City Beautiful" covers the scenic
+        # theme; the Gold-on-appeal + natural-wonder % are retired (base tree -> vanilla).
         $resortAppealYld = "`t`t<Argument name=`"YieldType`">YIELD_GOLD, YIELD_HAPPINESS</Argument>$NL`t`t<Argument name=`"Amount`">$resortAppeal</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_${sfx}_NOTE_RESORT</Argument>"
-        $out += (M-PlotYield $sfx 'RESORT_APPEAL' $N.Wonders $resortAppealReq $resortAppealYld 2); $wrapIds += "MA_${sfx}_RESORT_APPEAL"
+        if (-not $Gen2Strip) { $out += (M-PlotYield $sfx 'RESORT_APPEAL' $N.Wonders $resortAppealReq $resortAppealYld 2); $wrapIds += "MA_${sfx}_RESORT_APPEAL" }
         $resortNWReq = "`t`t`t<Requirement type=`"REQUIREMENT_PLOT_IS_NATURAL_WONDER`"/>"
         $resortNWYld = "`t`t<Argument name=`"YieldType`">YIELD_FOOD, YIELD_PRODUCTION, YIELD_GOLD, YIELD_SCIENCE, YIELD_CULTURE, YIELD_HAPPINESS, YIELD_DIPLOMACY</Argument>$NL`t`t<Argument name=`"Percent`">$resortNWPercent</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_${sfx}_NOTE_RESORT</Argument>"
-        $out += (M-PlotYield $sfx 'RESORT_NATURAL_WONDER' $N.Wonders $resortNWReq $resortNWYld 2); $wrapIds += "MA_${sfx}_RESORT_NATURAL_WONDER"
+        if (-not $Gen2Strip) { $out += (M-PlotYield $sfx 'RESORT_NATURAL_WONDER' $N.Wonders $resortNWReq $resortNWYld 2); $wrapIds += "MA_${sfx}_RESORT_NATURAL_WONDER" }
         $out += ''
     }
 
@@ -1309,6 +1375,7 @@ foreach ($age in $ages) {
     $out += "`t<Modifier id=`"MA_${sfx}_ATTACH_ALL`" collection=`"COLLECTION_MAJOR_PLAYERS`" effect=`"EFFECT_ATTACH_MODIFIERS`">"
     $out += "`t`t<Argument name=`"ModifierId`">$($wrapIds -join ', ')</Argument>"
     $out += "`t</Modifier>"
+    $pillarManifest[$sfx] = $pillarRewardIds   # -> tools/pillar-window-ids.json for gen-ascendancy's feat rewards
     $out += ''
     $out += '</GameEffects>'
 
@@ -1336,6 +1403,7 @@ foreach ($age in $ages) {
     $tr2 += "`t</GameModifiers>"
     $tr2 += "`t<ProgressionTreeNodeUnlocks>"
     foreach ($note in $age.Notes) {
+        if ($Gen2Strip -and $gen2StrippedNoteKeys -contains $note.Key) { continue }   # migrated -> Ascendancy
         $noteId = if ($note.Key -eq 'ALL') { "MA_${sfx}_UNLOCK_NOTE" } else { "MA_${sfx}_NOTE_$($note.Key)" }
         $depth  = if ($note.Depth) { $note.Depth } else { 1 }
         $tr2 += "`t`t<Row ProgressionTreeNodeType=`"$($note.Node)`" TargetKind=`"KIND_MODIFIER`" TargetType=`"$noteId`" UnlockDepth=`"$depth`"/>"
@@ -1360,12 +1428,17 @@ foreach ($age in $ages) {
     # a BLACK portrait in-game). A single-module mod therefore CANNOT differ the look per Age - one global look only.
     # UNIT_SCOUT + blp:unitflag_scout live in base-standard (always loaded), so the Scout renders in every Age incl.
     # Modern. (Prospector-in-Modern was the intent but its art is age-modern-only AND per-age groups don't register.)
-    # Donor = MIGRANT (2026-07-02): civilian model reads as a "surveyor" and stands out from the military Scouts you
-    # build early; its self-consuming charge also mirrors the Surveyor's one-shot claim. UNIT_MIGRANT is base-standard +
-    # CORE_CLASS_CIVILIAN so its 3D model + icons render in every Age (the live-render portrait needs a real model).
+    # Donor = MIGRANT (Chris's final call 2026-07-13 — a Settler-wagon donor was tried and REJECTED same day;
+    # the Migrant stays). Known accepted limitations: VisualRemaps have NO age column and NO scale knob (one
+    # global look), so the Migrant's figures read the same in every Age and can't be enlarged. Civilian model
+    # reads as a "surveyor"; self-consuming charge mirrors the one-shot claim; base-standard = renders every Age.
     $surveyorDonor    = 'UNIT_MIGRANT'
-    $surveyorFlag     = 'blp:unitflag_immigrant'  # default-context row = map flag / small unit icon (Migrant's flag)
-    $surveyorPortrait = 'blp:fi_unit_migrant_64'  # FONTICON row = larger portrait in build/list panels
+    # 2026-07-12: custom compass-rose glyph (hand-authored PNGs in ui/icons/, ImportFiles'd in BOTH scopes in the
+    # modinfo) replaces the borrowed Migrant blps - distinguishes the Surveyor's flag/build-list icon from real
+    # Migrants. The selected-unit panel portrait is separately fixed by ui/surveyor/mad-surveyor-portrait.js
+    # (UIScripts decorator repointing the live 3D render at the donor). Donor model unchanged (Migrant).
+    $surveyorFlag     = 'fs://game/metropolis-ascendant/ui/icons/surveyor-flag.png'      # default-context row = map flag / small unit icon
+    $surveyorPortrait = 'fs://game/metropolis-ascendant/ui/icons/surveyor-portrait.png'  # FONTICON row = larger portrait in build/list panels
     $su = @('<?xml version="1.0" encoding="utf-8"?>')
     $su += "<!-- Metropolis Ascendant - $($age.AgeName) Surveyor (issue #12). GENERATED by tools/gen-ascendant.ps1 - do not hand-edit."
     $su += '     The Surveyor is a civilian carrying the base Prospector CLAIM_RESOURCE command (tagged UNIT_CLASS_PROSPECTOR).'
@@ -1477,7 +1550,8 @@ foreach ($age in $ages) {
         # panels show (blp:fi_unit_scout_64). We only had the flag before -> the portrait square was BLACK. Both reuse
         # base-standard Scout blps (present every Age). $surveyorFlag = unitflag_scout, $surveyorPortrait = fi_unit_scout_64.
         $si = @('<?xml version="1.0" encoding="utf-8"?>')
-        $si += "<!-- Metropolis Ascendant - Surveyor icon (issue #12). GENERATED. Flag=$surveyorFlag, Portrait=$surveyorPortrait (Scout, every Age). -->"
+        $si += "<!-- Metropolis Ascendant - Surveyor icon (issue #12). GENERATED. Custom compass-rose glyph (ui/icons/, ImportFiles both scopes):"
+        $si += "     Flag=$surveyorFlag, Portrait=$surveyorPortrait. -->"
         $si += '<Database>'
         $si += "`t<IconDefinitions>"
         $si += "`t`t<Row><ID>$surveyorUnit</ID><Path>$surveyorFlag</Path></Row>"
@@ -1546,6 +1620,14 @@ foreach ($age in $ages) {
     }
 }
 
+# ---- BUILD MANIFEST: pillar Triumph-window ids -> gen-ascendancy (2026-07-21 delivery rebuild) ----
+# The pillar REWARD windows (AQ/EX _W2, MO _W3) must attach at Triumph-completion time, and the only
+# proven mid-session Triumph delivery is the Expansion feat's reward attach - which gen-ascendancy
+# owns. publish.ps1 runs this script FIRST, so the manifest is always fresh when gen-ascendancy reads it.
+$pillarManifestFile = Join-Path $PSScriptRoot 'pillar-window-ids.json'
+$pillarManifest | ConvertTo-Json | Set-Content -LiteralPath $pillarManifestFile -Encoding UTF8
+Write-Host "pillar-window-ids.json: $((($pillarManifest.Keys | ForEach-Object { "$_=$(@($pillarManifest[$_]).Count)" }) -join ' '))"
+
 # ---- GENERATED discoverability note TEXT (PER AGE, specific numbers, always in sync with the config) ----
 # Each tech/civic panel's "unlocked" line states the ACTUAL values for THAT age (Wonder %, slots, etc. differ
 # between Antiquity / Exploration / Modern), so retuning a number updates the in-game text on the next run.
@@ -1558,12 +1640,18 @@ function Build-NoteText($a) {
     $tr=$a.Trade; $trg=$a.TradeRange; $ms=$a.MilStrength; $uc=$a.UnderCapAmount; $ts=$a.TempleSlots
     $ppd=$perPopDiv['SOLO']                           # per-pop SOLO divisor (=2 -> "+1 per 2 Urban Pop")
     $upop="[icon:YIELD_POPULATION] Urban Pop"         # always say URBAN population, not overall
+    $sciNote = if ($Gen2Strip) { "+1 [icon:YIELD_SCIENCE] Science adjacency per Tier (max +3)." }
+               else { "+1 [icon:YIELD_SCIENCE] Science adjacency per Tier (max +3); +$gw Palace and +$col per-building Great Work slots (T2)." }
+    $cul2Note = if ($Gen2Strip) { "+1 [icon:YIELD_CULTURE] Culture adjacency per Tier (max +3)." }
+                else { "+1 [icon:YIELD_CULTURE] Culture adjacency per Tier (max +3); +1 [icon:YIELD_CULTURE] Culture per $ppd $upop (T3)." }
+    $relNote = if ($Gen2Strip) { "+$religiousHappy [icon:YIELD_HAPPINESS] Happiness per Building, and +$gwCultureAmt [icon:YIELD_CULTURE] Culture per Great Work in this city (T2)." }
+               else { "+$ts Great Work slots on Temples (Relics, Codices, Artifacts, Great Works), +$religiousHappy [icon:YIELD_HAPPINESS] Happiness per Building, and +$gwCultureAmt [icon:YIELD_CULTURE] Culture per Great Work in this city (T2)." }
     [ordered]@{
-      SCIENCE  = "+1 [icon:YIELD_SCIENCE] Science adjacency per Tier (max +3); +$gw Palace and +$col per-building Great Work slots (T2)."
+      SCIENCE  = $sciNote
       SCIENCE2 = "+1 [icon:YIELD_SCIENCE] Science per $ppd $upop (T3)."
       CULTURE  = "+$($w[0])% [icon:YIELD_PRODUCTION] Wonder Production (T2)."
       RESORT   = "+$resortAppeal [icon:YIELD_GOLD] Gold and [icon:YIELD_HAPPINESS] Happiness on Appealing tiles, and +$resortNWPercent% to all yields from tiles with a Natural Wonder."
-      CULTURE2 = "+1 [icon:YIELD_CULTURE] Culture adjacency per Tier (max +3); +1 [icon:YIELD_CULTURE] Culture per $ppd $upop (T3)."
+      CULTURE2 = $cul2Note
       ECONOMIC = "+1 Specialist slot per district per Tier (max +3, Cities only); +$rcA Resource capacity (T1-T2, max +$rcCur). Specialists also cost 50% less [icon:YIELD_FOOD] Food and [icon:YIELD_HAPPINESS] Happiness to maintain until this Settlement is Ecstatic."
       STAGE_SCIENCE = "While Joyous or happier: +1 [icon:YIELD_SCIENCE] Science per $stageJoyousDiv $upop, increasing further while Ecstatic."
       STAGE_CULTURE = "While Joyous or happier: +1 [icon:YIELD_CULTURE] Culture per $stageJoyousDiv $upop, increasing further while Ecstatic."
@@ -1575,8 +1663,8 @@ function Build-NoteText($a) {
       FORT     = "+$fortHealth District HP, +$fortHeal Unit healing per turn, and +$fortGold [icon:YIELD_GOLD] Gold on Fortifications."
       FOODCAP  = "+$uc [icon:YIELD_FOOD] Food per settlement under your Settlement Cap, and +[icon:YIELD_FOOD] Food on worked Farms, Pastures, Plantations and Fishing Boats."
       PRODCAP  = "+$uc [icon:YIELD_PRODUCTION] Production per settlement under your Settlement Cap, and +[icon:YIELD_PRODUCTION] Production on worked Camps, Mines, Quarries and Woodcutters."
-      RELIGION = "+$ts Great Work slots on Temples (Relics, Codices, Artifacts, Great Works), +$religiousHappy [icon:YIELD_HAPPINESS] Happiness per Building, and +$gwCultureAmt [icon:YIELD_CULTURE] Culture per Great Work in this city (T2)."
-      SUZERAIN = "Suzerain bonuses scale with your [icon:YIELD_POPULATION] Population. Draft a city-state's repeatable (Shareable) bonus to gain +1 of its yield per $suzPerPopDiv [icon:YIELD_POPULATION] Pop ([icon:YIELD_SCIENCE]/[icon:YIELD_CULTURE]/[icon:YIELD_PRODUCTION]/[icon:YIELD_GOLD]/[icon:YIELD_FOOD]), or +$suzDiploAmt [icon:YIELD_DIPLOMACY] Influence per Suzerain (Diplomatic). Each Suzerain grants +$suzResCapAmt Resource capacity; Economic ones add +$suzTradeRangeAmt Trade Route range."
+      RELIGION = $relNote
+      SUZERAIN = "Suzerainty itself feeds the metropolis: for each City-State type you are Suzerain of, your cities earn +1 of its yield per $suzPerPopDiv [icon:YIELD_POPULATION] Urban Population ([icon:YIELD_SCIENCE] Scientific, [icon:YIELD_CULTURE] Cultural, [icon:YIELD_PRODUCTION] Militaristic, [icon:YIELD_GOLD] Economic, [icon:YIELD_FOOD] Expansionist) - whichever Suzerain bonus you pick. Diplomatic Suzerainties add +$suzDiploAmt [icon:YIELD_DIPLOMACY] Influence per turn each. Each Suzerain grants +$suzResCapAmt Resource capacity; Economic ones add +$suzTradeRangeAmt Trade Route range."
     }
 }
 $fanAges = @($ages | Where-Object { $_.FanOut })
@@ -1592,6 +1680,7 @@ if ($fanAges) {
         $nt = Build-NoteText $a
         foreach ($note in $a.Notes) {       # only emit the keys this age actually uses (its Notes array)
             if ($note.Key -eq 'ALL') { continue }
+            if ($Gen2Strip -and $gen2StrippedNoteKeys -contains $note.Key) { continue }   # migrated -> Ascendancy
             $t = $nt[$note.Key] -replace '&','&amp;' -replace '<(?![A-Za-z/])','&lt;'
             $tl += "`t`t<Row Tag=`"LOC_MA_${sfxA}_NOTE_$($note.Key)`">"
             $tl += "`t`t`t<Text>$t</Text>"
@@ -1600,57 +1689,13 @@ if ($fanAges) {
         }
     }
     $tl += "`t</EnglishText>"
-    # ROUTE A discoverability: OVERRIDE each type's SHAREABLE city-state bonus DESCRIPTION so the draft menu
-    # advertises our per-pop add-on. MUST use <LocalizedText><Replace Tag=... Language="en_US"> (upsert, the
-    # exact base-game l10n pattern) - NOT <EnglishText><Row>, which INSERTs a duplicate of the existing base
-    # tag -> load error -> rollback -> CRASH (learned the hard way 2026-06-20). Tag = CITY_STATE_<TYPE>_BONUS_
-    # <BonusAge>_7_DESCRIPTION (base tag, no LOC_ prefix). Because <Replace> overwrites the WHOLE string, we
-    # PREPEND the real base description (read live from the install - see below) so the player still sees what
-    # the bonus does, then add our tall add-on. No [B] markup (unproven in this UI). One set per FanOut age.
-    $suzMenu = [ordered]@{
-        SCIENTIFIC=@{Icon='YIELD_SCIENCE';Name='Science'}; CULTURAL=@{Icon='YIELD_CULTURE';Name='Culture'}
-        MILITARISTIC=@{Icon='YIELD_PRODUCTION';Name='Production'}; ECONOMIC=@{Icon='YIELD_GOLD';Name='Gold'}
-        EXPANSIONIST=@{Icon='YIELD_FOOD';Name='Food'}
-    }
-    function Find-Civ7Root {
-        if ($env:CIV7_ROOT -and (Test-Path $env:CIV7_ROOT)) { return $env:CIV7_ROOT }
-        $libs = @("C:\Program Files (x86)\Steam", "C:\Program Files\Steam")
-        $vdf = "C:\Program Files (x86)\Steam\steamapps\libraryfolders.vdf"
-        if (Test-Path $vdf) { foreach ($m in [regex]::Matches((Get-Content -LiteralPath $vdf -Raw), '"path"\s*"([^"]+)"')) { $libs += ($m.Groups[1].Value -replace '\\\\','\') } }
-        foreach ($lib in $libs) { $p = Join-Path $lib "steamapps\common\Sid Meier's Civilization VII"; if (Test-Path $p) { return $p } }
-        return $null
-    }
-    $civ7Root = Find-Civ7Root
-    if (-not $civ7Root) { Write-Host "  suzerain menu: Civ VII install not found - skipping base-text prepend (set CIV7_ROOT); base descriptions will show unmodified." }
-    $tl += "`t<LocalizedText>"
-    foreach ($fa in ($ages | Where-Object { $_.FanOut })) {
-        $ba = $fa.BonusAge
-        # PREPEND the real base CS-bonus description (what the bonus does) + our tall add-on, instead of clobbering
-        # it. Base text is read live from the install (age-<key>\text\en_us\IndependentsText.xml) so it never goes
-        # stale; its trailing "...chosen by multiple Civilizations." already conveys "repeatable", so we drop ours.
-        $baseTxt = @{}
-        if ($civ7Root) {
-            $indFile = Join-Path $civ7Root "Base\modules\age-$($fa.Key)\text\en_us\IndependentsText.xml"
-            if (Test-Path $indFile) {
-                $raw = Get-Content -LiteralPath $indFile -Raw
-                foreach ($cs in (@($suzMenu.Keys) + 'DIPLOMATIC')) {
-                    $m = [regex]::Match($raw, ("Tag=`"CITY_STATE_{0}_BONUS_{1}_7_DESCRIPTION`".*?<Text>(.*?)</Text>" -f $cs, $ba), 'Singleline')
-                    if ($m.Success) { $baseTxt[$cs] = ($m.Groups[1].Value.Trim() -replace '&','&amp;') }
-                }
-            }
-        }
-        foreach ($cs in $suzMenu.Keys) {
-            if (-not $baseTxt.ContainsKey($cs)) { continue }   # base text not found -> leave the base description untouched
-            $mi = $suzMenu[$cs]
-            $txt = $baseTxt[$cs] + "[N][N]Metropolis Ascendant: while you stay tall (one city per hemisphere), each of your cities also earns +1 [icon:$($mi.Icon)] $($mi.Name) for every $suzPerPopDiv [icon:YIELD_POPULATION] Population it has - a dense city makes this Suzerain bonus grow with it."
-            $tl += "`t`t<Replace Tag=`"CITY_STATE_${cs}_BONUS_${ba}_7_DESCRIPTION`" Language=`"en_US`"><Text>$txt</Text></Replace>"
-        }
-        if ($baseTxt.ContainsKey('DIPLOMATIC')) {
-            $dtxt = $baseTxt['DIPLOMATIC'] + "[N][N]Metropolis Ascendant: while you stay tall (one city per hemisphere), you also earn +$suzDiploAmt [icon:YIELD_DIPLOMACY] Influence per turn for every city-state you are Suzerain of - compounding your diplomacy."
-            $tl += "`t`t<Replace Tag=`"CITY_STATE_DIPLOMATIC_BONUS_${ba}_7_DESCRIPTION`" Language=`"en_US`"><Text>$dtxt</Text></Replace>"
-        }
-    }
-    $tl += "`t</LocalizedText>"
+    # SUZERAIN MENU TEXT: intentionally NONE. Pre-decouple "Route A" overrode each type's Shareable city-state
+    # bonus DESCRIPTION (CITY_STATE_<TYPE>_BONUS_<Age>_7_DESCRIPTION) to advertise our per-pop add-on on the draft
+    # menu. GEN-2 DECOUPLE (2026-07-13) removed that: the yields key off HOLDING the suzerainty, not which bonus
+    # you draft, so annotating one option would mislead. Base bonus descriptions stay vanilla; the civic SUZERAIN
+    # note + the dashboard Protectorates panel carry the explanation. No <LocalizedText> override is emitted here.
+    # (If Route A is ever revived, it MUST use <LocalizedText><Replace Tag=... Language="en_US"> upsert - NOT
+    #  <EnglishText><Row>, which duplicates the base tag -> load error -> CRASH; learned 2026-06-20.)
     $tl += '</Database>'
     $modRoot = Split-Path $root -Parent
     $ntDir = Join-Path $modRoot 'text\en_us'
@@ -1688,30 +1733,15 @@ if ($fanAges) {
                 else { (($n -split '_' | Where-Object { $_ } | ForEach-Object { $_.Substring(0,1).ToUpper() + $_.Substring(1).ToLower() }) -join ' ') }
         @{ Name=$disp; Kind=$kind }
     }
-    $intro = "Every scaling bonus is at FULL strength with one settlement per hemisphere and OFF at two or more. Bonuses tier up as your city's Urban Population crosses three thresholds (T1 / T2 / T3); mastery bonuses unlock on a node's Mastery panel."
-    $bb = @('[h1]Metropolis Ascendant - Full Bonus List[/h1]', "[i]Auto-generated from the mod's data, so it matches the in-game tech and civic node notes exactly.[/i]", $intro)
-    $md = @('# Metropolis Ascendant - Full Bonus List','',"*Auto-generated from the mod's data, so it matches the in-game tech and civic node notes exactly.*",'',$intro)
-    foreach ($a in $ages) {
-        $hdr = "$($a.AgeName) (Population tiers T1 / T2 / T3 = $($a.Pops -join ' / '))"
-        $bb += @('', "[h2]$hdr[/h2]")
-        $md += @('', "## $hdr", '')
-        if ($a.FanOut) {
-            $ntA = Build-NoteText $a
-            $bb += '[list]'
-            foreach ($note in $a.Notes) {
-                if ($note.Key -eq 'ALL') { continue }
-                $nm = Get-NodeName $note.Node
-                $mast = if ($note.Depth -and $note.Depth -ge 2) { ' - Mastery' } else { '' }
-                $txt = Format-Note $ntA[$note.Key]
-                $bb += "[*][b]$($nm.Name)$mast[/b] ($($nm.Kind)): $txt"
-                $md += "- **$($nm.Name)$mast** ($($nm.Kind)): $txt"
-            }
-            $bb += '[/list]'
-        } else {
-            $g = "Researching $($a.TechName) unlocks the full Metropolis Ascendant suite for the $($a.AgeName) age - science, culture, economic and military bonuses plus the density and Suzerain layers - all scaling with your city's Urban Population. (A per-node breakdown arrives when the $($a.AgeName) fan-out lands.)"
-            $bb += $g; $md += $g
-        }
-    }
+    $intro = "Every Metropolis Ascendant bonus, grouped by source. The Ascendancy civic-tree entries below are the exact text shown on each node's in-game panel, so this list can't drift from what you see in-game. Bonuses pay out across all your Settlements while your footprint stays within your earned allowance - you start with one Settlement and earn Charters to widen it, up to four - and switch off if you exceed it."
+    $bb = @('[h1]Metropolis Ascendant - Full Bonus List[/h1]', "[i]Auto-generated from the mod's data, so it matches the in-game node notes exactly.[/i]", $intro)
+    $md = @('# Metropolis Ascendant - Full Bonus List','',"*Auto-generated from the mod's data, so it matches the in-game node notes exactly.*",'',$intro)
+    # The Gen-2 Ascendancy sections (tree nodes with their in-game text + boosts, feats, charters,
+    # cards, pantheons) are injected between these markers by tools/gen-ascendancy.ps1 - run it AFTER
+    # this script (publish.ps1 runs them in that order). Same marker-block mechanism as the README
+    # tiers table. If you run only this script, the region stays empty until gen-ascendancy.ps1 runs.
+    $bb += @('', '<!-- GEN:ascendancy -->', '<!-- /GEN:ascendancy -->')
+    $md += @('', '<!-- GEN:ascendancy -->', '<!-- /GEN:ascendancy -->')
     # WONDERS & ARCADIA - not node-gated (so not in the per-age node loop above); described here as its own lane.
     $arcIntro = "Concentrate your Wonders and natural beauty into one city - an edge a sprawling AI empire can't match, because it spreads them thin across dozens of settlements."
     $arcLines = @(
@@ -1839,29 +1869,31 @@ if ($fanAges) {
         Write-Host "tree-depth map: SKIPPED (progression-trees.md not found at $ptFile)"
     }
 }
-# ---- SYNC hand-authored docs (tier thresholds + tested-on version are single-sourced from the config) ----
-# Keeps the player-facing numbers in lockstep with $ages / $testedVersion: the modinfo <Description> tiers
-# sentence + version, and the mod README's tiers table + version. Prose stays hand-authored; only the
-# numbers/table are rewritten, so retuning Pops or bumping $testedVersion can never leave a stale doc.
-$tierInline = (($ages | ForEach-Object { "$($_.Pops -join ' / ') in $($_.AgeName)" }) -join ', ')
+# ---- SYNC hand-authored docs (growth-milestone numbers + tested-on version are single-sourced) ----
+# TIERS RETIRED 2026-07-19 (Chris): Gen-2 moved all T2/T3 content onto the Ascendancy tree; the only
+# survivors of the old ladder are the FIRST threshold's two features (+Happiness grant, specialist
+# upkeep relief until Ecstatic). Docs describe those as "the growth milestone" — no tier language.
+# Keeps the player-facing numbers in lockstep with $ages / $testedVersion: the modinfo <Description>
+# milestone sentence + version, and the mod README's milestone sentence + version. Prose stays
+# hand-authored; only these are rewritten, so retuning Pops/Happiness can never leave a stale doc.
+$mileSentence = "GROWTH MILESTONE — at $($ages[0].Pops[0]) Urban Population in $($ages[0].AgeName), $($ages[1].Pops[0]) in $($ages[1].AgeName), $($ages[2].Pops[0]) in $($ages[2].AgeName): your metropolis gains +$($ages[0].Happiness)/+$($ages[1].Happiness)/+$($ages[2].Happiness) Happiness (by Age), and its Specialists cost 50% less Food and Happiness upkeep until the city reaches Ecstatic."
 $miFile = Join-Path $modDir "$modName.modinfo"
 if (Test-Path $miFile) {
     $mt = Get-Content -LiteralPath $miFile -Raw
-    $mt = $mt -replace 'Urban Population thresholds: .*? in Modern\.', "Urban Population thresholds: $tierInline."
+    $mt = $mt -replace 'GROWTH MILESTONE — .*?Ecstatic\.', $mileSentence
     $mt = $mt -replace 'Built and tested on Civilization VII [0-9]+(?:\.[0-9]+)*\.?', "Built and tested on Civilization VII $testedVersion."
     Set-Content -LiteralPath $miFile -Value $mt -NoNewline -Encoding UTF8
     [xml](Get-Content -LiteralPath $miFile -Raw) | Out-Null   # re-validate after the edit
-    Write-Host "synced modinfo: tier thresholds + tested-on version ($testedVersion)"
+    Write-Host "synced modinfo: growth-milestone numbers + tested-on version ($testedVersion)"
 }
 $rmFile = Join-Path $modDir 'README.md'
 if (Test-Path $rmFile) {
-    $rows = ($ages | ForEach-Object { "| $($_.AgeName) | $($_.Pops -join ' | ') |" }) -join $NL
-    $tbl = "<!-- GEN:tiers (auto-generated by gen-ascendant.ps1) -->$NL| Age | T1 | T2 | T3 |$NL|---|---:|---:|---:|$NL$rows$NL<!-- /GEN:tiers -->"
+    $tbl = "<!-- GEN:tiers (auto-generated by gen-ascendant.ps1) -->$($NL)At **$($ages[0].Pops[0]) Urban Population** in $($ages[0].AgeName) (**$($ages[1].Pops[0])** in $($ages[1].AgeName), **$($ages[2].Pops[0])** in $($ages[2].AgeName)), your metropolis gains **+$($ages[0].Happiness)/+$($ages[1].Happiness)/+$($ages[2].Happiness) Happiness** (by Age), and its Specialists cost **50% less Food and Happiness upkeep** until the city reaches **Ecstatic**.$($NL)<!-- /GEN:tiers -->"
     $rt = Get-Content -LiteralPath $rmFile -Raw
     $rt = $rt -replace '(?s)<!-- GEN:tiers.*?<!-- /GEN:tiers -->', $tbl
     $rt = $rt -replace 'Civilization VII \*\*[0-9][0-9.]*\*\*', "Civilization VII **$testedVersion**"
     Set-Content -LiteralPath $rmFile -Value $rt -NoNewline -Encoding UTF8
-    Write-Host "synced README: tier table + tested-on version"
+    Write-Host "synced README: growth-milestone sentence + tested-on version"
 }
 
 Write-Host "DONE"

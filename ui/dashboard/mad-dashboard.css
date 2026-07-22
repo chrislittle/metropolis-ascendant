@@ -1,13 +1,20 @@
 /* ma-bonus-dashboard — panel styling. Sizes in rem (game UI scales by root font). */
 
 .mad-frame {
-    width: 42rem;
+    width: 50rem;
     max-height: 44rem;
     display: flex;
     flex-direction: column;
 }
+/* NOTE: player-color theming is applied via inline styles in applyPlayerAccents() (JS), NOT CSS
+   variables — this Coherent build ignores `color: var(--x)`. The hardcoded colors below are the
+   base/no-color-available look; JS overrides the "active/on" ones with the live player color. */
 
-.mad-title { font-size: 1.1rem; }
+.mad-title { font-size: 1.1rem; color: rgba(255, 220, 150, 1); }   /* fxs-header renders its own gold; left as-is */
+/* MA emblem masthead — the logo crest above the title */
+.mad-logo { width: 3rem; height: 3rem; margin: 0.15rem auto -0.1rem; flex: 0 0 auto;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55)); }
+.mad-logo svg { width: 100%; height: 100%; display: block; }
 .mad-subtitle {
     font-size: 0.72rem;
     letter-spacing: 0.15rem;
@@ -22,16 +29,18 @@
     flex-direction: column;
     align-items: center;
     padding: 0.3rem 1rem 0.5rem;
-    border-bottom: 0.0555555556rem solid rgba(255, 255, 255, 0.15);
+    border-bottom: 0.0833333333rem solid rgba(255, 208, 120, 0.5);
 }
 .mad-status {
-    font-size: 0.95rem;
+    font-size: 0.72rem;
     font-weight: bold;
-    letter-spacing: 0.12rem;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+    opacity: 0.9;
 }
-.mad-status.mad-ok  { color: #7fd98a; }
-.mad-status.mad-bad { color: #e8756a; }
-.mad-status-detail, .mad-pop, .mad-happy {
+.mad-status.mad-ok  { color: #7fd98a; }   /* base; JS repaints to player color */
+.mad-status.mad-bad { color: #e8756a; }   /* suspended stays red */
+.mad-status-detail, .mad-pop, .mad-happy, .mad-trade {
     font-size: 0.72rem;
     opacity: 0.85;
     margin-top: 0.15rem;
@@ -64,8 +73,75 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    padding: 0.4rem 0.9rem;
+    flex-wrap: wrap;
+    row-gap: 0.3rem;
+    padding: 0.4rem 0.9rem 0.15rem;
 }
+/* Counts + Expand/Collapse on their own row so the 5 tabs never wrap. */
+.mad-controls {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 0.6rem;
+    padding: 0 0.9rem 0.35rem;
+}
+/* Gen-2 instrument surfaces (2026-07-13): charter pips, boost tag, per-branch bars. */
+/* Settlement allowance as a mini segmented bar (green = held, amber outline = Charter slot). */
+.mad-set-track { display: inline-flex; flex-direction: row; column-gap: 0.18rem; width: 6rem; vertical-align: middle; margin-left: 0.45rem; }
+.mad-set-seg { flex: 1; height: 0.5rem; border-radius: 0.12rem; background-color: rgba(255, 255, 255, 0.14); box-shadow: inset 0 0 0 0.0555555556rem rgba(255, 255, 255, 0.16); }
+.mad-set-seg.mad-set-seg-on { background-color: rgba(120, 200, 130, 0.92); box-shadow: none; }
+.mad-set-seg.mad-set-seg-locked { background-color: transparent; box-shadow: inset 0 0 0 0.0555555556rem rgba(255, 255, 255, 0.22); opacity: 0.5; }
+.mad-set-seg.mad-set-seg-charter { border: 0.0555555556rem solid rgba(255, 200, 110, 0.85); }
+.mad-set-seg.mad-set-seg-charter.mad-set-seg-on { background-color: rgba(255, 200, 110, 0.9); }
+.mad-pips { margin-left: 0.35rem; letter-spacing: 0.12rem; }
+.mad-pip { opacity: 0.5; }
+.mad-pip.mad-pip-on { opacity: 1; color: rgba(120, 200, 255, 0.95); }
+.mad-pip.mad-pip-charter { color: rgba(255, 200, 110, 0.9); }
+.mad-pip.mad-pip-charter.mad-pip-on { color: rgba(255, 200, 110, 1); }
+.mad-boost-tag {
+    margin-left: 0.4rem;
+    padding: 0 0.35rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.06rem;
+    color: rgba(120, 200, 255, 1);
+    border: 0.0555555556rem solid rgba(120, 200, 255, 0.6);
+    border-radius: 0.6rem;
+}
+/* Mastery earned-but-not-researched: green "AVAILABLE" tag + a left accent to draw the eye. */
+.mad-avail-tag {
+    margin-left: 0.4rem;
+    padding: 0 0.35rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.06rem;
+    color: rgba(140, 220, 140, 1);
+    border: 0.0555555556rem solid rgba(140, 220, 140, 0.7);
+    border-radius: 0.6rem;
+}
+.mad-card.mad-available { box-shadow: inset 0.16rem 0 0 rgba(140, 220, 140, 0.9); }
+/* Reward-type tags on Masteries/Triumphs (like the ASCENDANCY oval): gold DEDICATION vs muted IMMEDIATE. */
+.mad-ded-tag {
+    margin-left: 0.4rem; padding: 0 0.4rem; font-size: 0.6rem; letter-spacing: 0.06rem;
+    color: rgba(255, 208, 120, 1); border: 0.0555555556rem solid rgba(255, 208, 120, 0.75); border-radius: 0.6rem;
+}
+.mad-imm-tag {
+    margin-left: 0.4rem; padding: 0 0.4rem; font-size: 0.6rem; letter-spacing: 0.06rem;
+    color: rgba(205, 205, 205, 0.65); border: 0.0555555556rem solid rgba(205, 205, 205, 0.3); border-radius: 0.6rem;
+}
+/* Dedication note on Mastery cards (amber accent — NO italic; italic renders invisible in Coherent). */
+.mad-ded-note { color: rgba(255, 220, 150, 0.85); margin-top: 0.12rem; }
+/* Arcadia status line in the vitals — green when awakened, muted while still building toward 30%. */
+.mad-arcadia { font-size: 0.8rem; opacity: 0.8; margin-top: 0.05rem; }
+.mad-arcadia.mad-arcadia-on { color: rgba(140, 220, 140, 1); opacity: 1; }
+.mad-progress { padding: 0.2rem 0.9rem 0.3rem; }
+.mad-progress-head { font-size: 0.72rem; letter-spacing: 0.05rem; opacity: 0.8; text-transform: uppercase; }
+.mad-branch-wrap { display: flex; flex-direction: column; row-gap: 0.16rem; margin-top: 0.25rem; }
+.mad-bar-row { display: flex; flex-direction: row; align-items: center; }
+.mad-bar-label { width: 8.5rem; font-size: 0.66rem; letter-spacing: 0.04rem; text-transform: uppercase; opacity: 0.75; }
+.mad-bar-track { display: flex; flex-direction: row; column-gap: 0.14rem; width: 13rem; }
+.mad-bar-seg { flex: 1; height: 0.5rem; border-radius: 0.12rem; background-color: rgba(255, 255, 255, 0.1); }
+.mad-bar-seg.mad-bar-seg-on { background-color: rgba(120, 200, 130, 0.9); }       /* base; JS repaints to translucent player color */
+.mad-bar-seg.mad-bar-seg-mastery { background-color: rgba(255, 200, 110, 0.95); } /* base; JS repaints to solid player color (★ marks it) */
+.mad-bar-count { font-size: 0.68rem; opacity: 0.75; margin-left: 0.55rem; }
 .mad-filter {
     position: relative;
     padding: 0.15rem 0.9rem;
@@ -83,6 +159,26 @@
     opacity: 1;
     border-color: rgba(255, 220, 150, 0.8);
     background-color: rgba(255, 220, 150, 0.12);
+}
+/* Gen-2 system switcher tabs (5 of them — slightly tighter than the old 3 filters). */
+.mad-tab {
+    position: relative;
+    padding: 0.15rem 0.7rem;
+    margin: 0 0.18rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.06rem;
+    text-transform: uppercase;
+    border: 0.0555555556rem solid rgba(255, 255, 255, 0.25);
+    border-radius: 0.8rem;
+    opacity: 0.7;
+    pointer-events: auto;
+}
+.mad-tab:hover, .mad-tab:focus { opacity: 1; }
+.mad-tab.mad-tab-on {
+    opacity: 1;
+    color: rgba(255, 255, 255, 0.95);
+    border-color: rgba(255, 220, 150, 0.9);
+    background-color: rgba(255, 220, 150, 0.22);
 }
 .mad-counts {
     margin-left: 0.8rem;
@@ -117,7 +213,7 @@
     flex-direction: row;
     align-items: center;
     margin-bottom: 0.25rem;
-    border-bottom: 0.0555555556rem solid rgba(255, 255, 255, 0.2);
+    border-bottom: 0.0833333333rem solid rgba(255, 208, 120, 0.55);
     padding-bottom: 0.12rem;
     pointer-events: auto;
     cursor: pointer;
@@ -135,6 +231,7 @@
     font-weight: bold;
     letter-spacing: 0.1rem;
     text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.92);   /* base; JS repaints headings to player color */
 }
 .mad-lane-pill {
     margin-left: auto;
@@ -254,4 +351,18 @@
     font-size: 0.62rem;
     opacity: 0.5;
     text-align: center;
+}
+
+/* ------------------------------------------------------- yield pills */
+/* One pill per number+icon pair (headline + card chips) - the grouping is structural, not a
+   separator character (Chris 2026-07-18: dots were too subtle). Literal colors: Coherent
+   ignores var(). Rendered via Locale.stylize [STYLE:mad-ychip] spans. */
+.mad-ychip {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.08);
+    border: 0.0555555556rem solid rgba(255, 255, 255, 0.14);
+    border-radius: 0.2222222222rem;
+    padding: 0 0.2777777778rem;
+    margin: 0 0.1111111111rem;
+    white-space: nowrap;
 }

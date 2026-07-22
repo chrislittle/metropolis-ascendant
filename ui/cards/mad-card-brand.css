@@ -1,0 +1,5 @@
+/* Metropolis Ascendant — card branding.
+   NOTE: all styling for the rail + emblem badge is applied INLINE from ui/cards/mad-card-brand.js.
+   Coherent (this game's UI engine) ignores `var(--x)` for colour — the same dead-end the dashboard hit —
+   so a CSS-class-driven, variable-based approach renders nothing. Colours are set inline per lane in JS.
+   This file is intentionally (almost) empty; kept registered so the import is stable. */

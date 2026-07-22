@@ -4,7 +4,7 @@
  * READ-ONLY instrument panel. Answers three questions, in order:
  *   1. Am I still TALL? (vitals strip: settlements per hemisphere vs the 1/hemisphere law)
  *   2. What's ON right now? (lit cards, per-lane counts)
- *   3. What turns on NEXT? (grey cards named by their gate tech/civic; tier bar in the header)
+ *   3. What turns on NEXT? (grey cards named by their gate tech/civic)
  *
  * Data is discovered from the live DB at runtime — no manifest, no generator coupling:
  *   - GameInfo.ProgressionTreeNodeUnlocks rows with TargetType MA_*_NOTE_* = the card list
@@ -25,12 +25,8 @@ import MadSettings from 'fs://game/metropolis-ascendant/ui/options/mad-options.j
 
 const TAG = '[ma-bonus-dashboard]';
 
-// Population tier thresholds per Age (T1/T2/T3) — matches gen-ascendant's tuning.
-const AGE_TIERS = {
-    AGE_ANTIQUITY: [5, 9, 12],
-    AGE_EXPLORATION: [8, 14, 20],
-    AGE_MODERN: [10, 16, 24],
-};
+// (The old T1/T2/T3 population-tier ladder was retired with Gen-2 — the Ascendancy tree
+// carries all growth scaling now; vitals show the plain Urban Population number.)
 
 // Victory-lane grouping. Token = the part of the note id after "_NOTE_".
 const TOKEN_LANE = {
@@ -42,18 +38,24 @@ const TOKEN_LANE = {
     FOODCAP: 'growth', PRODCAP: 'growth',
     SUZERAIN: 'suzerain',
 };
-const LANE_ORDER = ['science', 'culture', 'economy', 'military', 'growth', 'suzerain', 'arcadia', 'foundations', 'surveyor', 'conquest', 'other'];
+// Gen-2 lanes = the Ascendancy tree's own 7 branches, then the static-core sections.
+const LANE_ORDER = ['settlements', 'science', 'culture', 'economy', 'military', 'expansion', 'industry', 'diplomacy', 'cards', 'triumphs', 'arcadia', 'foundations', 'surveyor', 'conquest', 'protectorates', 'other'];
 const LANE_LOC = {
     science: 'LOC_MAD_LANE_SCIENCE',
     culture: 'LOC_MAD_LANE_CULTURE',
     economy: 'LOC_MAD_LANE_ECONOMY',
     military: 'LOC_MAD_LANE_MILITARY',
-    growth: 'LOC_MAD_LANE_GROWTH',
-    suzerain: 'LOC_MAD_LANE_SUZERAIN',
+    expansion: 'LOC_MAD_LANE_EXPANSION',
+    industry: 'LOC_MAD_LANE_INDUSTRY',
+    diplomacy: 'LOC_MAD_LANE_DIPLOMACY',
+    cards: 'LOC_MAD_LANE_CARDS',
+    triumphs: 'LOC_MAD_LANE_TRIUMPHS',
     arcadia: 'LOC_MAD_LANE_ARCADIA',
     foundations: 'LOC_MAD_LANE_FOUNDATIONS',
     surveyor: 'LOC_MAD_LANE_SURVEYOR',
     conquest: 'LOC_MAD_LANE_CONQUEST',
+    protectorates: 'LOC_MAD_LANE_PROTECTORATES',
+    settlements: 'LOC_MAD_LANE_SETTLEMENTS',
     other: 'LOC_MAD_LANE_OTHER',
 };
 
@@ -67,6 +69,7 @@ const STATIC_SECTIONS = {
     foundations: { gate: 'LOC_MAD_FOUNDATIONS_GATE', body: 'LOC_MAD_FOUNDATIONS_BODY', state: 'always' },
     surveyor: { gate: 'LOC_MAD_SURV_GATE', body: 'LOC_MAD_SURV_BODY' },
     conquest: { gate: 'LOC_MAD_CONQUEST_GATE', body: 'LOC_MAD_CONQUEST_BODY', state: 'kit', activeText: 'LOC_MAD_CONQUEST_ACTIVE' },
+    protectorates: { gate: 'LOC_MAD_PROTECTORATES_GATE', body: 'LOC_MAD_PROTECTORATES_BODY', state: 'suz', activeText: 'LOC_MAD_PROTECTORATES_ACTIVE' },
 };
 
 /**
@@ -178,11 +181,87 @@ function anyNaturalWonderFound(playerId) {
     }
 }
 
+// Arcadia's real gate is DISCOVERED >= 30% of the map's Natural Wonders (not "found any").
+// Count distinct NWs by feature type (multi-tile NWs would otherwise over-count); reveal is the
+// queryable proxy for discovery. Returns {discovered, total, pct, awakened} or null on read fail.
+const ARCADIA_NW_PERCENT = 30; // must match $arcadiaNWPercent in gen-ascendant.ps1
+function naturalWonderProgress(playerId) {
+    try {
+        const w = GameplayMap.getGridWidth(), h = GameplayMap.getGridHeight();
+        const hidden = (typeof RevealedStates != 'undefined' && RevealedStates?.HIDDEN != null)
+            ? RevealedStates.HIDDEN : 'HIDDEN';
+        const totalSet = new Set(), discSet = new Set();
+        let tileTotal = 0, tileDisc = 0;
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                if (!GameplayMap.isNaturalWonder(x, y)) continue;
+                tileTotal++;
+                let feat = null;
+                try { feat = GameplayMap.getFeatureType?.(x, y); } catch (e) { /* fall back to tiles */ }
+                const st = GameplayMap.getRevealedState(playerId, x, y);
+                const revealed = st != null && st != hidden && String(st).toUpperCase() != 'HIDDEN';
+                if (revealed) tileDisc++;
+                if (feat != null) { totalSet.add(feat); if (revealed) discSet.add(feat); }
+            }
+        }
+        const total = totalSet.size || tileTotal;
+        const disc = totalSet.size ? discSet.size : tileDisc;
+        const pct = total > 0 ? Math.round(disc / total * 100) : 0;
+        return { discovered: disc, total, pct, awakened: pct >= ARCADIA_NW_PERCENT };
+    } catch (e) {
+        console.error(`${TAG} NW progress scan failed: ${e}`);
+        return null;
+    }
+}
+
 function laneForNoteId(modifierId) {
     const idx = modifierId.indexOf('_NOTE_');
     if (idx < 0) return 'other';
     const token = modifierId.substring(idx + 6).replace(/\d+$/, ''); // "SCIENCE2" -> "SCIENCE"
     return TOKEN_LANE[token] ?? 'other';
+}
+
+// Gen-2: map an Ascendancy tree node (NODE_MA_<age>_<suffix><n>) to a victory lane.
+// The suffix carries the domain; the render layer is lane-agnostic so this is the only join.
+const MA_NODE_LANE = {
+    SCI: 'science', CUL: 'culture', ECO: 'economy', MIL: 'military',
+    EXP: 'expansion', IND: 'industry', DIP: 'diplomacy',
+    BRIDGE: 'economy', REP: 'culture', CHARTER: 'expansion',
+};
+// Extract the 3-letter domain, tolerating a trailing "B" (mastery-branch node, e.g. SCIB) and rank digits.
+function laneForMaNode(nodeType) {
+    const m = /^NODE_MA_[A-Z]+_([A-Z]+?)B?\d*$/.exec(String(nodeType));
+    return m ? (MA_NODE_LANE[m[1]] ?? 'other') : 'other';
+}
+// A Mastery (branch) tree is hidden until you earn its same-domain Triumph. Return that
+// Triumph's actionable trigger LOC so the Mastery card can tell the player HOW to unlock it.
+function revealTriggerFor(nodeType) {
+    const m = /^NODE_MA_[A-Z]+_([A-Z]+)B$/.exec(String(nodeType)); // only the branch nodes (SCIB/CULB/…)
+    return m ? `LOC_LEGACY_MA_${currentAgeSfx()}_${m[1]}_TRIGGER_DESCRIPTION` : null;
+}
+// Which (Age, domain) feats actually route a next-Age Dedication — from the deployed
+// AdvancedStartCards' UNLOCK_MA_* gates (AQ Expansion, EX Expansion, EX Diplomacy ONLY).
+// NOT every feat grants a Dedication; Science/Culture/Economy do not.
+const DEDICATION_ROUTES = new Set(['AQ_EXP', 'EX_EXP', 'EX_DIP']);
+function masteryRoutesDedication(nodeType) {
+    const m = /^NODE_MA_[A-Z]+_([A-Z]+)B$/.exec(String(nodeType));
+    return m ? DEDICATION_ROUTES.has(`${currentAgeSfx()}_${m[1]}`) : false;
+}
+function triumphRoutesDedication(legacyType) {
+    const m = /^LEGACY_MA_([A-Z]+)_([A-Z]+)$/.exec(String(legacyType));
+    return m ? DEDICATION_ROUTES.has(`${m[1]}_${m[2]}`) : false;
+}
+
+// Has the Mastery's reveal Triumph been earned? (= the mastery tree is now open to research.)
+// Same read the Triumphs tab uses: Legacies.isTriggered on the same-domain LEGACY_MA_*.
+function masteryRevealed(playerId, nodeType) {
+    const m = /^NODE_MA_[A-Z]+_([A-Z]+)B$/.exec(String(nodeType));
+    if (!m) return false;
+    try {
+        const comp = Players.get(playerId)?.Legacies;
+        const row = GameInfo.Legacies?.find(l => l.LegacyType == `LEGACY_MA_${currentAgeSfx()}_${m[1]}`);
+        return legacyTriggered(comp, row) === true;
+    } catch (e) { return false; }
 }
 
 function noteDescription(modifierId) {
@@ -222,13 +301,71 @@ function unlockedDepthFor(nodeRow, playerId) {
     return null;
 }
 
-function currentTiers() {
+// TRIUMPHS: our feats are Legacies (LEGACY_MA_<age>_<domain>). p.Legacies.isTriggered(key)
+// = earned?, getProgress(key) = progress. Arg shape unverified → try $hash/$index/string like
+// unlockedDepthFor does for getNode. (Probe 2026-07-13 confirmed the Legacies component + methods.)
+function legacyTriggered(comp, row) {
+    if (!comp?.isTriggered || !row) return null;
+    for (const key of [row.$hash, row.$index, row.LegacyType]) {
+        if (key == null) continue;
+        try { const v = comp.isTriggered(key); if (typeof v == 'boolean') return v; } catch (e) { /* next */ }
+    }
     try {
-        for (const [ageType, tiers] of Object.entries(AGE_TIERS)) {
-            if (Game.age == Game.getHash(ageType)) return tiers;
+        if (typeof Database != 'undefined' && Database.makeHash)
+            return comp.isTriggered(Database.makeHash(row.LegacyType));
+    } catch (e) { /* give up */ }
+    return null;
+}
+function legacyProgress(comp, row) {
+    if (!comp?.getProgress || !row) return null;
+    for (const key of [row.$hash, row.$index, row.LegacyType]) {
+        if (key == null) continue;
+        try { const v = comp.getProgress(key); if (v != null) return v; } catch (e) { /* next */ }
+    }
+    return null;
+}
+
+// BOOST: a node's deed is done (40% pre-filled) when the run-once marker property is set —
+// same marker the boost-glow reads. Player property MA_BOOST_<nodeType> == 1.
+function nodeBoosted(playerId, nodeType) {
+    try {
+        const p = Players.get(playerId);
+        if (!p?.getProperty || typeof Database == 'undefined' || !Database.makeHash) return false;
+        return Number(p.getProperty(Database.makeHash('MA_BOOST_' + nodeType))) >= 1;
+    } catch (e) { return false; }
+}
+
+// TREE PROGRESS: per-branch completion of the main Ascendancy tree (for the branch bars).
+// Counts nodes with depthUnlocked >= 1 vs total, grouped by the 7 branch lanes.
+function collectTreeProgress(playerId) {
+    const byLane = {}; let done = 0, total = 0;
+    try {
+        const tree = `TREE_MA_ASCENDANCY_${currentAgeSfx()}`;
+        for (const n of GameInfo.ProgressionTreeNodes) {
+            if (n.ProgressionTree != tree) continue;
+            const lane = laneForMaNode(n.ProgressionTreeNodeType);
+            const d = unlockedDepthFor(n, playerId) ?? 0;   // 0 none · 1 researched · 2 mastery
+            const g = (byLane[lane] ??= { segs: [], done: 0, total: 0, mastery: false });
+            g.segs.push(d); g.total++; total++;
+            if (d >= 1) { g.done++; done++; }
+            if (d >= 2) g.mastery = true;
         }
-    } catch (e) { /* fall through */ }
-    return AGE_TIERS.AGE_ANTIQUITY;
+    } catch (e) { console.error(`${TAG} tree progress failed: ${e}`); }
+    return { byLane, done, total };
+}
+
+// TRADE ROUTES: the engine exposes no player-level TOTAL capacity (getTradeCapacityFromPlayer is
+// per-partner; probe 2026-07-13 confirmed no Stats/property total). So we show active routes +
+// how many more are startable right now — the headroom the base UI also hides.
+function tradeReadout(playerId) {
+    try {
+        const t = Players.get(playerId)?.Trade;
+        if (!t) return null;
+        let active = 0, avail = 0;
+        try { active = Number(t.countPlayerTradeRoutes?.() ?? 0) || 0; } catch (e) { /* 0 */ }
+        try { avail = (t.projectPossibleTradeRoutes?.() ?? []).length; } catch (e) { /* 0 */ }
+        return { active, avail };
+    } catch (e) { return null; }
 }
 
 const AGE_SFX = { AGE_ANTIQUITY: 'AQ', AGE_EXPLORATION: 'EX', AGE_MODERN: 'MO' };
@@ -251,6 +388,9 @@ const MA_LABEL_KEYS = [
     'LOC_MA_TIER1_DESCRIPTION', 'LOC_MA_TIER2_DESCRIPTION', 'LOC_MA_TIER3_DESCRIPTION',
     'LOC_MA_STAGE_DESCRIPTION', 'LOC_MA_UNDERCAP_DESCRIPTION', 'LOC_MA_RESEED_DESCRIPTION',
     'LOC_MA_ARCADIA_DESCRIPTION', 'LOC_MA_ARCADIA_PEAKS_DESCRIPTION', 'LOC_MA_ARCADIA_WATERS_DESCRIPTION',
+    // short attribution labels (2026-07-12) — the Arcadia modifiers' Tooltips moved to these
+    // one-liners; keep the old _DESCRIPTION keys above for saves that snapshotted the essays.
+    'LOC_MA_ARCADIA_LABEL', 'LOC_MA_ARCADIA_PEAKS_LABEL', 'LOC_MA_ARCADIA_WATERS_LABEL',
 ];
 // per-age note-key labels — these are the CARDS' own note keys, so they join to cards directly
 const MA_NOTE_LABEL_TOKENS = ['SUZERAIN', 'FOODCAP', 'PRODCAP', 'TRADE', 'FORT', 'RESORT', 'RELIGION'];
@@ -265,6 +405,12 @@ function collectImpact() {
             const key = `LOC_MA_${sfx}_NOTE_${tok}`;
             labelToKey.set(Locale.compose(key), key);
         }
+        // NOTE (2026-07-17): a node/tradition NAME-matching pass was tried here to surface the Gen-2
+        // Ascendancy yields, but it over-counted (MA science read higher than the player's TOTAL) and
+        // was reverted. Root cause under investigation: EFFECT_CITY_ADJUST_YIELD_PER_POPULATION does NOT
+        // honor the Tooltip arg — those per-pop yields land in the game's "Other" bucket with no label,
+        // so they can't be attributed by description at all. A correct live-figures pass for Gen-2 likely
+        // has to COMPUTE the per-pop yields from node state, not read the engine's attribution tree.
         const player = Players.get(GameContext.localPlayerID);
         const yields = player?.Stats?.getYields?.();
         if (!yields) return impact;
@@ -293,27 +439,66 @@ function collectImpact() {
     return impact;
 }
 
+// Gen-2 live figures (2026-07-18): COMPUTED via Leonardfactory's lf-policies-yields-preview public
+// API (optional integration; his mod is MIT). The engine-attribution route cannot see the per-pop
+// bulk (EFFECT_CITY_ADJUST_YIELD_PER_POPULATION ignores the Tooltip arg -> lands in "Other"), so we
+// compute instead: each MA bonus's modifier ids (generated manifest mad-preview-ids.js) go through
+// previewModifierByIds, which evaluates our gate windows against live state (FireTuner-proven
+// 2026-07-18: W1+W2 together returned the active-window value only; unresearched nodes preview to 0).
+// Called lazily at render -> no load-order dependency; without his mod this returns null and the
+// dashboard falls back to the v1-label figures. Values are preview-grade (his engine rounds to ints).
+function collectPreviews(cards) {
+    const api = globalThis.LfYieldsPreview, man = globalThis.MA_PREVIEW_IDS;
+    if (!api?.previewModifierByIds || !man) return null;
+    const out = new Map();
+    for (const card of cards) {
+        for (const key of [card.nodeType, card.tradType]) {
+            if (!key || !man[key] || out.has(key)) continue;
+            try {
+                const r = api.previewModifierByIds(man[key]);
+                if (r?.isValid && r.yields && Object.keys(r.yields).length) out.set(key, r.yields);
+            } catch (e) { /* previews are a nicety - never break the panel */ }
+        }
+    }
+    return out;
+}
+
+// Gen-2 suzerain streams: each City-State TYPE feeds one yield (+1 per 4 Urban Pop); Diplomatic -> Influence.
+const SUZ_YIELD = {
+    SCIENTIFIC: 'YIELD_SCIENCE', CULTURAL: 'YIELD_CULTURE', MILITARISTIC: 'YIELD_PRODUCTION',
+    ECONOMIC: 'YIELD_GOLD', EXPANSIONIST: 'YIELD_FOOD', DIPLOMATIC: 'YIELD_DIPLOMACY',
+};
 // city-states you lead: any player whose Influence.getSuzerain() names you (majors return
 // -1), grouped by city-state type (the diplomacy panel's own read:
-// GameInfo.CityStateTypes.lookup(player.getCityStateCityStateType()) → localized Name)
+// GameInfo.CityStateTypes.lookup(player.getCityStateCityStateType()) → localized Name + enum).
+// Returns { total, byType (name->count, back-compat), types ([{name,yield,count}] for the panel) }.
 function suzerainCounts(playerId) {
     try {
         const all = Players.getAlive?.() ?? Players.getEverAlive?.() ?? [];
         let total = 0;
-        const byType = new Map();
+        const byType = new Map();     // localized name -> count
+        const rows = new Map();       // stable key -> { name, yield, count }
         for (const p of all) {
             try {
                 if (p?.Influence?.getSuzerain?.() != playerId) continue;
                 total++;
-                let typeName = null;
+                let typeName = null, enumStr = '';
                 try {
-                    const row = GameInfo.CityStateTypes.lookup?.(p.getCityStateCityStateType?.());
+                    const t = p.getCityStateCityStateType?.();
+                    const row = GameInfo.CityStateTypes.lookup?.(t);
                     if (row?.Name) typeName = Locale.compose(row.Name);
+                    enumStr = String(row?.CityStateType ?? t ?? '').toUpperCase();
                 } catch (e) { /* type stays unknown */ }
                 if (typeName) byType.set(typeName, (byType.get(typeName) ?? 0) + 1);
+                let yld = null;
+                for (const [k, y] of Object.entries(SUZ_YIELD)) { if (enumStr.includes(k)) { yld = y; break; } }
+                const key = enumStr || typeName || 'UNKNOWN';
+                const cur = rows.get(key) ?? { name: typeName || key, yield: yld, count: 0 };
+                cur.count++;
+                rows.set(key, cur);
             } catch (e) { /* skip this player */ }
         }
-        return { total, byType };
+        return { total, byType, types: [...rows.values()] };
     } catch (e) {
         return null; // unknown — treat as "don't second-guess the card"
     }
@@ -324,9 +509,13 @@ function formatYieldChips(byYield, round = true) {
     for (const [yieldType, v] of Object.entries(byYield)) {
         if (!v) continue;
         const n = round ? Math.round(v * 10) / 10 : v;
-        parts.push(`+${n} [icon:${yieldType}]`);
+        // Pill per pair (Chris 2026-07-18: separators too subtle — make the grouping structural).
+        // [STYLE:mad-ychip] -> <span class="mad-ychip"> via Locale.stylize (the proven boost-chip
+        // mechanism); rule lives in mad-dashboard.css. Sign-aware: negatives render "-16", not "+-16".
+        const s = n < 0 ? `${n}` : `+${n}`;
+        parts.push(`[STYLE:mad-ychip]${s} [icon:${yieldType}][/S]`);
     }
-    return parts.join('  ');
+    return parts.join(' ');
 }
 
 class MadDashboardPanel extends Panel {
@@ -334,43 +523,33 @@ class MadDashboardPanel extends Panel {
         super(...arguments);
         this.engineInputListener = this.onEngineInput.bind(this);
         this.refreshListener = this.refresh.bind(this);
-        this.filter = 'all';
-        this.collapsed = new Set(MadSettings.getCollapsedLanes()); // persisted; governs All/Active
-        this.lockedExpanded = new Set(); // transient; Locked view starts fully collapsed
+        // Gen-2: the top control is a SYSTEM switcher, not an all/active/locked filter.
+        this.tab = 'tree'; // tree | branch | triumph | card | core
+        this.collapsed = new Set(MadSettings.getCollapsedLanes()); // persisted lane collapse
     }
 
     isLaneCollapsed(laneId) {
-        return this.filter == 'locked'
-            ? !this.lockedExpanded.has(laneId)
-            : this.collapsed.has(laneId);
+        return this.collapsed.has(laneId);
     }
 
     toggleLane(laneId) {
-        if (this.filter == 'locked') {
-            if (this.lockedExpanded.has(laneId)) this.lockedExpanded.delete(laneId);
-            else this.lockedExpanded.add(laneId);
-        } else {
-            if (this.collapsed.has(laneId)) this.collapsed.delete(laneId);
-            else this.collapsed.add(laneId);
-            MadSettings.setCollapsedLanes([...this.collapsed]);
-        }
+        if (this.collapsed.has(laneId)) this.collapsed.delete(laneId);
+        else this.collapsed.add(laneId);
+        MadSettings.setCollapsedLanes([...this.collapsed]);
         this.applyFilter();
     }
 
-    // Expand all / Collapse all — drives whichever state set the CURRENT view uses:
-    // All/Active share the persisted collapsed set; Locked has its own transient one.
+    // Expand all / Collapse all — drives the persisted collapsed set for the current tab.
     setAllLanes(expanded) {
         const laneIds = [...this.Root.querySelectorAll('.mad-lane')].map(l => l.dataset.lane);
-        if (this.filter == 'locked') {
-            if (expanded) for (const id of laneIds) this.lockedExpanded.add(id);
-            else this.lockedExpanded.clear();
-        } else {
-            if (expanded) this.collapsed.clear();
-            else for (const id of laneIds) this.collapsed.add(id);
-            MadSettings.setCollapsedLanes([...this.collapsed]);
-        }
+        if (expanded) this.collapsed.clear();
+        else for (const id of laneIds) this.collapsed.add(id);
+        MadSettings.setCollapsedLanes([...this.collapsed]);
         this.applyFilter();
     }
+
+    // Gen-2 system tabs.
+    static TABS = ['tree', 'branch', 'triumph', 'card', 'core', 'settle'];
 
     onInitialize() {
         this.frame = MustGetElement('.mad-frame', this.Root);
@@ -381,10 +560,10 @@ class MadDashboardPanel extends Panel {
     onAttach() {
         this.Root.addEventListener(InputEngineEventName, this.engineInputListener);
         this.frame.addEventListener('subsystem-frame-close', () => { this.close(); });
-        this.lockedExpanded.clear(); // Locked view starts compact on every visit
-        for (const f of ['all', 'active', 'locked']) {
-            const btn = this.Root.querySelector(`.mad-filter-${f}`);
-            btn?.addEventListener('action-activate', () => this.setFilter(f));
+        this._didInitialCollapse = false; // start every open with all lanes collapsed
+        for (const t of MadDashboardPanel.TABS) {
+            const btn = this.Root.querySelector(`.mad-tab-${t}`);
+            btn?.addEventListener('action-activate', () => this.setTab(t));
         }
         this.Root.querySelector('.mad-expand-all')?.addEventListener('action-activate', () => this.setAllLanes(true));
         this.Root.querySelector('.mad-collapse-all')?.addEventListener('action-activate', () => this.setAllLanes(false));
@@ -394,8 +573,64 @@ class MadDashboardPanel extends Panel {
         this.Root.listenForEngineEvent?.('NaturalWonderRevealed', this.refreshListener, this);
         this.Root.listenForEngineEvent?.('TechNodeCompleted', this.refreshListener, this);
         this.Root.listenForEngineEvent?.('CultureNodeCompleted', this.refreshListener, this);
+        this.realizePlayerColors();
         this.refresh();
         try { FocusManager.get().setFocus(this.frame); } catch (e) { /* focus is a nicety */ }
+    }
+
+    // Player-color accents: paint the dashboard's "active/filled" elements in the LOCAL leader's color.
+    // DECISION (Chris 2026-07-14): use each leader's EXACT base-game color, rendered in the engine's OWN
+    // legible form — no custom normalization (that produced a "mixed bag"). The engine derives a
+    // contrast-safe `accentColor` from the assigned primary (e.g. raw purple rgba(55,0,101) -> accent
+    // rgba(84,98,153)); it's muted, matches Civ7's restrained palette, and stays readable on the dark
+    // panel for dark civs. getPlayerColors(pid) resolves the exact color for the active leader AND persona
+    // (dual leaders like Friedrich each get their own), so there's no table to maintain.
+    // ⚠ ENGINE LAW: this Coherent build IGNORES `color: var(--x)` (the var inherits but the color
+    // declaration collapses to inherited/black) — CSS-variable theming is a DEAD END. So we compute the
+    // accent once and applyPlayerAccents() sets it DIRECTLY as inline style (the only thing that paints).
+    realizePlayerColors() {
+        try {
+            const pid = GameContext.localPlayerID;
+            const pair = UI.Color?.getPlayerColors?.(pid);
+            if (!pair || !pair.primaryColor) { console.warn('[MAD] no player colors for pid ' + pid); return; }
+            const variants = UI.Color.createPlayerColorVariants(pair);
+            const accentStr = variants?.primaryColor?.accentColor;   // engine's legible form, e.g. "rgba(84,98,153,255)"
+            const m = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(accentStr || '');
+            if (!m) { console.warn('[MAD] no accentColor variant for pid ' + pid); return; }
+            const r = +m[1], g = +m[2], b = +m[3];
+            this._accent = `rgb(${r}, ${g}, ${b})`;
+            this._accentDim = `rgba(${r}, ${g}, ${b}, 0.5)`;    // translucent — depth-1 bars
+            this._accentFaint = `rgba(${r}, ${g}, ${b}, 0.14)`; // faint wash — active-card backgrounds
+            console.log(`[MAD] player accent = ${this._accent}`);
+        } catch (e) { console.warn('[MAD] player colors: ' + e); }
+    }
+
+    // Paint the player accent DIRECTLY onto rendered elements (inline style — the only reliable path in
+    // this Coherent build). Call AFTER a render pass so the nodes exist. Same mapping the FireTuner
+    // preview proved: "active/filled/on" elements take the player color; red/amber/blue/gold/AVAILABLE-green
+    // stay as distinct semantic signals. No-op until realizePlayerColors() has resolved an accent.
+    applyPlayerAccents() {
+        const A = this._accent, DIM = this._accentDim, FNT = this._accentFaint;
+        if (!A) return;
+        const S = (sel, fn) => { for (const e of this.Root.querySelectorAll(sel)) fn(e); };
+        S('.mad-status.mad-ok', e => { e.style.color = A; });
+        S('.mad-arcadia.mad-arcadia-on', e => { e.style.color = A; });
+        S('.mad-lane-title', e => { e.style.color = A; });
+        S('.mad-progress-head', e => { e.style.color = A; });
+        S('.mad-set-seg.mad-set-seg-on', e => { e.style.backgroundColor = A; e.style.boxShadow = 'none'; });
+        // All filled bar segments = the ONE solid accent (no translucent 2nd tone — it read as a
+        // different color next to the solid-accent text/dots/pills). Empty segments stay gray; the
+        // "N/M ★" label already conveys depth/mastery, so color needn't carry it.
+        S('.mad-bar-seg.mad-bar-seg-on', e => { e.style.backgroundColor = A; });
+        S('.mad-bar-seg.mad-bar-seg-mastery', e => { e.style.backgroundColor = A; });
+        S('.mad-lane-pill.mad-pill-lit', e => { e.style.color = A; e.style.borderColor = A; });
+        S('.mad-static-gate.mad-static-on', e => { e.style.color = A; });
+        S('.mad-card.mad-active', e => { e.style.borderColor = A; e.style.backgroundColor = FNT; });
+        S('.mad-card.mad-active .mad-dot', e => { e.style.backgroundColor = A; });
+        S('.mad-card.mad-active .mad-card-foot', e => { e.style.color = A; });
+        // chrome accents (borders only — the fxs-header title stays gold, can't recolor its internal text)
+        S('.mad-lane-head', e => { e.style.borderBottomColor = A; });
+        S('.mad-tab.mad-tab-on', e => { e.style.borderColor = A; });
     }
 
     onDetach() {
@@ -417,13 +652,14 @@ class MadDashboardPanel extends Panel {
         }
     }
 
-    setFilter(f) {
-        const changed = this.filter != f;
-        this.filter = f;
-        for (const name of ['all', 'active', 'locked']) {
-            this.Root.querySelector(`.mad-filter-${name}`)?.classList.toggle('mad-filter-on', name == f);
+    setTab(t) {
+        const changed = this.tab != t;
+        this.tab = t;
+        for (const name of MadDashboardPanel.TABS) {
+            this.Root.querySelector(`.mad-tab-${name}`)?.classList.toggle('mad-tab-on', name == t);
         }
         this.applyFilter();
+        this.applyPlayerAccents();   // repaint the newly-active tab border in player color
         if (changed) {
             try { this.Root.querySelector('fxs-scrollable')?.component?.scrollToPercentage?.(0); }
             catch (e) { /* scroll reset is a nicety */ }
@@ -433,37 +669,43 @@ class MadDashboardPanel extends Panel {
     // JS-driven filtering: hide non-matching cards AND static intros, hide any lane left
     // with nothing matching (a fully-unlocked game shows an EMPTY Locked view), and honor
     // collapsed lanes (header + pill stay, content hides).
+    // JS-driven view: show only the ACTIVE system tab's content. Cards carry data-system
+    // (tree/branch/card/triumph); the static Core sections show under the 'core' tab. Lit vs
+    // grey stays a per-item state (the dot), no longer the primary control.
     applyFilter() {
-        const f = this.filter;
-        let anyLaneVisible = false;
+        const tab = this.tab;
+        const activeWord = Locale.compose('LOC_MAD_ACTIVE_WORD');
+        let anyLaneVisible = false, totalVis = 0, totalAct = 0;
         for (const lane of this.Root.querySelectorAll('.mad-lane')) {
             const laneId = lane.dataset.lane;
             const isCollapsed = this.isLaneCollapsed(laneId);
             const chevron = lane.querySelector('.mad-chevron');
             if (chevron) chevron.textContent = isCollapsed ? '+' : '−';
-            let anyMatch = false;
+            let vis = 0, act = 0;
             for (const card of lane.querySelectorAll('.mad-card')) {
-                const match = f == 'all'
-                    || (f == 'active' && card.classList.contains('mad-active'))
-                    || (f == 'locked' && card.classList.contains('mad-locked'));
-                if (match) anyMatch = true;
+                const match = card.dataset.system == tab;
+                if (match) { vis++; if (card.classList.contains('mad-active')) act++; }
                 card.style.display = (match && !isCollapsed) ? '' : 'none';
             }
             for (const intro of lane.querySelectorAll('.mad-static')) {
-                const state = intro.dataset.madState; // 'on' | 'off' | 'info'
-                const match = f == 'all'
-                    || (f == 'active' && state != 'off')
-                    || (f == 'locked' && state == 'off');
-                if (match) anyMatch = true;
+                const match = tab == 'core'; // static-world sections live in the Core tab
+                if (match) { vis++; if (intro.dataset.madState == 'on') act++; }
                 intro.style.display = (match && !isCollapsed) ? '' : 'none';
             }
-            const laneVisible = (f == 'all' || anyMatch);
-            lane.style.display = laneVisible ? '' : 'none';
-            if (laneVisible) anyLaneVisible = true;
+            // per-tab pill count — fixes "0/4 active" showing when only 1 of the lane's cards
+            // belongs to the active tab (the lane is shared by the Ascendancy + Masteries tabs).
+            const pill = lane.querySelector('.mad-lane-pill');
+            if (pill) {
+                if (vis > 0) { pill.textContent = `${act}/${vis} ${activeWord}`; pill.style.display = ''; }
+                else pill.style.display = 'none';
+            }
+            lane.style.display = vis > 0 ? '' : 'none';
+            if (vis > 0) { anyLaneVisible = true; totalVis += vis; totalAct += act; }
         }
-        // fully-unlocked Age: the Locked view says so instead of going blank
+        const counts = this.Root.querySelector('.mad-counts');
+        if (counts) counts.textContent = `${totalAct}/${totalVis} ${activeWord}`;
         const emptyEl = this.Root.querySelector('.mad-locked-empty');
-        if (emptyEl) emptyEl.style.display = (f == 'locked' && !anyLaneVisible) ? '' : 'none';
+        if (emptyEl) emptyEl.style.display = !anyLaneVisible ? '' : 'none';
     }
 
     // ---------------------------------------------------------------- data
@@ -473,17 +715,20 @@ class MadDashboardPanel extends Panel {
         const cards = new Map();
         let rows = [];
         try {
+            // Gen-2: the Ascendancy tree carries its own notes — MA_ASC_<age>_<node>_NOTE
+            // (base, UnlockDepth 1) and _NOTEM (mastery, UnlockDepth 2), attached to the
+            // NODE_MA_* nodes. (The old v1 base-tree MA_*_NOTE_* labels are being de-layered.)
             rows = GameInfo.ProgressionTreeNodeUnlocks.filter(u =>
                 u.TargetKind == 'KIND_MODIFIER' &&
                 typeof u.TargetType == 'string' &&
-                u.TargetType.startsWith('MA_') &&
-                u.TargetType.includes('_NOTE_') &&
+                u.TargetType.startsWith('MA_ASC_') &&
+                (u.TargetType.endsWith('_NOTE') || u.TargetType.endsWith('_NOTEM')) &&
                 !u.Hidden);
         } catch (e) {
             console.error(`${TAG} ProgressionTreeNodeUnlocks read failed: ${e}`);
         }
         for (const u of rows) {
-            const lane = laneForNoteId(u.TargetType);
+            const lane = laneForMaNode(u.ProgressionTreeNodeType);
             const depth = u.UnlockDepth ?? 1;
             const key = `${u.ProgressionTreeNodeType}|${lane}|${depth}`;
             let card = cards.get(key);
@@ -492,6 +737,12 @@ class MadDashboardPanel extends Panel {
                 const unlockedDepth = unlockedDepthFor(nodeRow, playerId);
                 card = {
                     lane,
+                    // system tab: the mastery-branch nodes end in "B" (SCIB/CULB/…) = the Secret
+                    // Branches; everything else is the main Ascendancy tree (civics).
+                    system: /B$/.test(u.ProgressionTreeNodeType) ? 'branch' : 'tree',
+                    revealTrigger: revealTriggerFor(u.ProgressionTreeNodeType), // Masteries: how to unlock
+                    revealed: masteryRevealed(playerId, u.ProgressionTreeNodeType), // Triumph earned = tree open
+                    routesDedication: masteryRoutesDedication(u.ProgressionTreeNodeType), // unlocks a Dedication?
                     nodeType: u.ProgressionTreeNodeType,
                     nodeName: nodeRow?.Name ?? u.ProgressionTreeNodeType,
                     isCivic: String(u.ProgressionTreeNodeType).includes('_CIVIC_'),
@@ -505,12 +756,11 @@ class MadDashboardPanel extends Panel {
             const desc = noteDescription(u.TargetType);
             if (desc) card.lines.push(desc);
         }
-        // the Suzerain card's payout needs an actual suzerained city-state on top of its
-        // node — mark it DORMANT (unlocked but not paying) when you lead none
-        const suzNote = `LOC_MA_${currentAgeSfx()}_NOTE_SUZERAIN`;
+        // the Suzerain (DIP-lane) cards' payout needs an actual suzerained city-state on top
+        // of the node — mark DORMANT (unlocked but not paying) when you lead none
         const suz = suzerainCounts(playerId);
         for (const card of cards.values()) {
-            if (card.lines.includes(suzNote)) {
+            if (card.lane == 'suzerain') {
                 card.suzCount = suz?.total ?? null;
                 card.suzByType = suz?.byType ?? null;
                 card.dormant = (suz?.total === 0) &&
@@ -520,10 +770,126 @@ class MadDashboardPanel extends Panel {
         return [...cards.values()].filter(c => c.lines.length > 0);
     }
 
+    // CARDS tab: the player's active Traditions / Policies / Crises, read live from Culture.
+    // getActiveTraditions(slot) is the base game's own read (base-standard/ui/policies/model-
+    // policies.js). Return shape is resolved defensively (hash or type row). NEEDS in-game verify.
+    collectTraditions(playerId) {
+        const out = [];
+        try {
+            const culture = Players.get(playerId)?.Culture;
+            if (!culture?.getActiveTraditions || typeof CultureSlotTypes == 'undefined') return out;
+            const SLOTS = [
+                ['LOC_MAD_CARD_TRADITION', CultureSlotTypes.TRADITION_CULTURE_SLOT],
+                ['LOC_MAD_CARD_POLICY', CultureSlotTypes.POLICY_CULTURE_SLOT],
+                ['LOC_MAD_CARD_CRISIS', CultureSlotTypes.CRISIS_CULTURE_SLOT],
+            ];
+            for (const [kindLoc, slot] of SLOTS) {
+                if (slot == null) continue;
+                let list = [];
+                try { list = culture.getActiveTraditions(slot) ?? []; } catch (e) { continue; }
+                for (const t of list) {
+                    if (t == null) continue;
+                    let row = null;
+                    try {
+                        row = GameInfo.Traditions?.lookup ? GameInfo.Traditions.lookup(t)
+                            : GameInfo.Traditions?.find(x => x.$hash == t || x.TraditionType == t);
+                    } catch (e) { /* name falls back below */ }
+                    const nm = row?.Name ?? String(t);
+                    out.push({
+                        lane: 'cards', system: 'card', nodeType: String(t), nodeName: nm,
+                        tradType: row?.TraditionType ?? null,   // string key for the yield-preview manifest
+                        isCivic: false, requiredDepth: 1, unlockedDepth: 1, kindLoc,
+                        lines: [row?.Description ?? nm],
+                    });
+                }
+            }
+        } catch (e) { console.error(`${TAG} traditions read failed: ${e}`); }
+        return out;
+    }
+
+    // TRIUMPHS tab: our feats are Legacies (LEGACY_MA_<age>_<domain>), read live via the player's
+    // Legacies component. Scoped to the current Age. Falls back to the placeholder if nothing reads.
+    collectTriumphs(playerId) {
+        const out = [];
+        try {
+            const comp = Players.get(playerId)?.Legacies;
+            if (!comp) return out;
+            let rows = [];
+            try {
+                rows = GameInfo.Legacies.filter(l =>
+                    typeof l.LegacyType == 'string' && l.LegacyType.startsWith('LEGACY_MA_'));
+            } catch (e) { return out; }
+            let ageHash = null; try { ageHash = Game.age; } catch (e) { /* no age scope */ }
+            for (const r of rows) {
+                if (ageHash != null && r.Age) { try { if (Game.getHash(r.Age) != ageHash) continue; } catch (e) { /* keep */ } }
+                const earned = legacyTriggered(comp, r);
+                out.push({
+                    lane: 'triumphs', system: 'triumph', nodeType: r.LegacyType,
+                    nodeName: r.Name ?? r.LegacyType, isCivic: false, requiredDepth: 1,
+                    unlockedDepth: earned === true ? 1 : (earned === false ? 0 : null),
+                    progress: legacyProgress(comp, r), kindLoc: 'LOC_MAD_TAB_TRIUMPH',
+                    routesDedication: triumphRoutesDedication(r.LegacyType),
+                    lines: [r.Description ?? r.TriggerDescription ?? r.LegacyType],
+                });
+            }
+        } catch (e) { console.error(`${TAG} triumphs read failed: ${e}`); }
+        return out;
+    }
+
+    // Fallback card when the Triumph read yields nothing (kept as a safety net).
+    triumphPlaceholder() {
+        return {
+            lane: 'triumphs', system: 'triumph', nodeType: 'MA_TRIUMPHS',
+            nodeName: 'LOC_MAD_TRIUMPH_PENDING_TITLE', isCivic: false,
+            requiredDepth: 1, unlockedDepth: null, lines: ['LOC_MAD_TRIUMPH_PENDING_BODY'],
+        };
+    }
+
+    // SETTLEMENTS tab: one card per settlement source — what it is, HOW to unlock it, and whether
+    // you have it. (1) founding settlements (always); (2) & (3) the two Charters, which live in a
+    // hidden Charters tree REVEALED by this Age's Expansion Triumph, then researched (+1 each).
+    collectSettlements(playerId, vitals) {
+        const out = [];
+        const sfx = currentAgeSfx();
+        const base = (sfx === 'AQ') ? 1 : 2; // free floor this Age (AQ 1 / EX 2 / MO 2)
+        // (1) founding settlements — always yours
+        out.push({
+            lane: 'settlements', system: 'settle', nodeType: 'SETTLE_BASE', kindLoc: 'LOC_MAD_TAB_SETTLE',
+            nodeName: 'LOC_MAD_SETTLE_BASE_NAME', requiredDepth: 1, unlockedDepth: 1,
+            lines: [Locale.compose('LOC_MAD_SETTLE_BASE_BODY', base)],
+        });
+        // this Age's Expansion Triumph (the key that reveals the Charters tree)
+        let expName = 'LOC_MAD_LANE_EXPANSION', expTrigger = null, expEarned = null;
+        try {
+            const row = GameInfo.Legacies?.find(l => l.LegacyType == `LEGACY_MA_${sfx}_EXP`);
+            if (row) {
+                expName = row.Name ?? expName;
+                expTrigger = row.TriggerDescription ?? null;
+                const comp = Players.get(playerId)?.Legacies;
+                expEarned = comp ? legacyTriggered(comp, row) : null; // true / false / null(unknown)
+            }
+        } catch (e) { /* fall back to generic wording */ }
+        // (2) the earned slot - FOLD-IN (2026-07-18): the Charters tree is gone; the Expansion feat
+        // grants the slot DIRECTLY, so "have" = the Triumph itself. No research step to advertise.
+        {
+            const have = expEarned === true;
+            const how = have
+                ? Locale.compose('LOC_MAD_SETTLE_CHARTER_HAVE')
+                : Locale.compose('LOC_MAD_SETTLE_CHARTER_LOCKED',
+                    Locale.compose(expName), expTrigger ? Locale.compose(expTrigger) : Locale.compose('LOC_MAD_SETTLE_TRIGGER_TBD'));
+            out.push({
+                lane: 'settlements', system: 'settle', nodeType: 'SETTLE_CHARTER1', kindLoc: 'LOC_MAD_TAB_SETTLE',
+                nodeName: `LOC_NODE_MA_${sfx}_CHARTER1_NAME`, requiredDepth: 1, unlockedDepth: have ? 1 : 0,
+                lines: [how],
+            });
+        }
+        return out;
+    }
+
     collectVitals() {
         const vitals = {
-            homeland: 0, distant: 0, tall: true,
-            urbanPop: 0, happiness: null, stageLoc: null, stageIcon: null, tiers: currentTiers(),
+            homeland: 0, distant: 0, tall: true, settlements: 0, allowance: 1, charters: 0, ageMaxSettlements: 4,
+            urbanPop: 0, happiness: null, stageLoc: null, stageIcon: null,
         };
         try {
             const player = Players.get(GameContext.localPlayerID);
@@ -532,8 +898,12 @@ class MadDashboardPanel extends Panel {
             for (const city of cities) {
                 if (city.isDistantLands) vitals.distant++; else vitals.homeland++;
                 const urban = city.urbanPopulation ?? 0;
-                if (!city.isTown && urban >= vitals.urbanPop) {
-                    vitals.urbanPop = urban;
+                // Gen-2 (fixed 2026-07-22): SUM across all settlements - the per-pop bonuses pay on
+                // empire-wide Urban Population, so the vitals show that number (the old v1 read kept
+                // only the single largest city and understated it - 25 shown vs 77 real, run 5).
+                vitals.urbanPop += urban;
+                // The happiness/stage line still reads the LARGEST city (the metropolis).
+                if (!city.isTown && (metropolis == null || urban >= (metropolis.urbanPopulation ?? 0))) {
                     metropolis = city;
                 }
             }
@@ -554,7 +924,40 @@ class MadDashboardPanel extends Panel {
                     }
                 }
             }
-            vitals.tall = vitals.homeland <= 1 && vitals.distant <= 1;
+            // Gen-2 THE MA GATE: benefits gate on total settlement count vs the mod's own
+            // allowance — base 1 (Antiquity) / 2 (Exploration, Modern), +1 per Charter node
+            // completed on the Ascendancy tree, hard-capped at 4. (Replaces the v1 per-
+            // hemisphere SOLO rule, which was homeland<=1 && distant<=1.)
+            let isAQ = true, isMO = false;
+            try { isAQ = (Game.age == Game.getHash('AGE_ANTIQUITY')); } catch (e) { /* default AQ */ }
+            try { isMO = (Game.age == Game.getHash('AGE_MODERN')); } catch (e) { /* not MO */ }
+            const sfx = currentAgeSfx();
+            const pid = GameContext.localPlayerID;
+            // FOLD-IN (2026-07-18): slots ride TRIUMPHS now - the Charters tree is gone. Floors AQ 1 /
+            // EX 2 / MO 2; this Age's Expansion feat = +1 slot. Max 2/3/4.
+            const floor = isAQ ? 1 : 2;
+            let allowance = floor;
+            let expEarnedNow = false;
+            try {
+                const rowNow = GameInfo.Legacies?.find(l => l.LegacyType == `LEGACY_MA_${sfx}_EXP`);
+                const compNow = Players.get(pid)?.Legacies;
+                expEarnedNow = (rowNow && compNow) ? (legacyTriggered(compNow, rowNow) === true) : false;
+            } catch (e) { /* unreadable -> conservative floor */ }
+            if (expEarnedNow) { allowance++; vitals.charters++; }
+            if (isMO) {
+                // THE CARRY (fixed 2026-07-22, run-5 in-game): Triumph records are per-Age, so the old
+                // probe for Exploration's Twin Capitals ALWAYS read false here and showed SUSPENDED at
+                // a legal 3 (proven live: cards +78 Science on slot while the banner said suspended).
+                // The delivery rebuild made the data's Modern 3rd-settlement window count-only (the
+                // accepted carry design), so the dashboard mirrors that reality: Modern base = 3,
+                // Modern's own Expansion feat opens the 4th.
+                allowance++; vitals.charters++;
+            }
+            const ageMax = isAQ ? 2 : (isMO ? 4 : 3);   // per-Age max: AQ 2 / EX 3 / MO 4
+            vitals.allowance = Math.min(allowance, ageMax);
+            vitals.ageMaxSettlements = ageMax;
+            vitals.settlements = vitals.homeland + vitals.distant;
+            vitals.tall = vitals.settlements <= vitals.allowance;
         } catch (e) {
             console.error(`${TAG} vitals read failed: ${e}`);
         }
@@ -564,48 +967,46 @@ class MadDashboardPanel extends Panel {
     // -------------------------------------------------------------- render
 
     refresh() {
+        this.realizePlayerColors();   // re-stamp every refresh — colors may not be ready at first attach
         const playerId = GameContext.localPlayerID;
         const vitals = this.collectVitals();
         const cards = this.collectCards(playerId);
+        cards.push(...this.collectTraditions(playerId)); // Cards tab
+        const tri = this.collectTriumphs(playerId);      // Triumphs tab (LEGACY_MA_* via Legacies)
+        cards.push(...(tri.length ? tri : [this.triumphPlaceholder()]));
+        cards.push(...this.collectSettlements(playerId, vitals)); // Settlements tab (base + the two Charters)
         // engine-attributed MA income (labeled leaves); nothing to show while suspended
         this.impact = vitals.tall ? collectImpact() : { buckets: {}, total: {} };
-        // computed influence: the two constructible-routed sources the engine can't label
-        // (EFFECT_PLAYER_ADJUST_CONSTRUCTIBLE_YIELD): the Palace primer (active only at
-        // exactly 1 settlement) and the Hub-town building bonus (node-gated, per building).
+        // computed Gen-2 income (Ascendancy nodes/branches + active MA traditions) via the optional
+        // yields-preview API; folds into the headline total. Tree cards only ever contribute when
+        // researched + window-open (his engine gates them), and collectTraditions lists only SLOTTED
+        // traditions, so nothing unearned is counted.
+        this.preview = vitals.tall ? collectPreviews(cards) : null;
+        if (this.preview) {
+            for (const y of this.preview.values())
+                for (const [yt, v] of Object.entries(y)) this.impact.total[yt] = (this.impact.total[yt] ?? 0) + v;
+        }
+        // computed influence: the Palace primer — a constructible-routed source the engine can't
+        // label (EFFECT_PLAYER_ADJUST_CONSTRUCTIBLE_YIELD), active only at exactly 1 settlement.
+        // (The old Hub-town building bonus was removed in the A2 base-tree de-layer, 2026-07-14.)
         this.primer = 0;      // Palace primer — shown on the Foundations chip
-        this.hubInfluence = 0; // Hub-town building bonus — headline only (no single card owns it)
         try {
             const sfx = currentAgeSfx();
             if (vitals.tall && (vitals.homeland + vitals.distant) < 2) {
                 this.primer += Number(modArg(`MA_${sfx}_SUZ_PRIMER`, 'Amount') ?? 0) || 0;
             }
-            if (vitals.tall) {
-                // per-age hub config mirrors gen-ascendant ($age.HubBuilding/$age.HubNode)
-                const HUB = {
-                    AQ: ['BUILDING_MONUMENT', 'NODE_TECH_AQ_MASONRY'],
-                    EX: ['BUILDING_GUILDHALL', 'NODE_TECH_EX_GUILDS'],
-                    MO: ['BUILDING_OPERA_HOUSE', 'NODE_TECH_MO_URBANIZATION'],
-                }[sfx];
-                const hubAmt = Number(modArg(`MA_${sfx}_HUB_INFLUENCE`, 'Amount') ?? 0) || 0;
-                if (HUB && hubAmt) {
-                    const nodeRow = nodeInfoFor(HUB[1]);
-                    const depth = unlockedDepthFor(nodeRow, playerId);
-                    if (depth != null && depth >= 1) {
-                        const player = Players.get(playerId);
-                        let count = 0;
-                        for (const city of (player?.Cities?.getCities() ?? [])) {
-                            if (city.Constructibles?.hasConstructible?.(HUB[0], false)) count++;
-                        }
-                        this.hubInfluence = hubAmt * count;
-                    }
-                }
-            }
         } catch (e) { /* computed chips are a nicety */ }
-        const extraInf = this.primer + this.hubInfluence;
-        if (extraInf) this.impact.total.YIELD_DIPLOMACY = (this.impact.total.YIELD_DIPLOMACY ?? 0) + extraInf;
+        if (this.primer) this.impact.total.YIELD_DIPLOMACY = (this.impact.total.YIELD_DIPLOMACY ?? 0) + this.primer;
         this.renderVitals(vitals);
+        this.renderProgress(playerId);
         this.renderLanes(cards, vitals);
-        this.setFilter(this.filter);
+        // Default to all lanes collapsed on first render of this open (Chris 2026-07-13).
+        if (!this._didInitialCollapse) {
+            for (const lane of this.Root.querySelectorAll('.mad-lane')) this.collapsed.add(lane.dataset.lane);
+            this._didInitialCollapse = true;
+        }
+        this.setTab(this.tab);
+        this.applyPlayerAccents();   // paint player color directly onto the freshly-rendered nodes
     }
 
     renderVitals(v) {
@@ -619,23 +1020,30 @@ class MadDashboardPanel extends Panel {
             status.classList.toggle('mad-bad', !v.tall);
         }
         if (detail) {
-            const parts = [
-                `${Locale.compose('LOC_MAD_HOMELAND')} ${v.homeland}/1`,
-                `${Locale.compose('LOC_MAD_DISTANT')} ${v.distant}/1`,
-            ];
-            if (!v.tall) parts.push(Locale.compose('LOC_MAD_SUSPENDED_HINT'));
-            detail.textContent = parts.join('  ·  ');
+            // Gen-2 gate readout: always draw the mod's full ceiling (4 slots) so a 1/1 empire still
+            // reads as progress, not a lone line. Green = a settlement you hold · hollow = open slot
+            // within your allowance · dashed = locked (needs a Charter to open) · amber ring = a slot
+            // a Charter granted. No hemisphere split.
+            const MAX_SETTLEMENTS = 4;
+            let pips = '';
+            for (let i = 0; i < MAX_SETTLEMENTS; i++) {
+                const held = i < v.settlements;
+                const unlocked = i < v.allowance;
+                const isCharter = unlocked && i >= (v.allowance - v.charters);
+                const cls = ['mad-set-seg'];
+                if (held) cls.push('mad-set-seg-on');
+                if (!unlocked) cls.push('mad-set-seg-locked');
+                if (isCharter) cls.push('mad-set-seg-charter');
+                pips += `<span class="${cls.join(' ')}"></span>`;
+            }
+            let html = `${Locale.compose('LOC_MAD_SETTLEMENTS')} ${v.settlements}/${v.allowance} <span class="mad-set-track">${pips}</span>`;
+            if (!v.tall) html += `  ·  ${Locale.compose('LOC_MAD_SUSPENDED_HINT')}`;
+            // The "how to raise the cap" detail lives in the Settlements tab (per-slot: what, how, have?).
+            detail.innerHTML = html;
         }
         if (pop) {
-            const [t1, t2, t3] = v.tiers;
-            const tier = v.urbanPop >= t3 ? 3 : v.urbanPop >= t2 ? 2 : v.urbanPop >= t1 ? 1 : 0;
-            const next = tier >= 3 ? null : v.tiers[tier];
-            const parts = [`${Locale.compose('LOC_MAD_URBAN_POP')} ${v.urbanPop}`];
-            if (tier > 0) parts.push(`${Locale.compose('LOC_MAD_TIER')} ${tier} (T${tier})`);
-            parts.push(next == null
-                ? Locale.compose('LOC_MAD_TIERS_ALL')
-                : `${Locale.compose('LOC_MAD_NEXT_TIER_WORD')} (T${tier + 1}) ${Locale.compose('LOC_MAD_UNLOCKS_AT')} ${next} ${Locale.compose('LOC_MAD_URBAN_WORD')}`);
-            pop.textContent = parts.join('  ·  ');
+            // Gen-2 per-pop yields scale continuously (+1 per 2 Urban Pop) — no v1 T1/T2/T3 thresholds.
+            pop.textContent = `${Locale.compose('LOC_MAD_URBAN_POP')} ${v.urbanPop}`;
         }
         if (happy) {
             if (v.happiness == null) {
@@ -646,14 +1054,82 @@ class MadDashboardPanel extends Panel {
                 happy.innerHTML = Locale.stylize(txt);
             }
         }
+        const arcEl = this.Root.querySelector('.mad-arcadia');
+        if (arcEl) {
+            const np = naturalWonderProgress(GameContext.localPlayerID);
+            arcEl.classList.toggle('mad-arcadia-on', !!(np && np.awakened));
+            if (np && np.total > 0) {
+                const name = Locale.compose(LANE_LOC['arcadia']);
+                arcEl.innerHTML = np.awakened
+                    ? Locale.stylize(`${name} — ${Locale.compose('LOC_MAD_ARCADIA_AWAKE_SHORT')}`)
+                    : Locale.stylize(`${name} — ${np.discovered}/${np.total} ${Locale.compose('LOC_MAD_NW_THRESHOLD')}`);
+            } else {
+                arcEl.innerHTML = '';
+            }
+        }
+        const tradeEl = this.Root.querySelector('.mad-trade');
+        if (tradeEl) {
+            const tr = tradeReadout(GameContext.localPlayerID);
+            tradeEl.innerHTML = tr
+                ? Locale.stylize(`[icon:YIELD_GOLD] ${Locale.compose('LOC_MAD_TRADE')} ${tr.active} ${Locale.compose('LOC_MAD_TRADE_ACTIVE')} · ${tr.avail} ${Locale.compose('LOC_MAD_TRADE_AVAIL')}`)
+                : '';
+        }
         const impactEl = this.Root.querySelector('.mad-impact');
         if (impactEl) {
-            const chips = MadSettings.showFigures ? formatYieldChips(this.impact?.total ?? {}) : '';
+            // Headline figures require the yields-preview API (Chris 2026-07-18): without it the total
+            // would degrade to the v1-label remnant (basically the happiness line) and READ as broken.
+            // No figures beats partial figures - skip the line entirely when the API is absent.
+            const chips = (MadSettings.showFigures && this.preview) ? formatYieldChips(this.impact?.total ?? {}) : '';
             impactEl.innerHTML = chips
                 ? Locale.stylize(`${Locale.compose('LOC_MAD_IMPACT_NOW')}  ${chips} ${Locale.compose('LOC_MAD_PER_TURN')}`)
                 : '';
         }
         this.frame.classList.toggle('mad-suspended', !v.tall);
+    }
+
+    // Per-branch segmented progress bars for the main Ascendancy tree (Chris's "branch bars").
+    renderProgress(playerId) {
+        const host = this.Root.querySelector('.mad-progress');
+        if (!host) return;
+        host.innerHTML = '';
+        const prog = collectTreeProgress(playerId);
+        if (!prog.total) return;
+        const head = document.createElement('div');
+        head.classList.add('mad-progress-head');
+        head.textContent = `${Locale.compose('LOC_MAD_PROGRESS')} ${prog.done}/${prog.total}`;
+        host.appendChild(head);
+        // Compact dot chips (charter-pip style), two branches per row — much tighter than
+        // full-width bars for 1-3 nodes.
+        // Segmented bars (mockup design): one row per branch, one segment per node.
+        // Green = node researched, gold = mastery taken, dark = not yet.
+        const wrap = document.createElement('div');
+        wrap.classList.add('mad-branch-wrap');
+        for (const lane of ['science', 'culture', 'economy', 'military', 'expansion', 'industry', 'diplomacy']) {
+            const b = prog.byLane[lane];
+            if (!b || !b.total) continue;
+            const row = document.createElement('div');
+            row.classList.add('mad-bar-row');
+            const label = document.createElement('span');
+            label.classList.add('mad-bar-label');
+            label.textContent = Locale.compose(LANE_LOC[lane]);
+            row.appendChild(label);
+            const track = document.createElement('span');
+            track.classList.add('mad-bar-track');
+            for (const d of b.segs) {
+                const seg = document.createElement('span');
+                seg.classList.add('mad-bar-seg');
+                if (d >= 2) seg.classList.add('mad-bar-seg-mastery');
+                else if (d >= 1) seg.classList.add('mad-bar-seg-on');
+                track.appendChild(seg);
+            }
+            row.appendChild(track);
+            const cnt = document.createElement('span');
+            cnt.classList.add('mad-bar-count');
+            cnt.textContent = `${b.done}/${b.total}${b.mastery ? ' ★' : ''}`;
+            row.appendChild(cnt);
+            wrap.appendChild(row);
+        }
+        host.appendChild(wrap);
     }
 
     renderLanes(cards, vitals) {
@@ -676,7 +1152,11 @@ class MadDashboardPanel extends Panel {
         }
 
         const playerId = GameContext.localPlayerID;
-        const nwFound = anyNaturalWonderFound(playerId);
+        // Arcadia awakens at 30% of NWs discovered — use the real percentage, not "found any".
+        const nwProg = naturalWonderProgress(playerId);
+        const nwFound = nwProg ? nwProg.awakened : anyNaturalWonderFound(playerId);
+        // Protectorates (suzerain) live read — drives the static section's state + breakdown.
+        const suz = suzerainCounts(playerId);
 
         let totalActive = 0, totalCards = 0;
         for (const lane of LANE_ORDER) {
@@ -695,6 +1175,7 @@ class MadDashboardPanel extends Panel {
             if (staticDef?.state == 'always') staticOn = true;
             else if (staticDef?.state == 'nw') staticOn = nwFound; // true/false/null(unknown)
             else if (staticDef?.state == 'kit') staticOn = (vitals.homeland + vitals.distant) < 3; // conquest kit: under 3 settlements
+            else if (staticDef?.state == 'suz') staticOn = suz ? (suz.total > 0) : null; // protectorates: active once you hold any suzerainty
             if (staticOn != null) { count += 1; if (staticOn) active += 1; }
             totalActive += active;
             totalCards += count;
@@ -754,6 +1235,13 @@ class MadDashboardPanel extends Panel {
                         intro.appendChild(row);
                     }
                 }
+                // arcadia: live Natural-Wonder discovery count vs the 30% awaken gate
+                if (lane == 'arcadia' && nwProg && nwProg.total > 0) {
+                    const row = document.createElement('div');
+                    row.classList.add('mad-payout');
+                    row.textContent = `${Locale.compose('LOC_MAD_NW_DISCOVERED')} ${nwProg.discovered} / ${nwProg.total} · ${nwProg.pct}% ${Locale.compose('LOC_MAD_NW_THRESHOLD')}`;
+                    intro.appendChild(row);
+                }
                 // surveyor: ring 4-5 resource counter
                 if (lane == 'surveyor') {
                     const stats = surveyorRingStats(playerId);
@@ -766,12 +1254,27 @@ class MadDashboardPanel extends Panel {
                         intro.appendChild(row);
                     }
                 }
+                // protectorates: live breakdown of which City-State types you're Suzerain of + the yield each feeds
+                if (lane == 'protectorates' && suz) {
+                    const row = document.createElement('div');
+                    row.classList.add('mad-payout');
+                    if (suz.total > 0 && suz.types.length) {
+                        const parts = suz.types
+                            .slice().sort((a, b) => b.count - a.count)
+                            .map(t => `${t.yield ? `[icon:${t.yield}] ` : ''}${t.name}${t.count > 1 ? ` ×${t.count}` : ''}`);
+                        row.innerHTML = Locale.stylize(`${Locale.compose('LOC_MAD_PROT_SUZ_OF')} ${suz.total} — ${parts.join('  ·  ')}`);
+                    } else {
+                        row.innerHTML = Locale.stylize(Locale.compose('LOC_MAD_PROT_NONE'));
+                    }
+                    intro.appendChild(row);
+                }
                 // live engine-attributed chips on the static sections
                 let chipTxt = '';
                 if (!MadSettings.showFigures) { /* plain catalog view */ }
                 else if (lane == 'arcadia') {
                     const merged = {};
-                    for (const key of ['LOC_MA_ARCADIA_DESCRIPTION', 'LOC_MA_ARCADIA_PEAKS_DESCRIPTION', 'LOC_MA_ARCADIA_WATERS_DESCRIPTION']) {
+                    for (const key of ['LOC_MA_ARCADIA_DESCRIPTION', 'LOC_MA_ARCADIA_PEAKS_DESCRIPTION', 'LOC_MA_ARCADIA_WATERS_DESCRIPTION',
+                                       'LOC_MA_ARCADIA_LABEL', 'LOC_MA_ARCADIA_PEAKS_LABEL', 'LOC_MA_ARCADIA_WATERS_LABEL']) {
                         for (const [yt, v] of Object.entries(this.impact?.buckets?.[key] ?? {})) merged[yt] = (merged[yt] ?? 0) + v;
                     }
                     chipTxt = formatYieldChips(merged);
@@ -814,6 +1317,7 @@ class MadDashboardPanel extends Panel {
 
         const el = document.createElement('div');
         el.classList.add('mad-card', isActive ? 'mad-active' : 'mad-locked');
+        el.dataset.system = card.system ?? 'tree'; // which switcher tab this card belongs to
         if (card.dormant) el.classList.add('mad-dormant');
 
         const head = document.createElement('div');
@@ -834,8 +1338,34 @@ class MadDashboardPanel extends Panel {
         head.appendChild(spacer);
         const kind = document.createElement('span');
         kind.classList.add('mad-card-kind');
-        kind.textContent = Locale.compose(card.isCivic ? 'LOC_MAD_CIVIC' : 'LOC_MAD_TECH');
+        // Gen-2: tree/branch cards are Ascendancy nodes (not base TECH/CIVIC); cards show their slot.
+        const kindKey = card.kindLoc
+            ?? (card.system == 'triumph' ? 'LOC_MAD_TAB_TRIUMPH' : 'LOC_MAD_KIND_ASCENDANCY');
+        kind.textContent = Locale.compose(kindKey);
         head.appendChild(kind);
+        // Boost tag: a not-yet-complete Ascendancy/Mastery node whose deed is done (40% pre-filled).
+        if (!isActive && (card.system == 'tree' || card.system == 'branch')
+            && nodeBoosted(GameContext.localPlayerID, card.nodeType)) {
+            const boost = document.createElement('span');
+            boost.classList.add('mad-boost-tag');
+            boost.textContent = Locale.compose('LOC_MAD_BOOSTED');
+            head.appendChild(boost);
+        }
+        // AVAILABLE: Mastery revealed (Triumph earned) but not yet researched — nudge to open its tree.
+        if (card.revealed && !isActive) {
+            const avail = document.createElement('span');
+            avail.classList.add('mad-avail-tag');
+            avail.textContent = Locale.compose('LOC_MAD_AVAILABLE');
+            head.appendChild(avail);
+            el.classList.add('mad-available');
+        }
+        // Reward-type tag on Masteries/Triumphs: DEDICATION (a next-Age pick) vs IMMEDIATE (pays now).
+        if (card.system == 'branch' || card.system == 'triumph') {
+            const rew = document.createElement('span');
+            rew.classList.add(card.routesDedication ? 'mad-ded-tag' : 'mad-imm-tag');
+            rew.textContent = Locale.compose(card.routesDedication ? 'LOC_MAD_TAG_DEDICATION' : 'LOC_MAD_TAG_IMMEDIATE');
+            head.appendChild(rew);
+        }
         el.appendChild(head);
 
         const body = document.createElement('div');
@@ -850,7 +1380,13 @@ class MadDashboardPanel extends Panel {
 
         const foot = document.createElement('div');
         foot.classList.add('mad-card-foot');
-        if (stateUnknown) {
+        if (card.revealTrigger && !isActive && card.revealed) {
+            // Triumph earned → the Mastery tree is OPEN; nudge the player to go research it.
+            foot.innerHTML = Locale.stylize(`${Locale.compose('LOC_MAD_MASTERY_READY')} ${Locale.compose(card.nodeName)}`);
+        } else if (card.revealTrigger && !isActive) {
+            // Still hidden — tell the player which Triumph reveals it and how to earn that.
+            foot.innerHTML = Locale.stylize(`${Locale.compose('LOC_MAD_REVEALED_BY')} ${Locale.compose(LANE_LOC[card.lane] ?? 'LOC_MAD_LANE_OTHER')} ${Locale.compose('LOC_MAD_TRIUMPH_WORD')} ${Locale.compose(card.revealTrigger)}`);
+        } else if (stateUnknown) {
             foot.textContent = `${Locale.compose(card.nodeName)} · ${Locale.compose('LOC_MAD_STATE_UNKNOWN')}`;
         } else if (card.dormant) {
             foot.textContent = `${Locale.compose('LOC_MAD_UNLOCKED')} · ${Locale.compose('LOC_MAD_SUZ_NONE')}`;
@@ -875,7 +1411,9 @@ class MadDashboardPanel extends Panel {
 
         // live engine-attributed impact chip: note-key buckets join to the card's own note
         // keys; stage/under-cap buckets join by yield to their specific note card.
-        if (isActive && MadSettings.showFigures) {
+        // Figures are all-or-nothing (Chris 2026-07-18): every number on the dashboard requires the
+        // yields-preview API. Without it, no chips anywhere - not even the v1-label ones.
+        if (isActive && MadSettings.showFigures && this.preview) {
             const merged = {};
             const add = (byYield, onlyYield = null) => {
                 for (const [yt, v] of Object.entries(byYield ?? {})) {
@@ -885,6 +1423,10 @@ class MadDashboardPanel extends Panel {
             };
             const sfx = currentAgeSfx();
             for (const lineKey of card.lines) add(this.impact?.buckets?.[lineKey]);
+            // computed Gen-2 chip (yields-preview API); key spaces are disjoint from the v1 label
+            // buckets above, so a card never double-counts.
+            const pvKey = [card.nodeType, card.tradType].find(k => k && this.preview?.has(k));
+            if (pvKey) add(this.preview.get(pvKey));
             if (card.lines.includes(`LOC_MA_${sfx}_NOTE_STAGE_SCIENCE`)) add(this.impact?.buckets?.['LOC_MA_STAGE_DESCRIPTION'], 'YIELD_SCIENCE');
             if (card.lines.includes(`LOC_MA_${sfx}_NOTE_STAGE_CULTURE`)) add(this.impact?.buckets?.['LOC_MA_STAGE_DESCRIPTION'], 'YIELD_CULTURE');
             if (card.lines.includes(`LOC_MA_${sfx}_NOTE_FOODCAP`)) add(this.impact?.buckets?.['LOC_MA_UNDERCAP_DESCRIPTION'], 'YIELD_FOOD');

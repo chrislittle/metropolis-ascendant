@@ -14,8 +14,10 @@
 
         <!-- Vitals strip -->
         <Row Tag="LOC_MAD_STATUS_ACTIVE"><Text>METROPOLIS: ACTIVE</Text></Row>
-        <Row Tag="LOC_MAD_STATUS_SUSPENDED"><Text>SUSPENDED — over the 1-per-hemisphere limit</Text></Row>
-        <Row Tag="LOC_MAD_SUSPENDED_HINT"><Text>All bonuses resume when you return to one settlement per hemisphere (Towns count).</Text></Row>
+        <Row Tag="LOC_MAD_STATUS_SUSPENDED"><Text>SUSPENDED — over your settlement allowance</Text></Row>
+        <Row Tag="LOC_MAD_SUSPENDED_HINT"><Text>All bonuses resume when your settlement count is within your allowance (Towns count).</Text></Row>
+        <Row Tag="LOC_MAD_SETTLEMENTS"><Text>Settlements</Text></Row>
+        <Row Tag="LOC_MAD_CHARTERS"><Text>Charters</Text></Row>
         <Row Tag="LOC_MAD_HOMELAND"><Text>Homeland</Text></Row>
         <Row Tag="LOC_MAD_DISTANT"><Text>Distant Lands</Text></Row>
         <Row Tag="LOC_MAD_URBAN_POP"><Text>Urban Population</Text></Row>
@@ -30,6 +32,31 @@
         <Row Tag="LOC_MAD_FILTER_ALL"><Text>All</Text></Row>
         <Row Tag="LOC_MAD_FILTER_ACTIVE"><Text>Active</Text></Row>
         <Row Tag="LOC_MAD_FILTER_LOCKED"><Text>Locked</Text></Row>
+        <Row Tag="LOC_MAD_TAB_TREE"><Text>Ascendancy</Text></Row>
+        <Row Tag="LOC_MAD_TAB_BRANCH"><Text>Institutions</Text></Row>
+        <Row Tag="LOC_MAD_TAB_TRIUMPH"><Text>Triumphs</Text></Row>
+        <Row Tag="LOC_MAD_TAB_CARD"><Text>Policies &amp; Traditions</Text></Row>
+        <Row Tag="LOC_MAD_REVEALED_BY"><Text>Revealed by the</Text></Row>
+        <Row Tag="LOC_MAD_TRIUMPH_WORD"><Text>Triumph:</Text></Row>
+        <Row Tag="LOC_MAD_BOOSTED"><Text>BOOSTED</Text></Row>
+        <Row Tag="LOC_MAD_AVAILABLE"><Text>AVAILABLE</Text></Row>
+        <Row Tag="LOC_MAD_MASTERY_READY"><Text>Available now — research it in</Text></Row>
+        <Row Tag="LOC_MAD_DEDICATION_NOTE"><Text>Also unlocks a Dedication to choose at the next Age's start.</Text></Row>
+        <Row Tag="LOC_MAD_TAG_DEDICATION"><Text>DEDICATION</Text></Row>
+        <Row Tag="LOC_MAD_TAG_IMMEDIATE"><Text>IMMEDIATE</Text></Row>
+        <Row Tag="LOC_MAD_PROGRESS"><Text>Ascendancy progress</Text></Row>
+        <Row Tag="LOC_MAD_TRADE"><Text>Trade Routes:</Text></Row>
+        <Row Tag="LOC_MAD_TRADE_ACTIVE"><Text>active</Text></Row>
+        <Row Tag="LOC_MAD_TRADE_AVAIL"><Text>available to start</Text></Row>
+        <Row Tag="LOC_MAD_TAB_CORE"><Text>Core</Text></Row>
+        <Row Tag="LOC_MAD_LANE_CARDS"><Text>Cards</Text></Row>
+        <Row Tag="LOC_MAD_LANE_TRIUMPHS"><Text>Triumphs</Text></Row>
+        <Row Tag="LOC_MAD_KIND_ASCENDANCY"><Text>Ascendancy</Text></Row>
+        <Row Tag="LOC_MAD_CARD_TRADITION"><Text>Tradition</Text></Row>
+        <Row Tag="LOC_MAD_CARD_POLICY"><Text>Policy</Text></Row>
+        <Row Tag="LOC_MAD_CARD_CRISIS"><Text>Crisis</Text></Row>
+        <Row Tag="LOC_MAD_TRIUMPH_PENDING_TITLE"><Text>Triumphs</Text></Row>
+        <Row Tag="LOC_MAD_TRIUMPH_PENDING_BODY"><Text>Your earned Major and Minor Triumphs will list here once the live read is wired in.</Text></Row>
         <Row Tag="LOC_MAD_EXPAND_ALL"><Text>Expand all</Text></Row>
         <Row Tag="LOC_MAD_COLLAPSE_ALL"><Text>Collapse all</Text></Row>
         <Row Tag="LOC_MAD_ACTIVE_WORD"><Text>active</Text></Row>
@@ -42,9 +69,15 @@
         <Row Tag="LOC_MAD_LANE_CULTURE"><Text>Culture &amp; Wonders</Text></Row>
         <Row Tag="LOC_MAD_LANE_ECONOMY"><Text>Economy</Text></Row>
         <Row Tag="LOC_MAD_LANE_MILITARY"><Text>Military</Text></Row>
+        <Row Tag="LOC_MAD_LANE_EXPANSION"><Text>Expansion</Text></Row>
+        <Row Tag="LOC_MAD_LANE_INDUSTRY"><Text>Industry</Text></Row>
+        <Row Tag="LOC_MAD_LANE_DIPLOMACY"><Text>Diplomacy</Text></Row>
         <Row Tag="LOC_MAD_LANE_GROWTH"><Text>Growth &amp; Industry</Text></Row>
         <Row Tag="LOC_MAD_LANE_SUZERAIN"><Text>Suzerain</Text></Row>
-        <Row Tag="LOC_MAD_LANE_ARCADIA"><Text>Wonders &amp; Arcadia</Text></Row>
+        <Row Tag="LOC_MAD_LANE_ARCADIA"><Text>Natural Wonders &amp; Arcadia</Text></Row>
+        <Row Tag="LOC_MAD_NW_DISCOVERED"><Text>Natural Wonders discovered:</Text></Row>
+        <Row Tag="LOC_MAD_NW_THRESHOLD"><Text>(Arcadia awakens at 30%)</Text></Row>
+        <Row Tag="LOC_MAD_ARCADIA_AWAKE_SHORT"><Text>Awakened &amp; active</Text></Row>
         <Row Tag="LOC_MAD_LANE_FOUNDATIONS"><Text>Foundations</Text></Row>
         <Row Tag="LOC_MAD_LANE_SURVEYOR"><Text>Surveyor</Text></Row>
         <Row Tag="LOC_MAD_LANE_CONQUEST"><Text>Conquest</Text></Row>
@@ -63,12 +96,12 @@
         <Row Tag="LOC_MAD_SUZ_CS_MANY"><Text>city-states</Text></Row>
 
         <!-- Static sections -->
-        <Row Tag="LOC_MAD_ARCADIA_GATE"><Text>Awakens when you discover a Natural Wonder — then, while tall:</Text></Row>
-        <Row Tag="LOC_MAD_ARCADIA_AWAKENED"><Text>Awakened — you have found a Natural Wonder. While tall:</Text></Row>
+        <Row Tag="LOC_MAD_ARCADIA_GATE"><Text>Awakens once you have discovered 30% of the map's Natural Wonders — then, while tall:</Text></Row>
+        <Row Tag="LOC_MAD_ARCADIA_AWAKENED"><Text>Awakened — you have discovered 30% of the map's Natural Wonders. While tall:</Text></Row>
         <Row Tag="LOC_MAD_ALWAYS_ON"><Text>always on</Text></Row>
-        <Row Tag="LOC_MAD_ARCADIA_BODY"><Text>Each Building next to a Wonder gains +1 [icon:YIELD_HAPPINESS] Happiness, and your Wonders raise the Appeal of the surrounding land.[N]Breathtaking rural tiles each gain +1/+2/+3 (by Age) [icon:YIELD_CULTURE] [icon:YIELD_PRODUCTION] [icon:YIELD_HAPPINESS] [icon:YIELD_SCIENCE] [icon:YIELD_FOOD].[N]Buildings and Wonders gain +1/+2/+3 [icon:YIELD_CULTURE] and [icon:YIELD_GOLD] per adjacent Mountain, and Mountains become workable.[N]Worked water tiles yield by type (rivers, Lakes, open sea, Reefs, water Natural Wonders), and Buildings near Coast or a Navigable River gain [icon:YIELD_GOLD] / [icon:YIELD_PRODUCTION].</Text></Row>
+        <Row Tag="LOC_MAD_ARCADIA_BODY"><Text>Breathtaking rural tiles each gain +1/+2/+3 (by Age) [icon:YIELD_CULTURE] [icon:YIELD_PRODUCTION] [icon:YIELD_HAPPINESS] [icon:YIELD_SCIENCE] [icon:YIELD_FOOD].[N]Buildings and Wonders gain +1/+2/+3 [icon:YIELD_CULTURE] and [icon:YIELD_GOLD] per adjacent Mountain, and Mountains become workable.[N]Worked water tiles yield by type (rivers, Lakes, open sea, Reefs, water Natural Wonders), and Buildings near Coast or a Navigable River gain [icon:YIELD_GOLD] / [icon:YIELD_PRODUCTION].</Text></Row>
         <Row Tag="LOC_MAD_FOUNDATIONS_GATE"><Text>Always on — no research needed, scales with your city.</Text></Row>
-        <Row Tag="LOC_MAD_FOUNDATIONS_BODY"><Text>Bonus [icon:YIELD_HAPPINESS] Happiness and reduced Specialist upkeep that grow as your city crosses each population tier, plus +3 [icon:YIELD_DIPLOMACY] Influence per turn toward your first city-states.</Text></Row>
+        <Row Tag="LOC_MAD_FOUNDATIONS_BODY"><Text>Bonus [icon:YIELD_HAPPINESS] Happiness and reduced Specialist upkeep that grow as your city grows, plus +3 [icon:YIELD_DIPLOMACY] Influence per turn toward your first city-states.</Text></Row>
         <Row Tag="LOC_MAD_SURV_GATE"><Text>Reach beyond your borders — resources are claimable up to 5 hexes from a Settlement.</Text></Row>
         <Row Tag="LOC_MAD_SURV_BODY"><Text>The [B]Surveyor[/B] claims one resource tile, bringing it and its yields into your borders, then retires. Build another to reach further.</Text></Row>
         <Row Tag="LOC_MAD_SURV_CLAIMED"><Text>Claimed</Text></Row>
@@ -77,12 +110,29 @@
         <Row Tag="LOC_MAD_SURV_NONE"><Text>No revealed resources within Surveyor reach (4–5 hexes out) yet — keep exploring.</Text></Row>
         <Row Tag="LOC_MAD_CONQUEST_GATE"><Text>Pays out on conquest; needs fewer than 3 total settlements.</Text></Row>
         <Row Tag="LOC_MAD_CONQUEST_ACTIVE"><Text>Active — going to war pays out this Age:</Text></Row>
-        <Row Tag="LOC_MAD_CONQUEST_BODY"><Text>Completed victory wonders recycle their tile via the Foundations chain.</Text></Row>
+        <Row Tag="LOC_MAD_CONQUEST_BODY"><Text>Take the fight to rivals — while your empire stays small, capturing, pillaging, and razing enemy settlements each pay a bounty:</Text></Row>
         <Row Tag="LOC_MAD_PAYOUT_CAPTURE"><Text>First capture of a settlement pays</Text></Row>
         <Row Tag="LOC_MAD_PAYOUT_ONETIME"><Text>(one-time per settlement)</Text></Row>
         <Row Tag="LOC_MAD_PAYOUT_PILLAGE"><Text>Pillaging a conquered city's buildings pays an extra</Text></Row>
         <Row Tag="LOC_MAD_PAYOUT_PER_BUILDING"><Text>per building</Text></Row>
         <Row Tag="LOC_MAD_PAYOUT_RAZE"><Text>Razing is near-instant — a city you can't hold is gone in a turn or two.</Text></Row>
+        <!-- City-States (suzerain) Core-tab panel [internal lane key stays 'protectorates']. The BODY numbers
+             (per 4 pop, +2 Influence, +5 range) mirror the generator config ($suzPerPopDiv/$suzDiploAmt/
+             $suzTradeRangeAmt in tools/gen-ascendant.ps1); retune both together. -->
+        <Row Tag="LOC_MAD_LANE_PROTECTORATES"><Text>City-States</Text></Row>
+        <Row Tag="LOC_MAD_PROTECTORATES_GATE"><Text>Win City-State Suzerainties to feed the metropolis.</Text></Row>
+        <Row Tag="LOC_MAD_PROTECTORATES_ACTIVE"><Text>Active — your Suzerainties feed the metropolis:</Text></Row>
+        <Row Tag="LOC_MAD_PROTECTORATES_BODY"><Text>Suzerainty itself feeds the metropolis: for each City-State type you are Suzerain of, your cities earn +1 of its yield per 4 [icon:YIELD_POPULATION] Urban Population ([icon:YIELD_SCIENCE] Scientific, [icon:YIELD_CULTURE] Cultural, [icon:YIELD_PRODUCTION] Militaristic, [icon:YIELD_GOLD] Economic, [icon:YIELD_FOOD] Expansionist) - whichever Suzerain bonus you pick. Diplomatic Suzerainties add +2 [icon:YIELD_DIPLOMACY] Influence per turn each. Each Suzerain grants +1 Resource capacity; Economic ones add +5 Trade Route range.</Text></Row>
+        <Row Tag="LOC_MAD_PROT_SUZ_OF"><Text>Suzerain of</Text></Row>
+        <Row Tag="LOC_MAD_PROT_NONE"><Text>Not Suzerain of any City-State yet — win one to start the yields.</Text></Row>
+        <!-- Settlements tab: per-slot "what / how to get / have?" for the founding settlements + the two Charters. -->
+        <Row Tag="LOC_MAD_TAB_SETTLE"><Text>Settlements</Text></Row>
+        <Row Tag="LOC_MAD_LANE_SETTLEMENTS"><Text>Settlements</Text></Row>
+        <Row Tag="LOC_MAD_SETTLE_BASE_NAME"><Text>Founding Settlements</Text></Row>
+        <Row Tag="LOC_MAD_SETTLE_BASE_BODY"><Text>Always yours — {1_Count} founding this Age (1 in Antiquity, 2 in Exploration &amp; Modern). Every settlement past these must be earned through a Charter.</Text></Row>
+        <Row Tag="LOC_MAD_SETTLE_CHARTER_HAVE"><Text>Earned — this Charter is granting you +1 Settlement.</Text></Row>
+        <Row Tag="LOC_MAD_SETTLE_CHARTER_LOCKED"><Text>Locked — earn your Expansion Triumph, {1_Triumph} ({2_Trigger}), and this Charter is granted immediately for +1 Settlement.</Text></Row>
+        <Row Tag="LOC_MAD_SETTLE_TRIGGER_TBD"><Text>see the Triumphs tab</Text></Row>
 
         <!-- Empty / edge states -->
         <Row Tag="LOC_MAD_NO_MA"><Text>Metropolis Ascendant is not enabled in this game — nothing to display.</Text></Row>

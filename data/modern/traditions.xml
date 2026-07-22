@@ -9,21 +9,5 @@
 		<Row ModifierId="MA_MO_ATTACH_ALL"/>
 	</GameModifiers>
 	<ProgressionTreeNodeUnlocks>
-		<Row ProgressionTreeNodeType="NODE_TECH_MO_ACADEMICS" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_SCIENCE" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_MO_ACADEMICS" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_SCIENCE2" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_MO_ACADEMICS" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_STAGE_SCIENCE" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_MO_STEAM_ENGINE" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_CULTURE" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_MO_STEAM_ENGINE" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_RESORT" UnlockDepth="2"/>
-		<Row ProgressionTreeNodeType="NODE_CIVIC_MO_MAIN_NATURAL_HISTORY" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_CULTURE2" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_CIVIC_MO_MAIN_NATURAL_HISTORY" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_STAGE_CULTURE" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_MO_ELECTRICITY" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_ECONOMIC" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_MO_ELECTRICITY" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_ECONOMIC2" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_MO_COMBUSTION" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_TRADE" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_MO_MILITARY_SCIENCE" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_MILITARY" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_CIVIC_MO_MAIN_NATIONALISM" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_MILITARY2" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_MO_MILITARY_SCIENCE" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_FORT" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_MO_MASS_PRODUCTION" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_FOODCAP" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_TECH_MO_INDUSTRIALIZATION" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_PRODCAP" UnlockDepth="1"/>
-		<Row ProgressionTreeNodeType="NODE_CIVIC_MO_MAIN_GLOBALISM" TargetKind="KIND_MODIFIER" TargetType="MA_MO_NOTE_SUZERAIN" UnlockDepth="1"/>
 	</ProgressionTreeNodeUnlocks>
 </Database>
