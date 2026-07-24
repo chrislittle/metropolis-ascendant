@@ -179,8 +179,8 @@ Every civic on the tree carries a Boost - a goal shown on the node (listed with 
 ## Custom Pantheons
 
 *Beliefs added to the base pantheon chooser, each with its own icon:*
-- **Mistress of the Beasts**: +1 Happiness and +1 Production on Pastures and Camps in Settlements with an Altar.
 - **Goddess of the Plantation**: +1 Culture on Plantations in Settlements with an Altar.
+- **Mistress of the Beasts**: +1 Happiness and +1 Production on Pastures and Camps in Settlements with an Altar.
 <!-- /GEN:ascendancy -->
 
 ## Wonders & Arcadia
