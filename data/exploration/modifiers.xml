@@ -525,10 +525,6 @@
 		</OwnerRequirements>
 		<Argument name="ConstructibleType">IMPROVEMENT_HAWAII_FISHING_BOAT</Argument>
 	</Modifier>
-	<!-- TIER 2 (Urban pop >= 14) -->
-	<!-- TIER 3 (Urban pop >= 20) -->
-	<!-- FAN-OUT: Military production-per-pop (NODE_TECH_EX_METALLURGY) + combat strength (NODE_CIVIC_EX_MAIN_AUTHORITY);
-	     Qajar under-settlement-cap Food (NODE_TECH_EX_FEUDALISM) / Production (NODE_TECH_EX_MACHINERY); trade-route RANGE (NODE_TECH_EX_CARTOGRAPHY). -->
 
 	<!-- ==================== DISTANT-LANDS hemisphere set ==================== -->
 	<!-- TIER 1 (Urban pop >= 8) - distant lands -->
@@ -563,8 +559,6 @@
 		<Argument name="Amount">12</Argument>
 		<Argument name="Tooltip">LOC_MA_TIER1_DESCRIPTION</Argument>
 	</Modifier>
-	<!-- TIER 2 (Urban pop >= 14) - distant lands -->
-	<!-- TIER 3 (Urban pop >= 20) - distant lands -->
 
 	<!-- SUZERAIN: per-pop yield keyed to holding suzerainty of each CS TYPE (gate = HAS_X_TRIBUTARIES_OF_TYPE,
 	     NOT the bonus pick - nothing rides the draft menu). +Influence per total suzerain (Diplomatic);
@@ -769,34 +763,12 @@
 		<Argument name="PlunderType">PLUNDER_SCIENCE</Argument>
 	</Modifier>
 
-	<!-- TOWN-SPECIALIZATION ROLL-IN (player-wide, distinct from the Suzerain layer). Each bucket
-	     matches a base Town focus, delivered to the metropolis & gated behind a thematic node:
-	       Hub Town       -> +Influence on the Diplomacy building (its unlock node)
-	       Fort Town      -> +District HP + Unit heal + Gold on Fortifications (own dedicated military node)
-	       Farming/Fishing-> +Food on rural tiles (FoodCap node);  Mining -> +Prod on rural tiles (ProdCap)
-	       Trade Outpost  -> +Happiness from resources warehouse (Commerce node)
-	       Religious Site -> +Happiness per Building (religion node; pairs with the temple slots above)
-	       Resort         -> +Gold/Happiness on appeal tiles + % all yields on Natural-Wonder tiles (Wonders node) -->
-
 	<!-- SURVEYOR (issue #12): the CLAIM_RESOURCE charge-grant modifier (Antiquity + Exploration only - Modern's base
 	     game already binds it) is bound to ABILITY_CLAIM_RESOURCE via surveyor-bind.xml, NOT the attach wrapper. -->
 	<Modifier id="MA_EX_GRANT_CLAIM_CHARGE" collection="COLLECTION_OWNER" effect="EFFECT_GRANT_UNIT_ABILITY_CHARGE" permanent="true">
 		<Argument name="ChargedAbilityType">CHARGED_ABILITY_CLAIM_RESOURCE</Argument>
 		<Argument name="Amount">1</Argument>
 	</Modifier>
-
-	<!-- ADJACENCY REWARD: boost ALL 7 Science/Culture adjacency rules across the 3 pop tiers,
-	     HARD CUTOFF (full +1/+2/+3 at exactly 1 settlement in the hemisphere, nothing at 2+).
-	     On-design under 1.4.0: specialists pay out 100% of tile adjacency, so each point added here is
-	     also delivered again by every specialist placed. EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT. -->
-	<!-- ADJ - HOMELAND -->
-	<!-- Adjacency tier 1 (pop >= 8) -->
-	<!-- Adjacency tier 2 (pop >= 14) -->
-	<!-- Adjacency tier 3 (pop >= 20) -->
-	<!-- ADJ - DISTANT LANDS -->
-	<!-- Adjacency tier 1 (pop >= 8) - distant lands -->
-	<!-- Adjacency tier 2 (pop >= 14) - distant lands -->
-	<!-- Adjacency tier 3 (pop >= 20) - distant lands -->
 
 	<!-- DELIVERY WRAPPER: a COLLECTION_PLAYER_CITIES modifier bound directly via GameModifiers never
 	     attaches (game-level has no "the player" context). The base game wraps player bonuses in a

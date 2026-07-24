@@ -1,46 +1,49 @@
-# =====================================================================================
-# Tall Metropolis - unified modifiers generator (per-hemisphere model, item K, 2026-06-18)
+﻿# =====================================================================================
+# Metropolis Ascendant - base-node modifiers generator (2026-06-18; retired-system cleanup 2026-07-24)
 # =====================================================================================
 # Emits each age's data/<age>/modifiers.xml IN FULL from the $ages config table below -
-# deterministic, self-validating (parses the result as XML), and easy to retune. Supersedes
-# the old gen-adjacency-modifiers.ps1 (which only managed the adjacency block); this script
-# owns the WHOLE file: marker + homeland core + distant-lands core + adjacency + ATTACH_ALL.
+# deterministic, self-validating (parses the result as XML), and easy to retune. This script owns
+# the WHOLE base-node file; the Ascendancy tree (the play-driven progression that owns most Gen-2
+# bonuses) is generated separately by gen-ascendancy.ps1 and run after this one.
 #
-# PER-HEMISPHERE MODEL: anti-wide falloff is scoped per hemisphere (Civ VII's Homeland vs
-# Distant Lands binary) with a steeper GEOMETRIC curve on the SCALABLE rewards:
-#   SOLO    = 1 settlement in the hemisphere -> full   (wonder 100%, per-pop Divisor 2, adj Divisor 1)
-#   COMPACT = exactly 2 settlements          -> half   (50%, Divisor 4, adj Divisor 2)
-#   QUARTER = exactly 3 settlements          -> quarter(25%, Divisor 8, adj Divisor 4)
-#   off at 4+ settlements in that hemisphere.
-# Bands are threshold + inverse-threshold pairs (NOT RequiresExactCount): the base game only
-# proves OnlyHomelands/OnlyDistantlands counting with a plain RequiredCount threshold (EX
-# Expansionist legacy), so exact-count + a hemisphere filter is unproven and risks silently
-# never firing.
+# WHAT SHIPS FROM HERE (per age):
+#   - The two TIER-1 SAFETY NETS, per hemisphere: -50% specialist Food+Happiness upkeep (applies
+#     only while the city is below Ecstatic) and a flat Happiness bonus. These count CITIES ONLY
+#     (OnlyCities=true) and are UNGATED (no tech node) - a safety valve that must never be revoked
+#     by growing a town, or placed specialists would strand into the over-cap unhappiness spiral.
+#     (Their anti-wide guard is a per-hemisphere <5-cities threshold - see GitHub #25, which
+#     proposes moving them onto the earned-allowance gate like everything else.)
+#   - THE GEN-2 PILLAR FAMILY (emitted once, non-DL): the tall engine - Arcadia rural ring / peaks /
+#     waters, the coastal floor, wonder-happiness + mountain + water adjacency, wonder appeal, and
+#     the mountain/ocean workability unlocks. Two gate shapes:
+#       * WINDOWED on the EARNED ALLOWANCE (yields): count windows re-evaluate live in-leaf; some
+#         copies ride ATTACH_ALL, some attach via the age's Expansion FEAT reward (the only proven
+#         mid-session Triumph delivery). See PillarWindows / $tallCap.
+#       * STRUCTURAL (capacity/activation/adjacency, binary): ONE copy, count ceiling = the age max,
+#         NEVER windowed - a windowed activation effect processes its OFF before its ON at a count
+#         change and evicts (the run-5 Temple-slot bug dropped 4 relics that way). See $structWin.
+#   - The player-wide once-per-age lanes: the SUZERAIN layer (per-pop yield per suzerained CS type,
+#     + diplo + primer + trade range + resource cap), the RAZING layer (capture Gold/Influence lump,
+#     faster burn, pillage plunder), the SURVEYOR claim-charge grant (AQ/EX), and the MODERN
+#     victory-wonder RECYCLE convert modifiers.
+#   - The ATTACH_ALL delivery wrapper (COLLECTION_MAJOR_PLAYERS + EFFECT_ATTACH_MODIFIERS) that
+#     traditions.xml binds, so every modifier above resolves its own collection/node/pop/anti-wide gate.
 #
-# Hemisphere scoping:
-#   - Antiquity (Distant=$false): NO Distant Lands exist - emits ONE unscoped set (no
-#     REQUIREMENT_CITY_IS_DISTANT_LANDS, no OnlyHomelands arg, plain total settlement count).
-#     Preserves AQ's already-playtested behaviour; only the geometric QUARTER band is new.
-#   - Exploration / Modern (Distant=$true): emit a HOMELAND set (city req
-#     REQUIREMENT_CITY_IS_DISTANT_LANDS inverse + settlement arg OnlyHomelands=true) AND a
-#     DISTANT-LANDS set (_DL ids; city req REQUIREMENT_CITY_IS_DISTANT_LANDS + settlement arg
-#     OnlyDistantlands=true). NB the base-game spelling "OnlyDistantlands" (lowercase L) -
-#     the capitalised form silently never fires.
+# HEMISPHERE SCOPING (the safety nets only): Antiquity (Distant=$false) has no Distant Lands, so it
+# emits ONE unscoped set. Exploration / Modern (Distant=$true) emit a HOMELAND set (city req
+# REQUIREMENT_CITY_IS_DISTANT_LANDS inverse + OnlyHomelands=true) AND a DISTANT-LANDS set (_DL ids;
+# the req without inverse + OnlyDistantlands=true). NB the base-game spelling "OnlyDistantlands"
+# (lowercase L) - the capitalised form silently never fires.
 #
-# What does NOT get a distant clone (homeland set only):
-#   - GREAT_WORKS: targets BUILDING_PALACE via COLLECTION_PLAYER_CAPITAL_CITY (the capital is
-#     in the homeland); integer slots, so kept BINARY on/off at 4 settlements (no geometric).
-#   - COLLECTION_SLOTS: COLLECTION_PLAYER_CONSTRUCTIBLES can take NO settlement/city requirement
-#     (hard-crashes at load, bisected 2026-06-14), so it can't be hemisphere-scoped; it stays
-#     tech-gated only and applies to every slotted building the player owns (both hemispheres).
-#
-# Specialist CAP + safety nets stay CLEAN on/off and count CITIES ONLY (OnlyCities=true), as a
-# safety valve: a town can never revoke a cap slot and strand placed specialists into the
-# over-cap unhappiness death-spiral. Rewards count ALL settlements (towns included).
-#
-# Gate: every REWARD + cap carries an OwnerRequirements gate on the host TECH NODE
+# GATES: node-gated rewards carry an OwnerRequirements gate on the host TECH NODE
 # (REQUIREMENT_PLAYER_HAS_COMPLETED_PROGRESSION_TREE_NODE + MinDepth=1 - the MinDepth child is
-# REQUIRED or it silently never fires). The 2 safety nets are intentionally UNGATED (always-on).
+# REQUIRED or it silently never fires). The safety nets are intentionally UNGATED.
+#
+# HISTORY: this generator once also emitted a large v1 bonus set (specialist caps, resource caps,
+# per-pop rungs, wonder %, the trade kit, town-specialization buckets) under a per-hemisphere
+# GEOMETRIC taper (SOLO/COMPACT/QUARTER bands). Gen-2 moved all of it onto the Ascendancy tree and
+# the taper collapsed to a single band; the dead code + its stale scaffolding were deleted
+# 2026-07-24 (issue #22). To read the pre-Gen-2 generator, use the export repo's git history.
 #
 # RE-RUNNABLE + DETERMINISTIC: re-running with unchanged config reproduces the files byte-for-byte.
 param([switch]$Test)   # -Test emits the throwaway metropolis-ascendant-test mod (low pop thresholds 2/4/6 + tech gate removed) for fast in-game validation
@@ -50,13 +53,15 @@ $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSVersion.Major -lt 7) { throw "gen-ascendant.ps1 requires PowerShell 7+ (pwsh). Windows PowerShell 5.1 corrupts UTF-8 text on write. Run: pwsh -File tools\gen-ascendant.ps1 (or '& tools\gen-ascendant.ps1' from a pwsh session)." }
 $TestMode = $Test.IsPresent
 
-# ============ GEN-2 MIGRATION STRIP (2026-07-11) ============
-# The Ascendancy tree (tools/gen-ascendancy.ps1) now owns the migrated bonuses per the
-# GEN2-CONTENTS migration map: T3 per-pop rungs (Sci/Cul/Prod), the Joyous/Ecstatic stage
-# escalators, Wonder-production %, Great Work slots (Palace + per-building + EX Temples),
-# and the trade kit (routes/range/resource-Happiness). $Gen2Strip removes the v1 copies so
-# nothing double-ships; set $false to restore classic v1 output (rollback lever).
-$Gen2Strip = $true
+# ============ GEN-2 MIGRATION (2026-07-11; v1 copies DELETED 2026-07-24, issue #22) ============
+# The Ascendancy tree (tools/gen-ascendancy.ps1) owns the migrated bonuses per the GEN2-CONTENTS
+# migration map: T3 per-pop rungs (Sci/Cul/Prod), the Joyous/Ecstatic stage escalators, Wonder-
+# production %, Great Work slots (Palace + per-building + EX Temples), and the trade kit
+# (routes/range/resource-Happiness). Their v1 copies used to be suppressed at runtime by a
+# $Gen2Strip flag; the flag was pinned on for the whole Gen-2 release, so the dead branches were
+# deleted outright. To read the pre-Gen-2 generator or its output, use the export repo's git
+# history (any commit before "Gen2 release") - the flag was never a working rollback on its own,
+# because gen-ascendancy.ps1 still emitted the tree alongside it.
 # Full-strip note keys (their whole bonus migrated to the Ascendancy tree). The Build-NoteText
 # rewording of SCIENCE/CULTURE2 (adjacency-half kept) is now OBSOLETE: A1 (2026-07-14) moved the
 # Science/Culture adjacency onto the Ascendancy tree too, so those halves no longer live on base.
@@ -69,18 +74,17 @@ $gen2StrippedNoteKeys = @('SCIENCE2','STAGE_SCIENCE','STAGE_CULTURE','TRADE','MI
 
 # A1 adjacency port (2026-07-14): ALL 7 base-node-gated adjacency rules moved off the base tech/civic
 # tree. The 5 Science/Culture rules -> Ascendancy SCI1/SCI2/CUL1/CUL2/REP1 (amplify base rules). The 2
-# Mountain/NW Culture rules -> REPLACED by the Ascendancy Frontier FOOD track (EXP1/EXP2, MA_MtnFood/
-# MA_NWFood, FOOD-tag scoped). So M-Adjacency now emits nothing (empty rule set); the base tree is
-# vanilla for adjacency. (The Arcadia mountain-culture wildcard MA_MtnCul is a SEPARATE system, kept.)
-$adjRules = [ordered]@{}
-
-# Per age: suffix, age/tech display names, host tech node, 3 tier population gates, flat Happiness
-# safety amount, the 3 wonder-% band values (solo/compact/quarter), Palace GW slot amount, the
-# per-slotted-building collection-slot amount, and whether Distant Lands exist (EX/MO yes).
-# GW = Palace Great-Work slots; Collection = +ANY slot on every slotted building (both BUMPED 2026-06-19
-# per playtest - a pop-40 science city couldn't store 3-4 Codices even maxed). ResCap = per-tier resource
-# capacity grant (workstream J: more resources assignable -> +1 GDP each + yields). Trade = +trade routes
-# (J: import resources -> +1 GDP each, fills the capacity). Economic-victory levers; GDP != gold income.
+# Per age: suffix, age/tech display names, host tech node, the tier population gates, the flat Happiness
+# safety amount, and whether Distant Lands exist (EX/MO yes).
+# ⚠ VESTIGIAL FIELDS (issue #22 follow-up): several reward-magnitude fields in the $ages table below -
+# Wonders (wonder-% band values), GW (Palace Great-Work slots), Collection (per-building slot amount),
+# ResCap, Trade, MilStrength, UnderCapAmount, TradeRange, HubNode/HubBuilding, FortNode - fed the v1
+# bonus loops that Gen-2 migrated to the Ascendancy tree. Those loops were deleted 2026-07-24, but the
+# fields were LEFT IN PLACE because they are NOT fully dead: Build-NoteText still reads most of them (its
+# note strings are skipped at emit, so shipped DATA is unaffected), and the TREE-DEPTH-MAP.md generator
+# still reads HubNode/FortNode and writes rows for the RETIRED Hub/Fort/Resort bonuses into that dev doc.
+# Removing the fields therefore requires cleaning Build-NoteText + the TREE-DEPTH-MAP generator too - a
+# focused pass, not a config-only delete. Not output-neutral (TREE-DEPTH-MAP.md changes).
 # FAN-OUT MODEL (Metropolis Ascendant): instead of every bonus gating on one host tech per age, each
 # modifier family carries a DOMAIN gate node. `Nodes` maps domain -> tree node. In ANTIQUITY the domains
 # are spread across real tech/civic nodes (the experiment); EXPLORATION/MODERN keep ALL domains on the old
@@ -232,7 +236,6 @@ $suzPerPopDiv = 4  # per-pop divisor for suzerain yields: +1 yield per 4 Urban P
 $suzDiploAmt  = 2  # +Influence (YIELD_DIPLOMACY) per TOTAL suzerain, player-level (gated on the Diplomatic Shareable bonus)
 $suzPopAmt    = 1  # free capital Population per Expansionist CS (signature; gated on the Expansionist Shareable bonus)
 $suzPrimer    = 3  # flat Influence/turn (per Palace) to bootstrap winning the first city-states (ungated)
-$hubInfluenceAmt = 3  # town-spec "Hub Town" bucket internalized: flat +Influence ON the age's Diplomacy building
                       # (proven EFFECT_PLAYER_ADJUST_CONSTRUCTIBLE_YIELD, NOT per-pop - influence is player-level),
                       # gated behind that building's unlock node. The influence FLOOR the suzerain layer compounds.
                       # Raise for more influence; the Deity playtest showed influence (+5 total) was the binding cap.
@@ -267,17 +270,6 @@ $suzResCapAmt   = 1   # SUZERAIN-DEFERRED: +Resource capacity per TOTAL suzerain
 # warehouse = +Happiness from resources. We grant these to the metropolis via EFFECT_CITY_GRANT_WAREHOUSE_YIELD
 # (COLLECTION_PLAYER_CITIES - 100+ base uses, proven). Powers up RURAL tiles - a DISTINCT mechanic from the flat
 # under-settlement-cap Food/Production (which is a player yield, not a tile boost), so the two don't double-count.
-$warehouse = @{
-    AQ = @{ Food='AQTownPastureFood, AQTownPlantationFood, AQTownDesertFloodplainFeatureFood, AQTownGrasslandFloodplainFeatureFood, AQTownPlainsFloodplainFeatureFood, AQTownTropicalFloodplainFeatureFood, AQTownTundraFloodplainFeatureFood, AQTownFlatTerrainFood, AQTownFishingBoatResourceFood, AQTownAtollFeatureFood, AQTownLotusFeatureFood, AQTownReefFeatureFood, AQTownColdReefFeatureFood, AQTownCoastTerrainFood, AQTownNavigableRiverFood';
-            Prod='AQTownClayPitResourceProduction, AQTownClayPitProduction, AQTownMineResourceProduction, AQTownQuarryProduction, AQTownRoughTerrainProduction, AQTownWoodcutterResourceProduction, AQTownCampProduction, AQTownVegetatedFeatureProduction';
-            Happy='AQHappinessProjectResourceHappiness' }
-    EX = @{ Food='EXTownPastureFood, EXTownPlantationFood, EXTownDesertFloodplainFeatureFood, EXTownGrasslandFloodplainFeatureFood, EXTownPlainsFloodplainFeatureFood, EXTownTropicalFloodplainFeatureFood, EXTownTundraFloodplainFeatureFood, EXTownFlatTerrainFood, EXTownFishingBoatResourceFood, EXTownAtollFeatureFood, EXTownLotusFeatureFood, EXTownReefFeatureFood, EXTownColdReefFeatureFood, EXTownCoastTerrainFood, EXTownNavigableRiverFood';
-            Prod='EXTownClayPitResourceProduction, EXTownClayPitProduction, EXTownMineResourceProduction, EXTownQuarryProduction, EXTownRoughTerrainProduction, EXTownWoodcutterResourceProduction, EXTownCampProduction, EXTownVegetatedFeatureProduction';
-            Happy='EXHappinessProjectResourceHappiness' }
-    MO = @{ Food='MOTownPastureFood, MOTownPlantationFood, MOTownDesertFloodplainFeatureFood, MOTownGrasslandFloodplainFeatureFood, MOTownPlainsFloodplainFeatureFood, MOTownTropicalFloodplainFeatureFood, MOTownTundraFloodplainFeatureFood, MOTownFlatTerrainFood, MOTownFishingBoatResourceFood, MOTownAtollFeatureFood, MOTownLotusFeatureFood, MOTownReefFeatureFood, MOTownColdReefFeatureFood, MOTownCoastTerrainFood, MOTownNavigableRiverFood';
-            Prod='MOTownClayPitResourceProduction, MOTownClayPitProduction, MOTownMineResourceProduction, MOTownOilRigResourceProduction, MOTownQuarryProduction, MOTownRoughTerrainProduction, MOTownWoodcutterResourceProduction, MOTownCampProduction, MOTownVegetatedFeatureProduction, MOTownWetFeatureProduction';
-            Happy='MOHappinessProjectResourceHappiness' }
-}
 
 # WONDER LANE "Arcadia embraces the waters" (ROADMAP item 2) config. Per-water-type worked-tile yields. Design
 # rule (2026-06-27): water is DIVERSE - each type gets its OWN yield set + per-Age amount, BUFFED above the
@@ -331,25 +323,17 @@ $razeRateBonus       = 999 # +raze rate (COLLECTION_PLAYER_CITIES). Deliberately
 $razePillageFlat     = 10  # +flat plunder per building your units pillage, per type (Gold + Science) - CONFIRMED in-game
                            # (the +% all-plunder amp was REMOVED 2026-07-02 - never showed in the building-pillage preview; the flat per-building amp stands as the pillage reward)
 
-# HARD CUTOFF (2026-06-21): the per-hemisphere REWARD scaling is now BINARY, not geometric. Full bonus
-# at exactly 1 settlement in the hemisphere (the SOLO band), NOTHING at 2+. The mod's true intent is a strict
-# 1-Homeland + 1-Distant-Lands empire, so the old COMPACT (2-3 settlements -> half) / QUARTER (3-4 -> quarter)
-# taper is REMOVED: $bandList holds only SOLO, so the wonder / per-pop / adjacency / military loops emit one
-# (full) modifier each, gated on "fewer than 2 settlements in this hemisphere" (SOLO = Settle 2 inverse).
-# NB the SPECIALIST CAP + safety nets are deliberately NOT hard-cut: they keep their lenient non-revoking
-# anti-wide gate (off only at 4+ Cities / 5+) so slipping to a 2nd settlement turns off the YIELD rewards but
-# never REVOKES a placed-specialist cap slot (which would trigger the over-cap unhappiness death-spiral). The
-# magnitudes below are the former "full" SOLO values; RE-TUNE here after a Deity 1+1 playtest if tall can't keep pace.
-$perPopDiv = @{ SOLO=2 }   # per-population reward divisor (full). +1 yield per 2 Urban Pop.
-$adjDiv    = @{ SOLO=1 }   # adjacency-flat divisor (full). +1 adjacency per tier (max +3 across the 3 tiers).
-$bandList  = @('SOLO')     # HARD CUTOFF: single band = 1 settlement/hemisphere. (Add 'COMPACT','QUARTER' back to restore the taper.)
+# $perPopDiv survives only as a DISPLAY divisor now: the per-pop reward loops that consumed it moved to the
+# Ascendancy tree (Gen-2), but the base-node panel note text still quotes "+1 per N Urban Pop", so the value
+# is read by Build-NoteText. Keyed 'SOLO' for historical continuity (the old per-hemisphere band name); there
+# is only one value. The safety nets below keep their own lenient, non-revoking anti-wide gate (see the header
+# and GitHub #25) - deliberately separate from any reward scaling.
+$perPopDiv = @{ SOLO=2 }   # per-population display divisor: "+1 yield per 2 Urban Pop" in the note text.
 # IDEAS 1 & 2 (2026-06-23): align with the 1.4.1 STAGED-HAPPINESS model (per-Age thresholds Joyous 20/40/60,
 # Ecstatic 40/80/120 for AQ/EX/MO). Mechanic confirmed in 1.4.1 data: REQUIREMENT_SETTLEMENT_HAPPINESS_STAGE_MATCHES
 # (Args HappinessStage + IsGreaterThanOrEquals); inverse="true" on it = "below that stage".
 # IDEA 1 - happiness-stage PAYOFF lane: a metropolis that runs happy earns EXTRA per-pop yield (the lanes tall holds).
-$stageYields      = @('YIELD_SCIENCE','YIELD_CULTURE')  # which yields the stage lane pays
 $stageJoyousDiv   = 4   # at >= JOYOUS:   +1 of each stage-yield per 4 Urban Pop
-$stageEcstaticDiv = 4   # at >= ECSTATIC: ANOTHER +1 of each per 4 Urban Pop (stacks on Joyous -> ~+1 per 2 at Ecstatic). FIRST-PASS values; retune after a playtest.
 # IDEA 2 - stage-aware SAFETY NET: the -50% specialist Food+Happiness upkeep applies ONLY while the city is
 # BELOW this stage, so a thriving (already-happy) city can't stack the mod's relief abusively on top of base-
 # government specialist relief (Plutocracy Golden Age -2, Elective Republic, ETHICS/SCHOLARS/CHARTERS/ENLIGHTENMENT).
@@ -360,9 +344,6 @@ $stageEcstaticDiv = 4   # at >= ECSTATIC: ANOTHER +1 of each per 4 Urban Pop (st
 # drops at Ecstatic, where huge headroom prevents oscillation and still caps the abusive govt-stack case.
 # Lower to _JOYOUS for a tighter anti-stack (accepts oscillation) or _HAPPY for rescue-only.
 $upkeepReliefMaxStage = 'HAPPINESS_STAGE_ECSTATIC'
-# which DOMAIN each Science/Culture adjacency rule belongs to (gates it on that domain's node)
-$ruleDomain = @{ QuarterScience='Science'; WonderScience='Science'; ResourceScience='Science';
-                 QuarterCulture='Culture'; WonderCulture='Culture'; MountainCulture='Culture'; NaturalWonderCulture='Culture' }
 
 # VICTORY-WONDER RECYCLE (ROADMAP issue #1, 2026-06-28). MODERN-only "Foundations" BUILDINGs: a tall, packed
 # metropolis with no open tile can build one of these over an obsolete earlier-age district (buildings CAN overbuild
@@ -383,16 +364,11 @@ $recycle = @(
 # dedicated civilian granted to the metropolis at population milestones (and also buildable) that carries the base
 # game's Prospector CLAIM_RESOURCE command: walk it to a resource tile within 5 hexes of a settlement and claim it
 # into your borders (native 5-hex reach, resources only - the empty bridge tiles stay unworkable at range 3, proven).
-# On top of each claimed resource's NORMAL benefit, the MA per-resource AMPLIFIER pays extra of THAT resource's OWN
-# characteristic yield (Flax->Science, Rubies->Gold, Rice->Food...), read data-driven from the base Resource_YieldChanges
-# table - so hoarding many resources in one city compounds. Full research + the proven claim wiring:
-# docs/SURVEYOR-RESOURCE-REACH-PLAN.md. The claim ability chain (ability type, UNIT_CLASS_PROSPECTOR tag, UnitAbilities/
-# UnitClass_Abilities/ChargedUnitAbilities + the charge-grant modifier) is MODERN-only in the base game, so it is
-# replicated into Antiquity + Exploration here; Modern needs only the unit tagged UNIT_CLASS_PROSPECTOR (proven).
-$surveyorAmplify  = @{ AQ=1; EX=1; MO=2 }     # UNUSED (2026-07-02): per-resource amplifier dropped - a claimed resource keeps
-                                               #   its base yields only (Arcadia Breathtaking/mountain/water already enrich tiles; no double-dip).
-                                               #   Kept for a possible future dial; M-ResourceReach + $resYields are retained but not emitted.
-$surveyorGrantTiers = @(1)                     # (unused while $surveyorGrantAges is empty) which pop tiers a granting Age would gift at.
+# A claimed resource keeps its NORMAL base yields only - the per-resource amplifier that once paid extra was dropped
+# pre-release (Arcadia already enriches worked tiles; no double-dip). The claim ability chain (ability type,
+# UNIT_CLASS_PROSPECTOR tag, UnitAbilities/UnitClass_Abilities/ChargedUnitAbilities + the charge-grant modifier) is
+# MODERN-only in the base game, so it is replicated into Antiquity + Exploration here; Modern needs only the unit
+# tagged UNIT_CLASS_PROSPECTOR (proven). Full research: docs/SURVEYOR-RESOURCE-REACH-PLAN.md.
 $surveyorGrantAges  = @()                      # NO FREE GRANT - the Surveyor is BUILDABLE-ONLY in every Age (2026-07-02). Reason:
                                                #   the Surveyor self-consumes on claim (same command as the base Prospector, confirmed
                                                #   in-game), so a milestone grant gated on "own fewer than 1" would re-grant a fresh free one
@@ -412,29 +388,11 @@ $surveyorOverrideModernRecharge = $false       # Modern's CHARGED_ABILITY_CLAIM_
                                                #   $surveyorRecharge too (also changes AI America's Prospector). (Charge COUNT in MO stays base=1.)
 $surveyorUnit     = 'UNIT_MA_SURVEYOR'
 
-# Read each resource's characteristic yield from the installed base game (Resource_YieldChanges in resources.xml +
-# resources-v2.xml) so the per-resource amplifier auto-covers every resource (incl. future DLC) instead of a hand list.
-# This is the exact data the base per-resource modifiers (resources-gameeffects-v2.xml) key off. Deduped by resource+yield.
-$resYields = @()
-$__civ7 = if ($env:CIV7_ROOT -and (Test-Path $env:CIV7_ROOT)) { $env:CIV7_ROOT } else {
-    $__libs = @("C:\Program Files (x86)\Steam","C:\Program Files\Steam"); $__vdf = "C:\Program Files (x86)\Steam\steamapps\libraryfolders.vdf"
-    if (Test-Path $__vdf) { foreach ($__m in [regex]::Matches((Get-Content -LiteralPath $__vdf -Raw),'"path"\s*"([^"]+)"')) { $__libs += ($__m.Groups[1].Value -replace '\\\\','\') } }
-    $__found = $null; foreach ($__l in $__libs) { $__p = Join-Path $__l "steamapps\common\Sid Meier's Civilization VII"; if (Test-Path $__p) { $__found = $__p; break } }; $__found
-}
-if ($__civ7) {
-    $__seen = @{}
-    foreach ($__rf in @('Base\modules\base-standard\data\resources.xml','Base\modules\base-standard\data\resources-v2.xml')) {
-        $__pf = Join-Path $__civ7 $__rf
-        if (Test-Path $__pf) {
-            $__raw = Get-Content -LiteralPath $__pf -Raw
-            foreach ($__m in [regex]::Matches($__raw, 'ResourceType="(RESOURCE_[A-Z0-9_]+)"\s+YieldType="(YIELD_[A-Z]+)"\s+YieldChange="[0-9]+"')) {
-                $__k = "$($__m.Groups[1].Value)|$($__m.Groups[2].Value)"
-                if (-not $__seen[$__k]) { $__seen[$__k] = $true; $resYields += @{ Res=$__m.Groups[1].Value; Yield=$__m.Groups[2].Value } }
-            }
-        }
-    }
-}
-Write-Host "surveyor: resource-yield map = $($resYields.Count) resource/yield pairs$(if(-not $__civ7){' (INSTALL NOT FOUND - amplifier will be EMPTY; set CIV7_ROOT)'})"
+# NB (2026-07-24, issue #22): a reader here used to scan the installed base game's Resource_YieldChanges
+# on every build to feed a per-resource amplifier (M-ResourceReach). The amplifier was dropped pre-release
+# - a claimed resource keeps its base yields only - so both the reader and the emitter were deleted, along
+# with the build-time dependency on the game install. The design and the exact effect it used are written
+# up in docs/SURVEYOR-RESOURCE-REACH-PLAN.md if the dial is ever wanted.
 
 # Portable mod-root resolution (no hardcoded user paths). Works in BOTH layouts:
 #   - dev monorepo:   <repo>\tools\gen-ascendant.ps1  with the mod at <repo>\mods\<name>\
@@ -481,14 +439,6 @@ function Settle($n, $inv, $onlyCities, $hemiArg) {
     $i = if ($inv) { ' inverse="true"' } else { '' }
     "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_HAS_X_SETTLEMENTS`"$i>$NL`t`t`t`t<Argument name=`"OnlyCities`">$onlyCities</Argument><Argument name=`"OnlyTowns`">false</Argument>$hemiArg$NL`t`t`t`t<Argument name=`"RequiredCount`">$n</Argument>$NL`t`t`t`t<Argument name=`"CountPerOwnSettlement`">1</Argument><Argument name=`"CountPerConqueredSettlement`">1</Argument>$NL`t`t`t</Requirement>"
 }
-# geometric band gate for an all-settlements reward (OnlyCities=false)
-function BandGate($band, $hemiArg) {
-    switch ($band) {
-        'SOLO'    { @(Settle 2 $true  'false' $hemiArg) }
-        'COMPACT' { @((Settle 2 $false 'false' $hemiArg), (Settle 3 $true 'false' $hemiArg)) }
-        'QUARTER' { @((Settle 3 $false 'false' $hemiArg), (Settle 4 $true 'false' $hemiArg)) }
-    }
-}
 # ---- GEN-2 PILLAR GATE (2026-07-19) ----------------------------------------------------------
 # The tall-engine pillars (Arcadia rural ring / peaks / waters, wonder-happiness, mountain+water
 # adjacency, coastal floor) now gate on TOTAL settlements vs the EARNED allowance - the exact
@@ -529,12 +479,6 @@ function M-Reclaim($r) {
     "`t<Modifier id=`"MA_MO_RECLAIM_$($r.Loc)`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_REPLACE_CONSTRUCTIBLE`" permanent=`"true`" run-once=`"true`">$NL$reqs`t`t<Argument name=`"Destroy`">$($r.Building)</Argument>$NL`t`t<Argument name=`"Create`">$($r.Wonder)</Argument>$NL`t</Modifier>"
 }
 
-# ---- modifier builders (each returns a full <Modifier>..</Modifier> at 1-tab indent) ----
-function M-WorkerCap($sfx,$tier,$node,$pop,$hemi,$dl) {
-    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
-    $desc = if ($tier -eq 1) { "$NL`t`t<String context=`"Description`">LOC_MA_TIER1_DESCRIPTION</String>" } else { '' }
-    "`t<Modifier id=`"MA_${sfx}_T${tier}_WORKER_CAP${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_WORKER_CAP`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$hc$(Settle 4 $true 'true' $h)$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Amount`">1</Argument>$desc$NL`t</Modifier>"
-}
 function M-Upkeep($sfx,$pop,$hemi,$dl) {
     $h = HemiArg $hemi; $hc = HemiCityReq $hemi
     "`t<Modifier id=`"MA_${sfx}_T1_SPECIALIST_UPKEEP${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_WORKER_MAINTENANCE_EFFICIENCY`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$hc$(StageReq $upkeepReliefMaxStage $true)$(Settle 5 $true 'true' $h)$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_FOOD, YIELD_HAPPINESS</Argument>$NL`t`t<Argument name=`"Percent`">50</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_SAFETY_DESCRIPTION</Argument>$NL`t</Modifier>"
@@ -542,45 +486,6 @@ function M-Upkeep($sfx,$pop,$hemi,$dl) {
 function M-Happiness($sfx,$pop,$amt,$hemi,$dl) {
     $h = HemiArg $hemi; $hc = HemiCityReq $hemi
     "`t<Modifier id=`"MA_${sfx}_T1_HAPPINESS${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$hc$(Settle 5 $true 'true' $h)$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_HAPPINESS</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_TIER1_DESCRIPTION</Argument>$NL`t</Modifier>"
-}
-# IDEA 1 (2026-06-23): happiness-stage PAYOFF lane. Per-pop yield gated on the city being at/above a happiness
-# stage (Joyous, then Ecstatic). NODE-GATED on the domain node (Science half -> Science node, Culture half ->
-# Culture node, same as the T3 per-pop bonuses) so it's ADVERTISED on the tree (STAGE_SCIENCE/STAGE_CULTURE notes);
-# also SOLO-gated like the per-pop rewards (full only at 1 settlement/hemisphere) and hemisphere-scoped.
-# The Joyous and Ecstatic modifiers STACK (an Ecstatic city is also >= Joyous), so Ecstatic = Joyous + extra.
-function M-StagePayoff($sfx,$node,$pop,$stage,$yield,$div,$hemi,$dl) {
-    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
-    $gate = (BandGate 'SOLO' $h) -join $NL
-    $yname = ($yield -replace '^YIELD_','')
-    $sname = ($stage -replace '^HAPPINESS_STAGE_','')
-    "`t<Modifier id=`"MA_${sfx}_STAGE_${sname}_${yname}${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD_PER_POPULATION`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$hc$(StageReq $stage $false)$gate$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">$yield</Argument>$NL`t`t<Argument name=`"Amount`">1</Argument><Argument name=`"Divisor`">$div</Argument>$NL`t`t<Argument name=`"Urban`">true</Argument><Argument name=`"Rural`">false</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_STAGE_DESCRIPTION</Argument>$NL`t</Modifier>"
-}
-function M-Wonders($sfx,$node,$pop,$band,$pct,$hemi,$dl) {
-    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
-    $gate = (BandGate $band $h) -join $NL
-    "`t<Modifier id=`"MA_${sfx}_T2_WONDERS_${band}${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_WONDER_PRODUCTION`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$hc$gate$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Percent`">$pct</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_TIER2_DESCRIPTION</Argument>$NL`t</Modifier>"
-}
-function M-GreatWorks($sfx,$node,$pop,$amt,$hemi) {
-    # homeland set only; binary on/off; capital is homeland so scope the count by OnlyHomelands.
-    $h = HemiArg $hemi
-    "`t<Modifier id=`"MA_${sfx}_T2_GREAT_WORKS`" collection=`"COLLECTION_PLAYER_CAPITAL_CITY`" effect=`"EFFECT_CITY_ADJUST_GREAT_WORK_SLOTS`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL$(PopReq $pop)$(Settle 2 $true 'false' $h)$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"ConstructibleType`">BUILDING_PALACE</Argument>$NL`t`t<Argument name=`"SlotType`">GREATWORKSLOT_ANY</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t</Modifier>"
-}
-function M-CollectionSlots($sfx,$node,$amt) {
-    # CRASH FIX: COLLECTION_PLAYER_CONSTRUCTIBLES must carry NO settlement/city requirement (hard
-    # crash at load), so this stays tech-gated only and is NOT hemisphere-scoped.
-    "`t<Modifier id=`"MA_${sfx}_T3_COLLECTION_SLOTS`" collection=`"COLLECTION_PLAYER_CONSTRUCTIBLES`" effect=`"EFFECT_CONSTRUCTIBLE_ADJUST_GREAT_WORK_SLOTS`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CONSTRUCTIBLE_HAS_GREAT_WORK_SLOT`"/>$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"SlotType`">GREATWORKSLOT_ANY</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_SLOTS_DESCRIPTION</Argument>$NL`t</Modifier>"
-}
-function M-PerPop($sfx,$node,$pop,$band,$yield,$div,$hemi,$dl) {
-    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
-    $gate = (BandGate $band $h) -join $NL
-    $yname = ($yield -replace '^YIELD_','')
-    "`t<Modifier id=`"MA_${sfx}_T3_${yname}_${band}${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD_PER_POPULATION`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$hc$gate$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">$yield</Argument>$NL`t`t<Argument name=`"Amount`">1</Argument><Argument name=`"Divisor`">$div</Argument>$NL`t`t<Argument name=`"Urban`">true</Argument><Argument name=`"Rural`">false</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_TIER3_DESCRIPTION</Argument>$NL`t</Modifier>"
-}
-function M-Adjacency($sfx,$tier,$node,$pop,$rule,$band,$div,$hemi,$dl) {
-    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
-    $gate = (BandGate $band $h) -join $NL
-    $frag = $adjRules[$rule]
-    "`t<Modifier id=`"MA_${sfx}_T${tier}_ADJ_${frag}_${band}${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$hc$gate$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Adjacency_YieldChange`">$rule</Argument>$NL`t`t<Argument name=`"Amount`">1</Argument><Argument name=`"Divisor`">$div</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_TIER${tier}_DESCRIPTION</Argument>$NL`t</Modifier>"
 }
 # WONDER LANE "C" - Happiness adjacency around Wonders (Classical Revival recipe). The custom rule
 # MA_WonderHappiness (defined in data/shared/constructibles.xml; RequiresActivation) = a BUILDING next to a Wonder
@@ -727,81 +632,6 @@ function M-WaterFloor($sfx,$amt,$win) {
     $prod = "`t<Modifier id=`"MA_${sfx}_WATER_FLOOR_PROD$($win.W)`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD`">$NL$reqs`t`t<Argument name=`"YieldType`">YIELD_PRODUCTION</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_ARCADIA_WATERS_LABEL</Argument>$NL`t</Modifier>"
     "$food$NL$prod"
 }
-# workstream J: per-tier resource CAPACITY for the tall city (assign more resources -> +1 GDP each +
-# yields). SOLO-gated (full only at 1 settlement in the hemisphere) since it's a potent integer grant;
-# pop-tiered + tech-gated + hemisphere-scoped like the other city rewards. EFFECT_CITY_ADJUST_RESOURCE_CAP
-# takes only Amount (base proof: Qing capital +2, Monopolies +1).
-function M-ResourceCap($sfx,$tier,$node,$pop,$amt,$hemi,$dl) {
-    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
-    $gate = (BandGate 'SOLO' $h) -join $NL
-    "`t<Modifier id=`"MA_${sfx}_T${tier}_RESOURCE_CAP${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_RESOURCE_CAP`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$hc$gate$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t</Modifier>"
-}
-# workstream J: +trade-route capacity (import resources -> +1 GDP each, fills the resource capacity).
-# Player-wide (COLLECTION_OWNER), so NOT hemisphere-scoped and NOT pop-tiered; tech-gated + anti-wide
-# (off at 4+ TOTAL settlements - lenient so the 1-homeland+1-distant tall build keeps it). MajorsOnly
-# mirrors the base EX economic trade-capacity card. EFFECT_PLAYER_ADJUST_TRADE_CAPACITY (Amount + MajorsOnly).
-function M-TradeRoutes($sfx,$node,$amt) {
-    "`t<Modifier id=`"MA_${sfx}_TRADE_ROUTES`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_ADJUST_TRADE_CAPACITY`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"MajorsOnly`">true</Argument>$NL`t</Modifier>"
-}
-# FAN-OUT (AQ): AUTHENTIC Qajar mechanic, now GATED + SPLIT per yield. Base effect = EFFECT_CITY_ADJUST_YIELD_
-# PER_UNDER_SETTLEMENT_CAP on COLLECTION_PLAYER_CAPITAL_CITY (DLC\qajar\modules\data\civilizations-shared-
-# gameeffects.xml uses ONE modifier with comma YieldType "YIELD_FOOD,YIELD_PRODUCTION"). It grants Amount x
-# (settlement cap minus current settlements) of the yield in the capital - the further UNDER cap you are, the
-# bigger; zero at/over cap (so it self-scopes; an AI near cap gets ~0). We SPLIT it into one modifier per
-# yield so each can gate on its own thematic node: Food on Irrigation, Production on Engineering (tech-node
-# gate in OwnerRequirements). The self-taper still handles "wide", so no extra anti-wide gate is needed.
-# COLLECTION: COLLECTION_PLAYER_CITIES (NOT _CAPITAL_CITY). The under-cap MARGIN is player-wide, so every
-# city computes the same per-under-cap amount; using all-cities means a DISTANT-LANDS city in EX/MO also gets
-# it (the old capital-only collection left the distant city dry - the deferred distant-lands TODO). For a
-# 1-city AQ build this is identical (capital == only city); a wide AI is at/over cap so each city still gets ~0.
-function M-UnderCapYield($sfx,$yield,$amt,$node) {
-    $yname = ($yield -replace '^YIELD_','')
-    "`t<Modifier id=`"MA_${sfx}_UNDER_CAP_${yname}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD_PER_UNDER_SETTLEMENT_CAP`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"YieldType`">$yield</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_UNDERCAP_DESCRIPTION</Argument>$NL`t</Modifier>"
-}
-# FAN-OUT (AQ): economic-domain reachability helper. +trade-route RANGE (land + sea) so a tall one-city
-# player can actually reach foreign markets / city-states to trade with and (later) suzerain. Gated on the
-# Economic node, anti-wide off at 4+ total settlements. EFFECT_CITY_ADJUST_TRADE_ROUTE_RANGE (DomainType + Amount).
-# NOTE (ROADMAP Phase 3): to tie this specifically to holding an ECONOMIC suzerain, gate on
-# REQUIREMENT_PLAYER_ELIGIBLE_CS_BONUS referencing an economic city-state bonus once the suzerain layer lands.
-function M-TradeRange($sfx,$node,$domainType,$amt) {
-    $dn = ($domainType -replace '^DOMAIN_','')
-    "`t<Modifier id=`"MA_${sfx}_TRADE_RANGE_${dn}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_TRADE_ROUTE_RANGE`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"DomainType`">$domainType</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t</Modifier>"
-}
-# FAN-OUT (AQ) Military DEEPEN: flat +Strength in ALL combat (offense AND defense), scoped to the tall player.
-# Effect/collection pattern from the base-game Scorched Earth tradition SCORCHED_EARTH_MOD_COMBAT_STRENGTH
-# (COLLECTION_PLAYER_COMBAT + EFFECT_ADJUST_UNIT_STRENGTH_MODIFIER). Gated in OwnerRequirements on the
-# military-deepen node + anti-wide (<4 total settlements) so AI doesn't get it.
-# DESIGN (2026-06-20): deliberately ALWAYS-ON, no REQUIREMENT_PLAYER_IS_ATTACKING. A tall one-city
-# player is usually outnumbered and on the defensive, so an attack-only bonus (which is what the copied
-# Scorched Earth/Persia templates use) would do nothing in the fights that matter most; always-on still helps
-# when pushing for an enemy capital (the breadth-scored military victory path).
-# NOTE: must be COLLECTION_PLAYER_COMBAT, NOT COLLECTION_UNIT_COMBAT. The latter only resolves when the
-# modifier is bound directly to a unit (ability/promotion). We deliver via the COLLECTION_MAJOR_PLAYERS
-# attach wrapper, i.e. attached to the PLAYER, so the player-scoped combat collection is required - with
-# COLLECTION_UNIT_COMBAT there is no unit context and the bonus silently never applies (verified in-game).
-function M-CombatStrength($sfx,$node,$amt) {
-    $reqs = @()
-    if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_HAS_COMPLETED_PROGRESSION_TREE_NODE`"><Argument name=`"ProgressionTreeNodeType`">$node</Argument><Argument name=`"MinDepth`">1</Argument></Requirement>" }
-    $reqs += (Settle $tallCap $true 'false' '')
-    $owner = "`t`t<OwnerRequirements>$NL$($reqs -join $NL)$NL`t`t</OwnerRequirements>$NL"
-    "`t<Modifier id=`"MA_${sfx}_T3_COMBAT_STRENGTH`" collection=`"COLLECTION_PLAYER_COMBAT`" effect=`"EFFECT_ADJUST_UNIT_STRENGTH_MODIFIER`">$NL$owner`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<String context=`"Preview`">LOC_MA_COMBAT_STRENGTH_PREVIEW</String>$NL`t</Modifier>"
-}
-# AGE-TRANSITION RESEED (EX/MO only): bridges the early-age "valley". At the start of a new age EVERY gated
-# bonus is dormant - you haven't researched the new age's nodes yet - while wide AIs already run N cities at
-# base x N. That is the playtest cliff (Exploration turn 1: ~1/3 science, ~1/6 production vs the leader,
-# right after leading science at end of Antiquity). This grants per-pop yield live FROM TURN 1, leaning on
-# the POPULATION that carries across the transition (wide civs spread pop thin across many cities, so per-pop
-# barely helps them; the <4-settlement anti-wide gate excludes them further). It switches OFF the moment you
-# complete the age host node (when the real banded kit turns on) via an INVERSE node gate - a clean handoff,
-# no permanent inflation, mutually exclusive with the kit so no double-dip. Magnitude = SOLO per-pop divisor,
-# i.e. the same intensity the kit resumes at, so the bridge is seamless. Tune yields/divisor after playtest;
-# Production is the obvious add (worst turn-1 gap) but risks snowballing infrastructure - Science+Culture
-# (the lanes tall holds) first.
-function M-Reseed($sfx,$hostNode,$pop,$yield,$div) {
-    $yname = ($yield -replace '^YIELD_','')
-    $owner = "`t`t<OwnerRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_HAS_COMPLETED_PROGRESSION_TREE_NODE`" inverse=`"true`"><Argument name=`"ProgressionTreeNodeType`">$hostNode</Argument><Argument name=`"MinDepth`">1</Argument></Requirement>$NL`t`t</OwnerRequirements>$NL"
-    "`t<Modifier id=`"MA_${sfx}_RESEED_${yname}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD_PER_POPULATION`">$NL$owner`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">$yield</Argument>$NL`t`t<Argument name=`"Amount`">1</Argument><Argument name=`"Divisor`">$div</Argument>$NL`t`t<Argument name=`"Urban`">true</Argument><Argument name=`"Rural`">false</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_RESEED_DESCRIPTION</Argument>$NL`t</Modifier>"
-}
 # ============================ SUZERAIN LAYER (Phase 3, 2026-06-20) ============================
 # The tall player's substitute for going WIDE: bonuses that AUTO-SCALE with how many city-states you lead
 # (no city count needed). All effects grounded in base-game age-(exploration|modern)/data/independents-
@@ -878,38 +708,6 @@ function M-RazeRate($sfx,$amt) {
 function M-RazePillageFlat($sfx,$plunder,$amt) {
     "`t<Modifier id=`"MA_${sfx}_RAZE_PILLAGE_$plunder`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_ADD_PLAYER_UNITS_PILLAGE_BUILDING_PLUNDER`">$NL`t`t<SubjectRequirements>$NL$(Settle ($tallCap+1) $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"PlunderType`">$plunder</Argument>$NL`t</Modifier>"
 }
-# Items 3b / 6 / 1 / 4 / 7 all REMOVED 2026-07-02 (see config header): 3b (+% plunder, never showed) - 6 (war-cap,
-# never applied + non-problem) - 1 (Influence offset, invisible + contradicted by the base capture dialog) -
-# 4 (tiny Sci/Cul floor, invisible) - 7 (ignore capture unrest, minor + invisible). The VISIBLE capture LUMP replaces
-# the offset's job on-screen; pillage + fast burn stand.
-# TOWN-SPEC "TEMPLE" bucket (EX-only), internalized. The base Exploration Temple town specialization grants
-# +2 Great Work slots on BUILDING_TEMPLE to the connected city (SLOTS_ON_TEMPLES_IN_CITY_FROM_PROJECT,
-# EFFECT_CITY_ADJUST_GREAT_WORK_SLOTS, ConstructibleType=BUILDING_TEMPLE). We give the same to the metropolis,
-# gated on the religion-branch civic (Theology). RELICS are Great Works, and the kit already hoards collection
-# slots, so this is the relic/religious-tourism amplifier for the Culture lane. Integer slots -> BINARY on/off
-# (SOLO band = exactly 1 settlement in the hemisphere, like M-ResourceCap/M-GreatWorks), pop-tiered (T2),
-# per-hemisphere (temples exist in the distant city too, unlike the homeland-only Palace slots). SlotType=ANY
-# (accepts relics/codices/artifacts), matching the proven M-GreatWorks pattern.
-function M-TempleSlots($sfx,$tier,$node,$pop,$amt,$hemi,$dl) {
-    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
-    $gate = (BandGate 'SOLO' $h) -join $NL
-    "`t<Modifier id=`"MA_${sfx}_T${tier}_TEMPLE_SLOTS${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_GREAT_WORK_SLOTS`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$hc$gate$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"ConstructibleType`">BUILDING_TEMPLE</Argument>$NL`t`t<Argument name=`"SlotType`">GREATWORKSLOT_ANY</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t</Modifier>"
-}
-# TOWN-SPEC "HUB TOWN" bucket internalized. (Internal data id is PROJECT_TOWN_INN; the player-facing town
-# focus is "Hub Town" - that is the correct name.) The base Hub Town routes +1 Influence (YIELD_DIPLOMACY) per
-# directly CONNECTED settlement (EFFECT_CITY_ADJUST_YIELD_PER_CONNECTED_CITY) - which is ZERO for a one-city
-# player. INFLUENCE CANNOT be granted as a per-population or generic city/tile yield (learned the hard way in
-# the suzerain work + confirmed: no base modifier uses EFFECT_CITY_ADJUST_YIELD_PER_POPULATION with
-# YIELD_DIPLOMACY). Influence is a PLAYER-level yield, emitted by: flat EFFECT_PLAYER_ADJUST_YIELD, per-building
-# EFFECT_PLAYER_ADJUST_CONSTRUCTIBLE_YIELD (the primer's proven pattern), per-relationship, or per-suzerain.
-# So (2026-06-21): make it ADDITIVE on the age's DIPLOMACY building and gate it BEHIND that building
-# in the tree. +$amt Influence on $building (AQ Monument @ Masonry / EX Guildhall @ Guilds - both natively yield
-# Influence), via EFFECT_PLAYER_ADJUST_CONSTRUCTIBLE_YIELD, gated on the building's unlock node + anti-wide. It
-# shows directly on the building's yield tooltip (self-discoverable). Stacks with the flat primer + per-suzerain
-# layer to fix the Deity "+5 influence" cap. Player-wide (COLLECTION_OWNER), emitted once per FanOut age.
-function M-HubInfluence($sfx,$node,$building,$amt) {
-    "`t<Modifier id=`"MA_${sfx}_HUB_INFLUENCE`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_ADJUST_CONSTRUCTIBLE_YIELD`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_DIPLOMACY</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"ConstructibleType`">$building</Argument>$NL`t</Modifier>"
-}
 # OwnerRequirements with the node gate (skipped in -Test) + the <4-settlement anti-wide, player-scoped. For
 # player-rooted collections (units/districts/combat) where a player-settlement SubjectRequirement wouldn't
 # resolve. Same shape M-CombatStrength builds inline.
@@ -918,51 +716,6 @@ function OwnerNodeAntiWide($node,$minDepth=1) {
     if (-not $TestMode) { $reqs += "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_HAS_COMPLETED_PROGRESSION_TREE_NODE`"><Argument name=`"ProgressionTreeNodeType`">$node</Argument><Argument name=`"MinDepth`">$minDepth</Argument></Requirement>" }
     $reqs += (Settle $tallCap $true 'false' '')
     "`t`t<OwnerRequirements>$NL$($reqs -join $NL)$NL`t`t</OwnerRequirements>$NL"
-}
-# TOWN-SPEC "Fort Town" bucket internalized (DISTINCT MECHANIC = durability, no yield overlap; we skip Fort's
-# minor gold-on-fortifications yield per the overlap rule). For an outnumbered one-city defender. Player-rooted
-# collections proven via base traditions/traits: COLLECTION_PLAYER_DISTRICTS + EFFECT_DISTRICT_ADJUST_TOTAL_HEALTH
-# (e.g. NORMAN_SYNCRETISM_MOD_WALL_HEALTH, CARD_AT_WALL_HEALTH); COLLECTION_PLAYER_UNITS +
-# EFFECT_UNIT_ADJUST_HEAL_PER_TURN (e.g. DE_FACTO_MOD_HEALING) - so both deliver through the player attach
-# wrapper. Gated on the Military-deepen node + anti-wide in OwnerRequirements. Player-wide, emitted once.
-function M-FortHealth($sfx,$node,$amt) {
-    "`t<Modifier id=`"MA_${sfx}_FORT_HEALTH`" collection=`"COLLECTION_PLAYER_DISTRICTS`" effect=`"EFFECT_DISTRICT_ADJUST_TOTAL_HEALTH`">$NL$(OwnerNodeAntiWide $node)`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t</Modifier>"
-}
-function M-FortHealing($sfx,$node,$amt) {
-    "`t<Modifier id=`"MA_${sfx}_FORT_HEALING`" collection=`"COLLECTION_PLAYER_UNITS`" effect=`"EFFECT_UNIT_ADJUST_HEAL_PER_TURN`">$NL$(OwnerNodeAntiWide $node)`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t</Modifier>"
-}
-# TOWN-SPEC WAREHOUSE buckets (Farming/Fishing = rural Food, Mining = rural Production, Trade Outpost = resource
-# Happiness). Powers up RURAL tiles via the base warehouse-yield-change handles. COLLECTION_PLAYER_CITIES +
-# EFFECT_CITY_GRANT_WAREHOUSE_YIELD (proven, 100+ base uses). DISTINCT from the flat under-cap Food/Production
-# (player yield, not a tile boost) - no double-count. Gated on the matching node + CITY_IS_CITY + anti-wide.
-function M-Warehouse($sfx,$idname,$node,$handles,$tooltip) {
-    $tt = if ($tooltip) { "$NL`t`t<Argument name=`"Tooltip`">$tooltip</Argument>" } else { '' }
-    "`t<Modifier id=`"MA_${sfx}_${idname}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_GRANT_WAREHOUSE_YIELD`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"WarehouseYieldChange`">$handles</Argument>$tt$NL`t</Modifier>"
-}
-# TOWN-SPEC "Religious Site" Temple bucket, happiness half: +Happiness on every Building. EFFECT_PLAYER_ADJUST_
-# CONSTRUCTIBLE_YIELD with ConstructibleClass=BUILDING (proven, COLLECTION_OWNER/player). Gated on the religion node.
-function M-BuildingHappiness($sfx,$node,$amt) {
-    "`t<Modifier id=`"MA_${sfx}_RELIGIOUS_HAPPINESS`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_ADJUST_CONSTRUCTIBLE_YIELD`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">YIELD_HAPPINESS</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"ConstructibleClass`">BUILDING</Argument>$NL`t</Modifier>"
-}
-# TOWN-SPEC plot-yield buckets (Fort gold-on-fortifications + Resort appeal/Natural-Wonder tiles). COLLECTION_
-# PLAYER_PLOT_YIELDS + EFFECT_PLOT_ADJUST_YIELD (player-rooted, 100+ base uses). $reqXml = the SubjectRequirements
-# plot filter (fortification / appeal / natural wonder); $yieldXml = the yield arguments. Node + anti-wide owner-gated.
-function M-PlotYield($sfx,$idname,$node,$reqXml,$yieldXml,$minDepth=1) {
-    "`t<Modifier id=`"MA_${sfx}_${idname}`" collection=`"COLLECTION_PLAYER_PLOT_YIELDS`" effect=`"EFFECT_PLOT_ADJUST_YIELD`">$NL$(OwnerNodeAntiWide $node $minDepth)`t`t<SubjectRequirements>$NL$reqXml$NL`t`t</SubjectRequirements>$NL$yieldXml$NL`t</Modifier>"
-}
-# ITEM 6 (relic/Culture amplifier): +Yield per Great Work in the city. Relics/Codices/Artifacts/Art are all
-# Great Works, and the kit hoards GW slots (Palace + the Temple "Religious Site" slots + collection slots), so
-# this directly rewards the hoard - the amplifier for the surviving Culture/relic lane (the one that held at
-# Deity). EFFECT_CITY_ADJUST_YIELD_PER_GREAT_WORK (YieldType, Amount, Tooltip; base proof GREATPERSON_CODEX_
-# SCIENCE = +1 Science per GW). City effect -> COLLECTION_PLAYER_CITIES, per-hemisphere, pop-tiered (T2 so it
-# pairs with the Temple relic slots), SOLO hard-cutoff. EX-ONLY in practice (emitted only where TempleSlots is
-# set) and gated on the religion node passed in (Theology) - relics are the cultural Great Works + arrive in the
-# religion age; AQ Great Works are Codices (science), so culture-per-GW is deliberately NOT in Antiquity.
-function M-GreatWorkYield($sfx,$node,$pop,$yield,$amt,$hemi,$dl) {
-    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
-    $gate = (BandGate 'SOLO' $h) -join $NL
-    $yname = ($yield -replace '^YIELD_','')
-    "`t<Modifier id=`"MA_${sfx}_GW_${yname}${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD_PER_GREAT_WORK`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$hc$gate$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"YieldType`">$yield</Argument>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_${sfx}_NOTE_RELIGION</Argument>$NL`t</Modifier>"
 }
 # SUZERAIN-DEFERRED (Phase 3 follow-ups, now that the suzerain layer exists). Two base effects that scale a
 # reward with how many city-states you are Suzerain of - the tall width-substitute, self-scaling (0 without the
@@ -980,44 +733,12 @@ function M-SuzerainResourceCap($sfx,$amt) {
     "`t<Modifier id=`"MA_${sfx}_SUZ_RESOURCE_CAP`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_RESOURCE_CAP_PER_SUZERAIN`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t</Modifier>"
 }
 
-# ============================ TALL RESOURCE REACH - the SURVEYOR (issue #12) ============================
-# (1) MILESTONE GRANT: hand the metropolis a Surveyor as its Urban Pop crosses each tier threshold.
-#     CONTINUOUS + SELF-LIMITING, deliberately NOT run-once. Why: a run-once grant delivered through the attach
-#     wrapper evaluates at attach time (game start, pop < threshold) and does NOT re-fire when the pop requirement
-#     later becomes true (2026-07-02 in-game: nothing spawned at pop 5; there is also NO base precedent for a
-#     population-gated unit grant). The tier YIELD bonuses work at pop 5 because they are continuous (re-evaluated
-#     every turn) - so we make the grant continuous too, and cap it with a unit-count requirement instead of run-once:
-#     grant while (Urban Pop >= tier threshold) AND (player owns FEWER than $tier Surveyors). Tier1 tops up to 1,
-#     Tier2 to 2, Tier3 to 3 -> at most 3 from grants, EVER, no matter how often it evaluates (once you own 3, all
-#     three inverse-count gates are false). EFFECT_CITY_GRANT_UNIT (UnitType + Amount). Pop-gated + SOLO tall-gated;
-#     NOT node-gated (the unit has no unlock, so it's grantable/buildable from the start of the Age).
-function M-GrantSurveyor($sfx,$tier,$pop,$hemi,$dl) {
-    $h = HemiArg $hemi; $hc = HemiCityReq $hemi
-    $gate = (BandGate 'SOLO' $h) -join $NL
-    $count = "`t`t`t<Requirement type=`"REQUIREMENT_PLAYER_HAS_AT_LEAST_NUM_UNIT_TYPE`" inverse=`"true`"><Argument name=`"UnitType`">$surveyorUnit</Argument><Argument name=`"Amount`">$tier</Argument><Argument name=`"CountReplacements`">false</Argument></Requirement>$NL"
-    "`t<Modifier id=`"MA_${sfx}_GRANT_SURVEYOR_T${tier}${dl}`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_GRANT_UNIT`">$NL`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(PopReq $pop)$count$hc$gate$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"UnitType`">$surveyorUnit</Argument>$NL`t`t<Argument name=`"Amount`">1</Argument>$NL`t</Modifier>"
-}
 # (2) CLAIM-CHARGE GRANT (Antiquity + Exploration ONLY - Modern's base game already binds this to ABILITY_CLAIM_
 #     RESOURCE via PROSPECTOR_MOD_GRANT_ABILITY_CHARGE, so re-adding it there would collide). Mirror of the base
 #     PROSPECTOR_MOD_GRANT_ABILITY_CHARGE: gives 1 charge of CHARGED_ABILITY_CLAIM_RESOURCE. Bound to the ability
 #     via the UnitAbilityModifiers row in surveyor-bind.xml - NOT the attach wrapper (so it is NOT in $wrapIds).
 function M-GrantClaimCharge($sfx) {
     "`t<Modifier id=`"MA_${sfx}_GRANT_CLAIM_CHARGE`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_GRANT_UNIT_ABILITY_CHARGE`" permanent=`"true`">$NL`t`t<Argument name=`"ChargedAbilityType`">CHARGED_ABILITY_CLAIM_RESOURCE</Argument>$NL`t`t<Argument name=`"Amount`">$surveyorCharges</Argument>$NL`t</Modifier>"
-}
-# (3) PER-RESOURCE AMPLIFIER: on top of each resource's normal benefit, pay the metropolis extra of THAT resource's
-#     OWN characteristic yield, for every such resource it commands. One modifier per (resource,yield) pair, keyed off
-#     the base Resource_YieldChanges data ($resYields) so it covers all resources incl. DLC. EFFECT_CITY_ADJUST_YIELD_
-#     PER_RESOURCE (the base per-resource pattern, e.g. MOD_MANGOS_CITY_FLAT_CULTURE). COLLECTION_PLAYER_CITIES (pays in
-#     whichever city holds the resource - both hemispheres), gated on the resource lane node + SOLO tall. Returns the
-#     joined modifier XML; the caller collects each id into $wrapIds. Emitted ONCE per age (self-scopes per city).
-function M-ResourceReach($sfx,$node,$amt) {
-    $mods=@(); $ids=@()
-    foreach ($ry in $resYields) {
-        $rs = $ry.Res -replace '^RESOURCE_',''; $ys = $ry.Yield -replace '^YIELD_',''
-        $id = "MA_${sfx}_RREACH_${rs}_${ys}"; $ids += $id
-        $mods += "`t<Modifier id=`"$id`" collection=`"COLLECTION_PLAYER_CITIES`" effect=`"EFFECT_CITY_ADJUST_YIELD_PER_RESOURCE`">$NL$(Owner $node)`t`t<SubjectRequirements>$NL`t`t`t<Requirement type=`"REQUIREMENT_CITY_IS_CITY`"/>$NL$(Settle $tallCap $true 'false' '')$NL`t`t</SubjectRequirements>$NL`t`t<Argument name=`"Amount`">$amt</Argument>$NL`t`t<Argument name=`"YieldType`">$($ry.Yield)</Argument>$NL`t`t<Argument name=`"ResourceType`">$($ry.Res)</Argument>$NL`t`t<Argument name=`"PercentMultiplier`">false</Argument>$NL`t</Modifier>"
-    }
-    @{ Xml=($mods -join $NL); Ids=$ids }
 }
 
 $pillarManifest = [ordered]@{}   # sfx -> Triumph-window pillar ids (handed to gen-ascendancy's feat rewards)
@@ -1054,7 +775,7 @@ foreach ($age in $ages) {
     # EFFECT_PLAYER_ADJUST_SETTLEMENT_CAP Amount=0 = deliberate no-op. NOT in the attach wrapper.
     $out += "`t<!-- DISCOVERABILITY MARKERS: one no-op note modifier per gated node (see traditions.xml rows). -->"
     foreach ($note in $age.Notes) {
-        if ($Gen2Strip -and $gen2StrippedNoteKeys -contains $note.Key) { continue }   # migrated -> Ascendancy
+        if ($gen2StrippedNoteKeys -contains $note.Key) { continue }   # bonus migrated to the Ascendancy tree - no base-node panel note
         $noteId  = if ($note.Key -eq 'ALL') { "MA_${sfx}_UNLOCK_NOTE" } else { "MA_${sfx}_NOTE_$($note.Key)" }
         $noteLoc = if ($note.Key -eq 'ALL') { 'LOC_MA_UNLOCK_NOTE' }     else { "LOC_MA_${sfx}_NOTE_$($note.Key)" }   # per-age tag so EX/MO numbers differ from AQ
         $out += "`t<Modifier id=`"$noteId`" collection=`"COLLECTION_OWNER`" effect=`"EFFECT_PLAYER_ADJUST_SETTLEMENT_CAP`" permanent=`"true`">$NL`t`t<Argument name=`"Amount`">0</Argument>$NL`t`t<String context=`"Description`">$noteLoc</String>$NL`t</Modifier>"
@@ -1070,20 +791,8 @@ foreach ($age in $ages) {
 
         # TIER 1
         $out += "`t<!-- TIER 1 (Urban pop >= $($pops[0]))$(if($dl){' - distant lands'}) -->"
-        if (-not $Gen2Strip) { $out += (M-WorkerCap $sfx 1 $N.Spine $pops[0] $hemi $dl); $wrapIds += "MA_${sfx}_T1_WORKER_CAP${dl}" }   # RETIRED 2026-07-13 -> Gen-2 SCI2/CUL2/ECO2 masteries (+1 specialist each)
         $out += (M-Upkeep $sfx $pops[0] $hemi $dl);            $wrapIds += "MA_${sfx}_T1_SPECIALIST_UPKEEP${dl}"
         $out += (M-Happiness $sfx $pops[0] $age.Happiness $hemi $dl); $wrapIds += "MA_${sfx}_T1_HAPPINESS${dl}"
-        if (-not $Gen2Strip) { $out += (M-ResourceCap $sfx 1 $N.Economic $pops[0] $age.ResCap[0] $hemi $dl); $wrapIds += "MA_${sfx}_T1_RESOURCE_CAP${dl}" }   # RETIRED 2026-07-13 -> Gen-2 ECO2 mastery (+2/+2/+3 all settlements) + Major cards (Capital)
-        # IDEA 1: happiness-stage payoff lane (core mechanic; T1 pop floor; SOLO + hemisphere-scoped). Joyous +
-        # Ecstatic gates STACK. Two stage-yields (Science+Culture) x two stages = 4 modifiers per hemisphere.
-        $stageNode = @{ 'YIELD_SCIENCE'=$N.Science; 'YIELD_CULTURE'=$N.Culture }   # advertise each half on its domain node
-        if (-not $Gen2Strip) {   # MIGRATED -> Ascendancy SCI2/CUL2 escalators
-            foreach ($yld in $stageYields) {
-                $yn = ($yld -replace '^YIELD_',''); $sn = $stageNode[$yld]
-                $out += (M-StagePayoff $sfx $sn $pops[0] 'HAPPINESS_STAGE_JOYOUS'   $yld $stageJoyousDiv   $hemi $dl); $wrapIds += "MA_${sfx}_STAGE_JOYOUS_${yn}${dl}"
-                $out += (M-StagePayoff $sfx $sn $pops[0] 'HAPPINESS_STAGE_ECSTATIC' $yld $stageEcstaticDiv $hemi $dl); $wrapIds += "MA_${sfx}_STAGE_ECSTATIC_${yn}${dl}"
-            }
-        }
         # ==== THE GEN-2 PILLAR FAMILY: windowed on the EARNED ALLOWANCE, hemisphere-free.
         # Count windows live IN-LEAF (re-evaluate continuously - proven). Route='ALL' copies ride
         # ATTACH_ALL; Route='REWARD' copies are handed to gen-ascendancy (pillar-window-ids.json)
@@ -1128,85 +837,9 @@ foreach ($age in $ages) {
         # WATER Option 3 (EX ONLY, player-wide, once): IMPROVEMENT_HAWAII_FISHING_BOAT for workable ocean.
         if ($hemi -ne 'DL' -and $sfx -eq 'EX') { $out += (M-WaterUnlock $sfx); $wrapIds += "MA_${sfx}_WATER_UNLOCK" }
 
-        # TIER 2
-        $out += "`t<!-- TIER 2 (Urban pop >= $($pops[1]))$(if($dl){' - distant lands'}) -->"
-        if (-not $Gen2Strip) { $out += (M-WorkerCap $sfx 2 $N.Spine $pops[1] $hemi $dl); $wrapIds += "MA_${sfx}_T2_WORKER_CAP${dl}" }   # RETIRED -> Gen-2 masteries
-        if (-not $Gen2Strip) {   # MIGRATED -> Ascendancy CUL2 (wonder %) / SCI2 (GW slots)
-            for ($b=0; $b -lt $bandList.Count; $b++) {
-                $band=$bandList[$b]
-                $out += (M-Wonders $sfx $N.Wonders $pops[1] $band $age.Wonders[$b] $hemi $dl)
-                $wrapIds += "MA_${sfx}_T2_WONDERS_${band}${dl}"
-            }
-            if ($hemi -ne 'DL') {   # great works = homeland/capital only
-                $out += (M-GreatWorks $sfx $N.Science $pops[1] $age.GW $hemi); $wrapIds += "MA_${sfx}_T2_GREAT_WORKS"
-            }
-        }
-        if (-not $Gen2Strip) { $out += (M-ResourceCap $sfx 2 $N.Economic $pops[1] $age.ResCap[1] $hemi $dl); $wrapIds += "MA_${sfx}_T2_RESOURCE_CAP${dl}" }   # RETIRED -> Gen-2 ECO2 mastery
-        # TOWN-SPEC Temple bucket (EX-only): +Great Work slots on Temples (relic storage) on the religion node.
-        # Per-hemisphere (the distant city's temples too); integer/binary SOLO band like the other slot grants.
-        if ($age.TempleSlots) {
-            if (-not $Gen2Strip) {   # MIGRATED -> Ascendancy CUL2 EX (Temple GW slots)
-                $out += (M-TempleSlots $sfx 2 $N.Religion $pops[1] $age.TempleSlots $hemi $dl); $wrapIds += "MA_${sfx}_T2_TEMPLE_SLOTS${dl}"
-            }
-            # ITEM 6: relic/Great-Work Culture amplifier - EX-only (RELICS are the cultural Great Works and only
-            # arrive in the religion age; in AQ Great Works = Codices = science-flavored, so culture-per-GW would
-            # be off-theme AND over-boost AQ culture, which is already dominant). Gated on the SAME religion node
-            # (Theology) as the Temple relic-slots so relic STORAGE and relic->CULTURE travel together; the effect
-            # can't filter to relics-only, but EX hoards are relic-heavy. Auto-extends to MO when MO gets TempleSlots.
-            if (-not $Gen2Strip) { $out += (M-GreatWorkYield $sfx $N.Religion $pops[1] 'YIELD_CULTURE' $gwCultureAmt $hemi $dl); $wrapIds += "MA_${sfx}_GW_CULTURE${dl}" }   # A3 2026-07-14: RE-HOMED -> Ascendancy CUL2 EX (gwyield spec)
-        }
-
-        # TIER 3
-        $out += "`t<!-- TIER 3 (Urban pop >= $($pops[2]))$(if($dl){' - distant lands'}) -->"
-        if (-not $Gen2Strip) { $out += (M-WorkerCap $sfx 3 $N.Spine $pops[2] $hemi $dl); $wrapIds += "MA_${sfx}_T3_WORKER_CAP${dl}" }   # RETIRED -> Gen-2 masteries
-        # Economic DEEPEN: tier-3 resource cap moves to the EconomicDeep node (Wheel) - research Wheel to
-        # deepen your resource economy on top of Currency's tier 1-2 cap.
-        if (-not $Gen2Strip) { $out += (M-ResourceCap $sfx 3 $N.EconomicDeep $pops[2] $age.ResCap[2] $hemi $dl); $wrapIds += "MA_${sfx}_T3_RESOURCE_CAP${dl}" }   # RETIRED -> Gen-2 ECO2 mastery
-        if ((-not $Gen2Strip) -and $hemi -ne 'DL') {   # MIGRATED -> Ascendancy SCI2 (collection slots) / ECO1+ECO2 (routes)
-            $out += (M-CollectionSlots $sfx $N.Science $age.Collection); $wrapIds += "MA_${sfx}_T3_COLLECTION_SLOTS"
-            $out += (M-TradeRoutes $sfx $N.Commerce $age.Trade); $wrapIds += "MA_${sfx}_TRADE_ROUTES"
-        }
-        # Two-node model: per-pop yields are each domain's DEEPEN node. Science -> Mathematics; Culture -> Mysticism civic.
-        if (-not $Gen2Strip) {   # MIGRATED -> Ascendancy SCI1/CUL1 entry rungs
-            $perPopNode = @{ 'YIELD_SCIENCE'=$N.ScienceDeep; 'YIELD_CULTURE'=$N.CultureDeep }
-            foreach ($yld in @('YIELD_SCIENCE','YIELD_CULTURE')) {
-                $yname = ($yld -replace '^YIELD_','')
-                for ($b=0; $b -lt $bandList.Count; $b++) {
-                    $band=$bandList[$b]
-                    $out += (M-PerPop $sfx $perPopNode[$yld] $pops[2] $band $yld $perPopDiv[$band] $hemi $dl)
-                    $wrapIds += "MA_${sfx}_T3_${yname}_${band}${dl}"
-                }
-            }
-        }
-        # ---- SURVEYOR milestone grants (issue #12): one Surveyor at each Urban-Pop tier, run-once, per hemisphere ----
-        # AQ-only ($surveyorGrantAges): Antiquity hands them out free by tier; EX/MO are buildable-only (see config note).
-        if ($surveyorGrantAges -contains $sfx) {
-            $out += "`t<!-- SURVEYOR (issue #12): grant a resource-claiming Surveyor at each Urban-Pop tier (run-once, tall).$(if($dl){' Distant lands.'}) -->"
-            foreach ($t in $surveyorGrantTiers) {
-                $out += (M-GrantSurveyor $sfx $t $pops[$t-1] $hemi $dl); $wrapIds += "MA_${sfx}_GRANT_SURVEYOR_T${t}${dl}"
-            }
-        }
-        # ---- FAN-OUT EXTRAS (Antiquity only; FanOut=$true). ----
-        if ($age.FanOut -and $hemi -ne 'DL') {
-            $out += "`t<!-- FAN-OUT: Military production-per-pop ($($N.Military)) + combat strength ($($N.MilitaryDeep));"
-            $out += "`t     Qajar under-settlement-cap Food ($($N.FoodCap)) / Production ($($N.ProdCap)); trade-route RANGE ($($N.Commerce)). -->"
-            if (-not $Gen2Strip) {   # MIGRATED -> Ascendancy IND1 (prod rung)
-                for ($b=0; $b -lt $bandList.Count; $b++) {
-                    $band=$bandList[$b]
-                    $out += (M-PerPop $sfx $N.Military $pops[2] $band 'YIELD_PRODUCTION' $perPopDiv[$band] $hemi $dl)
-                    $wrapIds += "MA_${sfx}_T3_PRODUCTION_${band}${dl}"
-                }
-            }
-            if (-not $Gen2Strip) { $out += (M-CombatStrength $sfx $N.MilitaryDeep $age.MilStrength); $wrapIds += "MA_${sfx}_T3_COMBAT_STRENGTH" }   # RETIRED 2026-07-13 -> Esprit de Corps card is the (opt-in) offense
-            # A2 de-layer 2026-07-14 (Chris ruling): DELETE the under-cap dividend (Food + Production). It was
-            # a unique tall reward but base-node-gated; Chris chose full removal over re-homing. Base tree -> vanilla.
-            if (-not $Gen2Strip) { $out += (M-UnderCapYield $sfx 'YIELD_FOOD' $age.UnderCapAmount $N.FoodCap);       $wrapIds += "MA_${sfx}_UNDER_CAP_FOOD" }
-            if (-not $Gen2Strip) { $out += (M-UnderCapYield $sfx 'YIELD_PRODUCTION' $age.UnderCapAmount $N.ProdCap); $wrapIds += "MA_${sfx}_UNDER_CAP_PRODUCTION" }
-            if (-not $Gen2Strip) {   # MIGRATED -> Ascendancy ECO2 (route range)
-                $out += (M-TradeRange $sfx $N.Commerce 'DOMAIN_LAND' $age.TradeRange); $wrapIds += "MA_${sfx}_TRADE_RANGE_LAND"
-                $out += (M-TradeRange $sfx $N.Commerce 'DOMAIN_SEA' $age.TradeRange);  $wrapIds += "MA_${sfx}_TRADE_RANGE_SEA"
-            }
-        }
+        # (Tier-2 / Tier-3 / fan-out content all migrated to the Ascendancy tree or retired pre-release -
+        #  their now-empty section headers were dropped 2026-07-24, issue #22. Only the Tier-1 upkeep +
+        #  happiness safety nets remain on base nodes, above.)
         $out += ''
     }
 
@@ -1214,14 +847,6 @@ foreach ($age in $ages) {
     # A2 de-layer 2026-07-14 (Chris ruling): DELETE the per-pop Science+Culture age-flip bridge. Base tree -> vanilla.
     # (Was gated on the base host node; Gen-2 Ascendancy cards now carry the tall payoff. Re-open the Exploration
     #  tall gap here if playtests show a slump right after an age flip.)
-    if (-not $Gen2Strip -and $age.Sfx -ne 'AQ') {
-        $out += "`t<!-- RESEED: turn-1 per-pop Science+Culture bridge for the tall player; switches OFF once the"
-        $out += "`t     host node ($($age.Node)) is researched and the gated kit takes over. Fills the early-age valley. -->"
-        $out += (M-Reseed $sfx $age.Node $pops[0] 'YIELD_SCIENCE' $perPopDiv.SOLO); $wrapIds += "MA_${sfx}_RESEED_SCIENCE"
-        $out += (M-Reseed $sfx $age.Node $pops[0] 'YIELD_CULTURE' $perPopDiv.SOLO); $wrapIds += "MA_${sfx}_RESEED_CULTURE"
-        $out += ''
-    }
-
     # ---- SUZERAIN LAYER (Phase 3; FanOut ages only; player-wide, emitted once) ----
     # See M-Suzerain et al.: auto-scaling PER-POP yields keyed to each suzerained CS type + a flat influence
     # primer to fund winning the first city-states. The width-substitute for a one-city empire.
@@ -1274,50 +899,10 @@ foreach ($age in $ages) {
     # per-city town buckets (e.g. Religious Site temple slots) are emitted in the hemisphere loop, each tagged
     # "TOWN-SPEC" at its emit site. Town-spec modifier ids are descriptive (HUB_INFLUENCE, T2_TEMPLE_SLOTS).
     # See docs/TOWN-SPECIALIZATIONS.md and the civ7-modding skill's town-specialization reference.
-    if ($age.FanOut) {
-        $out += "`t<!-- TOWN-SPECIALIZATION ROLL-IN (player-wide, distinct from the Suzerain layer). Each bucket"
-        $out += "`t     matches a base Town focus, delivered to the metropolis & gated behind a thematic node:"
-        $out += "`t       Hub Town       -> +Influence on the Diplomacy building (its unlock node)"
-        $out += "`t       Fort Town      -> +District HP + Unit heal + Gold on Fortifications (own dedicated military node)"
-        $out += "`t       Farming/Fishing-> +Food on rural tiles (FoodCap node);  Mining -> +Prod on rural tiles (ProdCap)"
-        $out += "`t       Trade Outpost  -> +Happiness from resources warehouse (Commerce node)"
-        $out += "`t       Religious Site -> +Happiness per Building (religion node; pairs with the temple slots above)"
-        $out += "`t       Resort         -> +Gold/Happiness on appeal tiles + % all yields on Natural-Wonder tiles (Wonders node) -->"
-        # -- Hub Town --
-        # A2 de-layer 2026-07-14 (Chris ruling): DELETE Hub influence. Redundant with the Gen-2 DIP-line flat
-        # Diplomacy floor; MA no longer bolts town-focus rewards onto base civic nodes.
-        if (-not $Gen2Strip) { $out += (M-HubInfluence $sfx $age.HubNode $age.HubBuilding $hubInfluenceAmt);      $wrapIds += "MA_${sfx}_HUB_INFLUENCE" }
-        # -- Fort Town (durability + gold on fortifications) -- on its OWN node ($age.FortNode), off the
-        #    overloaded Military-deepen node (which keeps just combat strength).
-        if (-not $Gen2Strip) { $out += (M-FortHealth $sfx $age.FortNode $fortHealth);                             $wrapIds += "MA_${sfx}_FORT_HEALTH" }   # RETIRED 2026-07-13 -> Gen-2 MIL1 (Musters) on-node reward
-        if (-not $Gen2Strip) { $out += (M-FortHealing $sfx $age.FortNode $fortHeal);                              $wrapIds += "MA_${sfx}_FORT_HEALING" }   # RETIRED -> Gen-2 MIL1
-        $fortGoldReq = "`t`t`t<Requirement type=`"REQUIREMENT_PLOT_HAS_CONSTRUCTIBLE`"><Argument name=`"Tag`">FORTIFICATION</Argument><Argument name=`"CurrentAgeOnly`">false</Argument></Requirement>"
-        $fortGoldYld = "`t`t<Argument name=`"YieldType`">YIELD_GOLD</Argument>$NL`t`t<Argument name=`"Amount`">$fortGold</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_${sfx}_NOTE_FORT</Argument>"
-        if (-not $Gen2Strip) { $out += (M-PlotYield $sfx 'FORT_GOLD' $age.FortNode $fortGoldReq $fortGoldYld);    $wrapIds += "MA_${sfx}_FORT_GOLD" }   # RETIRED -> Gen-2 MIL1
-        # -- Farming/Fishing + Mining + Trade-Outpost warehouses (power up rural tiles / resource happiness) --
-        # A2 de-layer 2026-07-14 (Chris ruling): RETIRE all three warehouses. Food + Production fold into vanilla
-        # town specialization; Happiness dropped too (House of Wares already rewards resources via Gold).
-        if (-not $Gen2Strip) { $out += (M-Warehouse $sfx 'WAREHOUSE_FOOD' $N.FoodCap $warehouse[$sfx].Food "LOC_MA_${sfx}_NOTE_FOODCAP");       $wrapIds += "MA_${sfx}_WAREHOUSE_FOOD" }
-        if (-not $Gen2Strip) { $out += (M-Warehouse $sfx 'WAREHOUSE_PRODUCTION' $N.ProdCap $warehouse[$sfx].Prod "LOC_MA_${sfx}_NOTE_PRODCAP"); $wrapIds += "MA_${sfx}_WAREHOUSE_PRODUCTION" }
-        if (-not $Gen2Strip) { $out += (M-Warehouse $sfx 'WAREHOUSE_HAPPINESS' $N.Commerce $warehouse[$sfx].Happy "LOC_MA_${sfx}_NOTE_TRADE");$wrapIds += "MA_${sfx}_WAREHOUSE_HAPPINESS" }
-        # -- Religious Site happiness (EX only - the religion node only exists where TempleSlots is set) --
-        # A3 de-layer 2026-07-14 (Chris ruling): DROP the +Happiness-per-Building piece. No religion track in the
-        # Ascendancy tree; MA happiness comes from the happiness-stage system + wonder-adjacency (shipped core).
-        if (-not $Gen2Strip -and $age.TempleSlots) {
-            $out += (M-BuildingHappiness $sfx $N.Religion $religiousHappy);                 $wrapIds += "MA_${sfx}_RELIGIOUS_HAPPINESS"
-        }
-        # -- Resort (appeal tiles + Natural-Wonder tiles; the NW % self-targets so it only pays near a wonder) --
-        #    On the Wonders node's MASTERY (MinDepth=2), so that node's first tier carries only wonder-%.
-        $resortAppealReq = "`t`t`t<Requirement type=`"REQUIREMENT_PLOT_HAS_APPEAL`"><Argument name=`"UseAppealHappinessThreshold`">true</Argument></Requirement>"
-        # A2 de-layer 2026-07-14 (Chris ruling): DROP the Resort bonus. Gen-2 "City Beautiful" covers the scenic
-        # theme; the Gold-on-appeal + natural-wonder % are retired (base tree -> vanilla).
-        $resortAppealYld = "`t`t<Argument name=`"YieldType`">YIELD_GOLD, YIELD_HAPPINESS</Argument>$NL`t`t<Argument name=`"Amount`">$resortAppeal</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_${sfx}_NOTE_RESORT</Argument>"
-        if (-not $Gen2Strip) { $out += (M-PlotYield $sfx 'RESORT_APPEAL' $N.Wonders $resortAppealReq $resortAppealYld 2); $wrapIds += "MA_${sfx}_RESORT_APPEAL" }
-        $resortNWReq = "`t`t`t<Requirement type=`"REQUIREMENT_PLOT_IS_NATURAL_WONDER`"/>"
-        $resortNWYld = "`t`t<Argument name=`"YieldType`">YIELD_FOOD, YIELD_PRODUCTION, YIELD_GOLD, YIELD_SCIENCE, YIELD_CULTURE, YIELD_HAPPINESS, YIELD_DIPLOMACY</Argument>$NL`t`t<Argument name=`"Percent`">$resortNWPercent</Argument>$NL`t`t<Argument name=`"Tooltip`">LOC_MA_${sfx}_NOTE_RESORT</Argument>"
-        if (-not $Gen2Strip) { $out += (M-PlotYield $sfx 'RESORT_NATURAL_WONDER' $N.Wonders $resortNWReq $resortNWYld 2); $wrapIds += "MA_${sfx}_RESORT_NATURAL_WONDER" }
-        $out += ''
-    }
+    # TOWN-SPECIALIZATION ROLL-IN: every bucket (Hub influence, the Fort kit, the three warehouses,
+    # Religious-Site happiness, the Resort pair) was retired pre-release; its emitted section header was
+    # dropped 2026-07-24 (issue #22). See docs/TOWN-SPECIALIZATIONS.md for what each did and where its
+    # Ascendancy-tree replacement lives.
 
     # ---- SURVEYOR once-block (issue #12): claim-charge grant (AQ/EX only) ----
     # NO per-resource amplifier (2026-07-02): a claimed resource keeps its normal base yields only. Arcadia's
@@ -1331,29 +916,9 @@ foreach ($age in $ages) {
         $out += ''
     }
 
-    # ---- adjacency block (generated) ----
-    $out += "`t<!-- ADJACENCY REWARD: boost ALL 7 Science/Culture adjacency rules across the 3 pop tiers,"
-    $out += "`t     HARD CUTOFF (full +1/+2/+3 at exactly 1 settlement in the hemisphere, nothing at 2+)."
-    $out += "`t     On-design under 1.4.0: specialists pay out 100% of tile adjacency, so each point added here is"
-    $out += "`t     also delivered again by every specialist placed. EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT. -->"
-    foreach ($hemi in $hemis) {
-        $dl = if ($hemi -eq 'DL') { '_DL' } else { '' }
-        if ($hemi -eq 'HL')    { $out += "`t<!-- ADJ - HOMELAND -->" }
-        elseif ($hemi -eq 'DL'){ $out += "`t<!-- ADJ - DISTANT LANDS -->" }
-        for ($t=1; $t -le 3; $t++) {
-            $pop=$pops[$t-1]
-            $out += "`t<!-- Adjacency tier $t (pop >= $pop)$(if($dl){' - distant lands'}) -->"
-            foreach ($rule in $adjRules.Keys) {
-                $adjNode = $N[$ruleDomain[$rule]]   # Science rules -> Science node (Writing); Culture rules -> Culture node (Masonry)
-                foreach ($band in $bandList) {
-                    $frag=$adjRules[$rule]
-                    $out += (M-Adjacency $sfx $t $adjNode $pop $rule $band $adjDiv[$band] $hemi $dl)
-                    $wrapIds += "MA_${sfx}_T${t}_ADJ_${frag}_${band}${dl}"
-                }
-            }
-        }
-    }
-    $out += ''
+    # (ADJACENCY REWARD block removed 2026-07-24, issue #22: $adjRules was emptied when the base-node
+    #  adjacency lane moved onto the Ascendancy tree, so the loop emitted only empty tier headers. The
+    #  block plus its now-orphan helpers - M-Adjacency, $adjRules/$bandList/$adjDiv/$ruleDomain - are gone.)
 
     # ---- victory-wonder recycle convert modifiers (MODERN only; bound to the Foundations buildings in recycle.xml) ----
     if ($age.Key -eq 'modern') {
@@ -1403,7 +968,7 @@ foreach ($age in $ages) {
     $tr2 += "`t</GameModifiers>"
     $tr2 += "`t<ProgressionTreeNodeUnlocks>"
     foreach ($note in $age.Notes) {
-        if ($Gen2Strip -and $gen2StrippedNoteKeys -contains $note.Key) { continue }   # migrated -> Ascendancy
+        if ($gen2StrippedNoteKeys -contains $note.Key) { continue }   # bonus migrated to the Ascendancy tree - no base-node panel note
         $noteId = if ($note.Key -eq 'ALL') { "MA_${sfx}_UNLOCK_NOTE" } else { "MA_${sfx}_NOTE_$($note.Key)" }
         $depth  = if ($note.Depth) { $note.Depth } else { 1 }
         $tr2 += "`t`t<Row ProgressionTreeNodeType=`"$($note.Node)`" TargetKind=`"KIND_MODIFIER`" TargetType=`"$noteId`" UnlockDepth=`"$depth`"/>"
@@ -1640,12 +1205,9 @@ function Build-NoteText($a) {
     $tr=$a.Trade; $trg=$a.TradeRange; $ms=$a.MilStrength; $uc=$a.UnderCapAmount; $ts=$a.TempleSlots
     $ppd=$perPopDiv['SOLO']                           # per-pop SOLO divisor (=2 -> "+1 per 2 Urban Pop")
     $upop="[icon:YIELD_POPULATION] Urban Pop"         # always say URBAN population, not overall
-    $sciNote = if ($Gen2Strip) { "+1 [icon:YIELD_SCIENCE] Science adjacency per Tier (max +3)." }
-               else { "+1 [icon:YIELD_SCIENCE] Science adjacency per Tier (max +3); +$gw Palace and +$col per-building Great Work slots (T2)." }
-    $cul2Note = if ($Gen2Strip) { "+1 [icon:YIELD_CULTURE] Culture adjacency per Tier (max +3)." }
-                else { "+1 [icon:YIELD_CULTURE] Culture adjacency per Tier (max +3); +1 [icon:YIELD_CULTURE] Culture per $ppd $upop (T3)." }
-    $relNote = if ($Gen2Strip) { "+$religiousHappy [icon:YIELD_HAPPINESS] Happiness per Building, and +$gwCultureAmt [icon:YIELD_CULTURE] Culture per Great Work in this city (T2)." }
-               else { "+$ts Great Work slots on Temples (Relics, Codices, Artifacts, Great Works), +$religiousHappy [icon:YIELD_HAPPINESS] Happiness per Building, and +$gwCultureAmt [icon:YIELD_CULTURE] Culture per Great Work in this city (T2)." }
+    $sciNote  = "+1 [icon:YIELD_SCIENCE] Science adjacency per Tier (max +3)."
+    $cul2Note = "+1 [icon:YIELD_CULTURE] Culture adjacency per Tier (max +3)."
+    $relNote  = "+$religiousHappy [icon:YIELD_HAPPINESS] Happiness per Building, and +$gwCultureAmt [icon:YIELD_CULTURE] Culture per Great Work in this city (T2)."
     [ordered]@{
       SCIENCE  = $sciNote
       SCIENCE2 = "+1 [icon:YIELD_SCIENCE] Science per $ppd $upop (T3)."
@@ -1680,7 +1242,7 @@ if ($fanAges) {
         $nt = Build-NoteText $a
         foreach ($note in $a.Notes) {       # only emit the keys this age actually uses (its Notes array)
             if ($note.Key -eq 'ALL') { continue }
-            if ($Gen2Strip -and $gen2StrippedNoteKeys -contains $note.Key) { continue }   # migrated -> Ascendancy
+            if ($gen2StrippedNoteKeys -contains $note.Key) { continue }   # bonus migrated to the Ascendancy tree - no base-node panel note
             $t = $nt[$note.Key] -replace '&','&amp;' -replace '<(?![A-Za-z/])','&lt;'
             $tl += "`t`t<Row Tag=`"LOC_MA_${sfxA}_NOTE_$($note.Key)`">"
             $tl += "`t`t`t<Text>$t</Text>"

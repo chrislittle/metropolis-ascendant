@@ -729,10 +729,6 @@
 		</OwnerRequirements>
 		<Argument name="ConstructibleType">IMPROVEMENT_INCA_MOUNTAIN</Argument>
 	</Modifier>
-	<!-- TIER 2 (Urban pop >= 16) -->
-	<!-- TIER 3 (Urban pop >= 24) -->
-	<!-- FAN-OUT: Military production-per-pop (NODE_TECH_MO_MILITARY_SCIENCE) + combat strength (NODE_CIVIC_MO_MAIN_NATIONALISM);
-	     Qajar under-settlement-cap Food (NODE_TECH_MO_MASS_PRODUCTION) / Production (NODE_TECH_MO_INDUSTRIALIZATION); trade-route RANGE (NODE_TECH_MO_COMBUSTION). -->
 
 	<!-- ==================== DISTANT-LANDS hemisphere set ==================== -->
 	<!-- TIER 1 (Urban pop >= 10) - distant lands -->
@@ -767,8 +763,6 @@
 		<Argument name="Amount">15</Argument>
 		<Argument name="Tooltip">LOC_MA_TIER1_DESCRIPTION</Argument>
 	</Modifier>
-	<!-- TIER 2 (Urban pop >= 16) - distant lands -->
-	<!-- TIER 3 (Urban pop >= 24) - distant lands -->
 
 	<!-- SUZERAIN: per-pop yield keyed to holding suzerainty of each CS TYPE (gate = HAS_X_TRIBUTARIES_OF_TYPE,
 	     NOT the bonus pick - nothing rides the draft menu). +Influence per total suzerain (Diplomatic);
@@ -973,30 +967,8 @@
 		<Argument name="PlunderType">PLUNDER_SCIENCE</Argument>
 	</Modifier>
 
-	<!-- TOWN-SPECIALIZATION ROLL-IN (player-wide, distinct from the Suzerain layer). Each bucket
-	     matches a base Town focus, delivered to the metropolis & gated behind a thematic node:
-	       Hub Town       -> +Influence on the Diplomacy building (its unlock node)
-	       Fort Town      -> +District HP + Unit heal + Gold on Fortifications (own dedicated military node)
-	       Farming/Fishing-> +Food on rural tiles (FoodCap node);  Mining -> +Prod on rural tiles (ProdCap)
-	       Trade Outpost  -> +Happiness from resources warehouse (Commerce node)
-	       Religious Site -> +Happiness per Building (religion node; pairs with the temple slots above)
-	       Resort         -> +Gold/Happiness on appeal tiles + % all yields on Natural-Wonder tiles (Wonders node) -->
-
 	<!-- SURVEYOR (issue #12): the CLAIM_RESOURCE charge-grant modifier (Antiquity + Exploration only - Modern's base
 	     game already binds it) is bound to ABILITY_CLAIM_RESOURCE via surveyor-bind.xml, NOT the attach wrapper. -->
-
-	<!-- ADJACENCY REWARD: boost ALL 7 Science/Culture adjacency rules across the 3 pop tiers,
-	     HARD CUTOFF (full +1/+2/+3 at exactly 1 settlement in the hemisphere, nothing at 2+).
-	     On-design under 1.4.0: specialists pay out 100% of tile adjacency, so each point added here is
-	     also delivered again by every specialist placed. EFFECT_CITY_ADJUST_ADJACENCY_FLAT_AMOUNT. -->
-	<!-- ADJ - HOMELAND -->
-	<!-- Adjacency tier 1 (pop >= 10) -->
-	<!-- Adjacency tier 2 (pop >= 16) -->
-	<!-- Adjacency tier 3 (pop >= 24) -->
-	<!-- ADJ - DISTANT LANDS -->
-	<!-- Adjacency tier 1 (pop >= 10) - distant lands -->
-	<!-- Adjacency tier 2 (pop >= 16) - distant lands -->
-	<!-- Adjacency tier 3 (pop >= 24) - distant lands -->
 
 	<!-- VICTORY-WONDER RECYCLE (issue #1): each MO 'Foundations' building (data/modern/recycle.xml) overbuilds an
 	     obsolete district; on completion its ConstructibleModifier below REPLACE-converts it into its victory Wonder

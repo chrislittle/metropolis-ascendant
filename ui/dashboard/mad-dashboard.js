@@ -2,7 +2,7 @@
  * ma-bonus-dashboard — the Metropolis Ascendant bonus dashboard panel.
  *
  * READ-ONLY instrument panel. Answers three questions, in order:
- *   1. Am I still TALL? (vitals strip: settlements per hemisphere vs the 1/hemisphere law)
+ *   1. Am I still TALL? (vitals strip: total settlements vs the earned allowance, with a SUSPENDED banner when over)
  *   2. What's ON right now? (lit cards, per-lane counts)
  *   3. What turns on NEXT? (grey cards named by their gate tech/civic)
  *
