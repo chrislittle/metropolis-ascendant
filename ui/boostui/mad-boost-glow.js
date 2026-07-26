@@ -86,10 +86,17 @@ function isEarnedBoost(p, typeHash) {
 }
 
 function isComplete(p, typeHash) {
-    let progress = 0, cost = 0;
-    try { const n = Game.ProgressionTrees.getNode(p, typeHash); if (n && typeof n.progress === 'number') progress = n.progress; } catch (e) {}
-    try { const c = Players.get(p)?.Culture?.getNodeCost(typeHash); if (typeof c === 'number') cost = c; } catch (e) {}
-    return cost > 0 && progress >= cost;
+    // FIXED 2026-07-26 (GitHub #27; FireTuner-diagnosed): node.progress is WORKING state — the
+    // engine RESETS it to 0 at completion, so the old `progress >= cost` test read 0 >= cost =
+    // false forever and a completed node wore its BOOSTED badge permanently. depthUnlocked is
+    // the durable completion signal (>= 1 = base research done; the boost's 40% only ever pays
+    // the first research, so moot-at-checkmark is correct even mid-mastery).
+    // ⚠ typeHash arrives as the card's `type` ATTRIBUTE = a STRING of digits; getNode needs the
+    // NUMBER (same reason maNodeType wraps lookup in Number()). Without the coercion getNode
+    // returns nothing and this reads never-complete — which is also why the ORIGINAL
+    // progress>=cost version never worked: its progress read came from the same failed call.
+    try { const n = Game.ProgressionTrees.getNode(p, Number(typeHash)); return ((n && n.depthUnlocked) || 0) >= 1; }
+    catch (e) { return false; }
 }
 
 // The visible rounded bar (fall back through the card layers, then the host).

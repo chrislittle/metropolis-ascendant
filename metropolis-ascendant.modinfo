@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Mod id="metropolis-ascendant" version="2"
+<Mod id="metropolis-ascendant" version="3"
 	xmlns="ModInfo">
 	<Properties>
 		<Name>Metropolis Ascendant</Name>
@@ -296,6 +296,12 @@
 					<!-- Ascendancy boost glow (2026-07-13): Civ6-style blue glow on nodes whose boost deed is
 					     earned. Reads the per-node MA_BOOST_* player property set by the boost markers. -->
 					<Item>ui/boostui/mad-boost-glow.js</Item>
+					<!-- Tree tooltip UX (2026-07-26, GitHub #27; litmus-proven): the cost pill becomes the
+					     progress bar on ALL trees (base + Ascendancy + choosers), and the Ascendancy boost
+					     deed consolidates into ONE box above the cost (card badge says WHETHER, box says
+					     WHAT; completed nodes show nothing boost-related). Portal-observer patch on the
+					     ui-next tooltip; pure additive UI. -->
+					<Item>ui/treeux/mad-tree-tooltip.js</Item>
 					<!-- MA-native card price tags (2026-07-22, task #27): live computed value chips on MA
 					     cards in the policy chooser. Formula manifest is generated (gen-ascendancy.ps1);
 					     the decorator computes from game state — works with or without the companion

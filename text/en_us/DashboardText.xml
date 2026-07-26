@@ -33,7 +33,6 @@
         <Row Tag="LOC_MAD_FILTER_ACTIVE"><Text>Active</Text></Row>
         <Row Tag="LOC_MAD_FILTER_LOCKED"><Text>Locked</Text></Row>
         <Row Tag="LOC_MAD_TAB_TREE"><Text>Ascendancy</Text></Row>
-        <Row Tag="LOC_MAD_TAB_BRANCH"><Text>Institutions</Text></Row>
         <Row Tag="LOC_MAD_TAB_TRIUMPH"><Text>Triumphs</Text></Row>
         <Row Tag="LOC_MAD_TAB_CARD"><Text>Policies &amp; Traditions</Text></Row>
         <Row Tag="LOC_MAD_REVEALED_BY"><Text>Revealed by the</Text></Row>
@@ -136,7 +135,8 @@
 
         <!-- Empty / edge states -->
         <Row Tag="LOC_MAD_NO_MA"><Text>Metropolis Ascendant is not enabled in this game — nothing to display.</Text></Row>
+        <Row Tag="LOC_MAD_CARDS_EMPTY"><Text>Nothing slotted yet — Policies and Traditions you slot in the Government screen appear here.</Text></Row>
         <Row Tag="LOC_MAD_ROUTE_DONE"><Text>Nothing left to unlock — every Metropolis Ascendant bonus this Age is yours.</Text></Row>
-        <Row Tag="LOC_MAD_DRAFT_NOTE"><Text>Yield figures are the game's own attribution, read live. Bonuses without a per-turn yield (slots, caps, combat strength) show no figure.</Text></Row>
+        <Row Tag="LOC_MAD_DRAFT_NOTE"><Text>Yield figures are live previews, computed with the Policy Yields Preview mod — rounded, and only for bonuses with a per-turn yield. Without that mod installed, no figures are shown.</Text></Row>
     </EnglishText>
 </Database>

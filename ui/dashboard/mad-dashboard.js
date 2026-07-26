@@ -524,7 +524,7 @@ class MadDashboardPanel extends Panel {
         this.engineInputListener = this.onEngineInput.bind(this);
         this.refreshListener = this.refresh.bind(this);
         // Gen-2: the top control is a SYSTEM switcher, not an all/active/locked filter.
-        this.tab = 'tree'; // tree | branch | triumph | card | core
+        this.tab = 'tree'; // tree | triumph | card | core | settle
         this.collapsed = new Set(MadSettings.getCollapsedLanes()); // persisted lane collapse
     }
 
@@ -549,7 +549,10 @@ class MadDashboardPanel extends Panel {
     }
 
     // Gen-2 system tabs.
-    static TABS = ['tree', 'branch', 'triumph', 'card', 'core', 'settle'];
+    // 'branch' (the Institutions tab) REMOVED 2026-07-26: it collected the retired Secret-Branch
+    // trees' NODE_MA_*B nodes; the 2026-07-18 fold-in retired those trees, no *B node ships, and
+    // the tab sat permanently at 0/0 in every game.
+    static TABS = ['tree', 'triumph', 'card', 'core', 'settle'];
 
     onInitialize() {
         this.frame = MustGetElement('.mad-frame', this.Root);
@@ -560,6 +563,27 @@ class MadDashboardPanel extends Panel {
     onAttach() {
         this.Root.addEventListener(InputEngineEventName, this.engineInputListener);
         this.frame.addEventListener('subsystem-frame-close', () => { this.close(); });
+        // Screen-relative frame (2026-07-26 revision): size from the MEASURED window — not CSS
+        // viewport units, which this Coherent build can't be trusted with. ~72% x 85%, clamped:
+        // floor = the classic 50x44rem (small screens lose nothing; rem tracks the game's UI
+        // scale), cap = 120x80rem (ultrawides don't get a mural). Under the floor width the
+        // frame gains .mad-narrow -> the card grid collapses back to one column.
+        try {
+            const winW = window.innerWidth || document.documentElement.clientWidth || 0;
+            const winH = window.innerHeight || document.documentElement.clientHeight || 0;
+            const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+            if (winW > 0 && winH > 0) {
+                const w = Math.max(50 * rem, Math.min(Math.round(winW * 0.72), 120 * rem));
+                const h = Math.max(44 * rem, Math.min(Math.round(winH * 0.85), 80 * rem));
+                this.frame.style.width = `${w}px`;
+                // FIXED height, not max-height: per-tab content lengths differ, and a
+                // shrink-to-fit panel re-centers on every tab switch (the "dashboard jumps
+                // around" bug, in-game 2026-07-26). Fixed box + the flexing .mad-scroll
+                // interior = the frame never moves; short tabs just show open space.
+                this.frame.style.height = `${h}px`;
+                this.frame.classList.toggle('mad-narrow', w < 62 * rem);
+            }
+        } catch (e) { /* fixed CSS size remains the fallback */ }
         this._didInitialCollapse = false; // start every open with all lanes collapsed
         for (const t of MadDashboardPanel.TABS) {
             const btn = this.Root.querySelector(`.mad-tab-${t}`);
@@ -573,65 +597,15 @@ class MadDashboardPanel extends Panel {
         this.Root.listenForEngineEvent?.('NaturalWonderRevealed', this.refreshListener, this);
         this.Root.listenForEngineEvent?.('TechNodeCompleted', this.refreshListener, this);
         this.Root.listenForEngineEvent?.('CultureNodeCompleted', this.refreshListener, this);
-        this.realizePlayerColors();
         this.refresh();
         try { FocusManager.get().setFocus(this.frame); } catch (e) { /* focus is a nicety */ }
     }
 
-    // Player-color accents: paint the dashboard's "active/filled" elements in the LOCAL leader's color.
-    // DECISION (Chris 2026-07-14): use each leader's EXACT base-game color, rendered in the engine's OWN
-    // legible form — no custom normalization (that produced a "mixed bag"). The engine derives a
-    // contrast-safe `accentColor` from the assigned primary (e.g. raw purple rgba(55,0,101) -> accent
-    // rgba(84,98,153)); it's muted, matches Civ7's restrained palette, and stays readable on the dark
-    // panel for dark civs. getPlayerColors(pid) resolves the exact color for the active leader AND persona
-    // (dual leaders like Friedrich each get their own), so there's no table to maintain.
-    // ⚠ ENGINE LAW: this Coherent build IGNORES `color: var(--x)` (the var inherits but the color
-    // declaration collapses to inherited/black) — CSS-variable theming is a DEAD END. So we compute the
-    // accent once and applyPlayerAccents() sets it DIRECTLY as inline style (the only thing that paints).
-    realizePlayerColors() {
-        try {
-            const pid = GameContext.localPlayerID;
-            const pair = UI.Color?.getPlayerColors?.(pid);
-            if (!pair || !pair.primaryColor) { console.warn('[MAD] no player colors for pid ' + pid); return; }
-            const variants = UI.Color.createPlayerColorVariants(pair);
-            const accentStr = variants?.primaryColor?.accentColor;   // engine's legible form, e.g. "rgba(84,98,153,255)"
-            const m = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(accentStr || '');
-            if (!m) { console.warn('[MAD] no accentColor variant for pid ' + pid); return; }
-            const r = +m[1], g = +m[2], b = +m[3];
-            this._accent = `rgb(${r}, ${g}, ${b})`;
-            this._accentDim = `rgba(${r}, ${g}, ${b}, 0.5)`;    // translucent — depth-1 bars
-            this._accentFaint = `rgba(${r}, ${g}, ${b}, 0.14)`; // faint wash — active-card backgrounds
-            console.log(`[MAD] player accent = ${this._accent}`);
-        } catch (e) { console.warn('[MAD] player colors: ' + e); }
-    }
-
-    // Paint the player accent DIRECTLY onto rendered elements (inline style — the only reliable path in
-    // this Coherent build). Call AFTER a render pass so the nodes exist. Same mapping the FireTuner
-    // preview proved: "active/filled/on" elements take the player color; red/amber/blue/gold/AVAILABLE-green
-    // stay as distinct semantic signals. No-op until realizePlayerColors() has resolved an accent.
-    applyPlayerAccents() {
-        const A = this._accent, DIM = this._accentDim, FNT = this._accentFaint;
-        if (!A) return;
-        const S = (sel, fn) => { for (const e of this.Root.querySelectorAll(sel)) fn(e); };
-        S('.mad-status.mad-ok', e => { e.style.color = A; });
-        S('.mad-arcadia.mad-arcadia-on', e => { e.style.color = A; });
-        S('.mad-lane-title', e => { e.style.color = A; });
-        S('.mad-progress-head', e => { e.style.color = A; });
-        S('.mad-set-seg.mad-set-seg-on', e => { e.style.backgroundColor = A; e.style.boxShadow = 'none'; });
-        // All filled bar segments = the ONE solid accent (no translucent 2nd tone — it read as a
-        // different color next to the solid-accent text/dots/pills). Empty segments stay gray; the
-        // "N/M ★" label already conveys depth/mastery, so color needn't carry it.
-        S('.mad-bar-seg.mad-bar-seg-on', e => { e.style.backgroundColor = A; });
-        S('.mad-bar-seg.mad-bar-seg-mastery', e => { e.style.backgroundColor = A; });
-        S('.mad-lane-pill.mad-pill-lit', e => { e.style.color = A; e.style.borderColor = A; });
-        S('.mad-static-gate.mad-static-on', e => { e.style.color = A; });
-        S('.mad-card.mad-active', e => { e.style.borderColor = A; e.style.backgroundColor = FNT; });
-        S('.mad-card.mad-active .mad-dot', e => { e.style.backgroundColor = A; });
-        S('.mad-card.mad-active .mad-card-foot', e => { e.style.color = A; });
-        // chrome accents (borders only — the fxs-header title stays gold, can't recolor its internal text)
-        S('.mad-lane-head', e => { e.style.borderBottomColor = A; });
-        S('.mad-tab.mad-tab-on', e => { e.style.borderColor = A; });
-    }
+    // Per-civ player-color theming REMOVED 2026-07-26 (Chris: the dashboard reads better in the
+    // fixed MA gold palette, and one look for every civ beats a per-leader repaint). The old
+    // realizePlayerColors()/applyPlayerAccents() pair painted "active" elements in the leader's
+    // engine-derived accent as inline styles (CSS var() theming is dead in this Coherent build).
+    // Base CSS colors are now the ONLY paint. See the export repo history for the old system.
 
     onDetach() {
         this.Root.removeEventListener(InputEngineEventName, this.engineInputListener);
@@ -659,7 +633,6 @@ class MadDashboardPanel extends Panel {
             this.Root.querySelector(`.mad-tab-${name}`)?.classList.toggle('mad-tab-on', name == t);
         }
         this.applyFilter();
-        this.applyPlayerAccents();   // repaint the newly-active tab border in player color
         if (changed) {
             try { this.Root.querySelector('fxs-scrollable')?.component?.scrollToPercentage?.(0); }
             catch (e) { /* scroll reset is a nicety */ }
@@ -705,7 +678,15 @@ class MadDashboardPanel extends Panel {
         const counts = this.Root.querySelector('.mad-counts');
         if (counts) counts.textContent = `${totalAct}/${totalVis} ${activeWord}`;
         const emptyEl = this.Root.querySelector('.mad-locked-empty');
-        if (emptyEl) emptyEl.style.display = !anyLaneVisible ? '' : 'none';
+        if (emptyEl) {
+            emptyEl.style.display = !anyLaneVisible ? '' : 'none';
+            // Per-tab empty text (2026-07-26): the Cards tab shows what's SLOTTED, so an empty
+            // tab means "nothing slotted yet" — the shared "nothing left to unlock" line was a
+            // lie there (and dressed the removed Institutions tab's corpse the same way).
+            if (!anyLaneVisible) {
+                emptyEl.innerHTML = Locale.stylize(this.tab == 'card' ? 'LOC_MAD_CARDS_EMPTY' : 'LOC_MAD_ROUTE_DONE');
+            }
+        }
     }
 
     // ---------------------------------------------------------------- data
@@ -737,9 +718,9 @@ class MadDashboardPanel extends Panel {
                 const unlockedDepth = unlockedDepthFor(nodeRow, playerId);
                 card = {
                     lane,
-                    // system tab: the mastery-branch nodes end in "B" (SCIB/CULB/…) = the Secret
-                    // Branches; everything else is the main Ascendancy tree (civics).
-                    system: /B$/.test(u.ProgressionTreeNodeType) ? 'branch' : 'tree',
+                    // Every Ascendancy node is the main tree. (The old Secret-Branch "*B" nodes —
+                    // the Institutions tab — were retired with the 2026-07-18 fold-in; none ship.)
+                    system: 'tree',
                     revealTrigger: revealTriggerFor(u.ProgressionTreeNodeType), // Masteries: how to unlock
                     revealed: masteryRevealed(playerId, u.ProgressionTreeNodeType), // Triumph earned = tree open
                     routesDedication: masteryRoutesDedication(u.ProgressionTreeNodeType), // unlocks a Dedication?
@@ -967,7 +948,6 @@ class MadDashboardPanel extends Panel {
     // -------------------------------------------------------------- render
 
     refresh() {
-        this.realizePlayerColors();   // re-stamp every refresh — colors may not be ready at first attach
         const playerId = GameContext.localPlayerID;
         const vitals = this.collectVitals();
         const cards = this.collectCards(playerId);
@@ -1006,7 +986,6 @@ class MadDashboardPanel extends Panel {
             this._didInitialCollapse = true;
         }
         this.setTab(this.tab);
-        this.applyPlayerAccents();   // paint player color directly onto the freshly-rendered nodes
     }
 
     renderVitals(v) {
@@ -1089,47 +1068,40 @@ class MadDashboardPanel extends Panel {
 
     // Per-branch segmented progress bars for the main Ascendancy tree (Chris's "branch bars").
     renderProgress(playerId) {
+        // 2026-07-26 revision: LANE CHIPS replace the segmented bars — at 1-3 nodes per lane a
+        // bar is just a rectangle. One centered row of pills; THE CHIP IS THE PROGRESS BAR
+        // (proportional gold fill, the same rule as the tree-tooltip cost pill): dim = untouched,
+        // gold border + partial fill = in progress, solid gold = lane complete. The count keeps
+        // the mastery star.
         const host = this.Root.querySelector('.mad-progress');
         if (!host) return;
         host.innerHTML = '';
         const prog = collectTreeProgress(playerId);
         if (!prog.total) return;
-        const head = document.createElement('div');
-        head.classList.add('mad-progress-head');
-        head.textContent = `${Locale.compose('LOC_MAD_PROGRESS')} ${prog.done}/${prog.total}`;
-        host.appendChild(head);
-        // Compact dot chips (charter-pip style), two branches per row — much tighter than
-        // full-width bars for 1-3 nodes.
-        // Segmented bars (mockup design): one row per branch, one segment per node.
-        // Green = node researched, gold = mastery taken, dark = not yet.
-        const wrap = document.createElement('div');
-        wrap.classList.add('mad-branch-wrap');
+        const row = document.createElement('div');
+        row.classList.add('mad-lchip-row');
         for (const lane of ['science', 'culture', 'economy', 'military', 'expansion', 'industry', 'diplomacy']) {
             const b = prog.byLane[lane];
             if (!b || !b.total) continue;
-            const row = document.createElement('div');
-            row.classList.add('mad-bar-row');
-            const label = document.createElement('span');
-            label.classList.add('mad-bar-label');
-            label.textContent = Locale.compose(LANE_LOC[lane]);
-            row.appendChild(label);
-            const track = document.createElement('span');
-            track.classList.add('mad-bar-track');
-            for (const d of b.segs) {
-                const seg = document.createElement('span');
-                seg.classList.add('mad-bar-seg');
-                if (d >= 2) seg.classList.add('mad-bar-seg-mastery');
-                else if (d >= 1) seg.classList.add('mad-bar-seg-on');
-                track.appendChild(seg);
+            const chip = document.createElement('span');
+            chip.classList.add('mad-lchip');
+            const pct = Math.max(0, Math.min(100, Math.round(b.done / b.total * 100)));
+            if (pct >= 100) chip.classList.add('mad-lchip-done');
+            else if (pct > 0) {
+                chip.classList.add('mad-lchip-part');
+                const fill = document.createElement('span');
+                fill.classList.add('mad-lchip-fill');
+                fill.style.width = `${pct}%`;
+                chip.appendChild(fill);
             }
-            row.appendChild(track);
-            const cnt = document.createElement('span');
-            cnt.classList.add('mad-bar-count');
-            cnt.textContent = `${b.done}/${b.total}${b.mastery ? ' ★' : ''}`;
-            row.appendChild(cnt);
-            wrap.appendChild(row);
+            const t = document.createElement('span');
+            t.classList.add('mad-lchip-t');
+            const cnt = `<span class="mad-lchip-cnt">${b.done}/${b.total}${b.mastery ? ' ★' : ''}</span>`;
+            t.innerHTML = `${Locale.compose(LANE_LOC[lane])} ${cnt}`;
+            chip.appendChild(t);
+            row.appendChild(chip);
         }
-        host.appendChild(wrap);
+        host.appendChild(row);
     }
 
     renderLanes(cards, vitals) {
@@ -1299,7 +1271,13 @@ class MadDashboardPanel extends Panel {
                     Number(a.unlockedDepth != null && a.unlockedDepth >= a.requiredDepth);
                 return activeDiff != 0 ? activeDiff : (a.cost - b.cost);
             });
-            for (const card of sorted) section.appendChild(this.renderCard(card));
+            // 2026-07-26 revision: cards live in a .mad-cards GRID (3-across in the widened
+            // frame; single column again under .mad-narrow). applyFilter still finds them —
+            // it queries descendants, and display:none removes a card from grid flow cleanly.
+            const cardsWrap = document.createElement('div');
+            cardsWrap.classList.add('mad-cards');
+            for (const card of sorted) cardsWrap.appendChild(this.renderCard(card));
+            section.appendChild(cardsWrap);
 
             host.appendChild(section);
         }
@@ -1344,7 +1322,7 @@ class MadDashboardPanel extends Panel {
         kind.textContent = Locale.compose(kindKey);
         head.appendChild(kind);
         // Boost tag: a not-yet-complete Ascendancy/Mastery node whose deed is done (40% pre-filled).
-        if (!isActive && (card.system == 'tree' || card.system == 'branch')
+        if (!isActive && card.system == 'tree'
             && nodeBoosted(GameContext.localPlayerID, card.nodeType)) {
             const boost = document.createElement('span');
             boost.classList.add('mad-boost-tag');
@@ -1359,8 +1337,8 @@ class MadDashboardPanel extends Panel {
             head.appendChild(avail);
             el.classList.add('mad-available');
         }
-        // Reward-type tag on Masteries/Triumphs: DEDICATION (a next-Age pick) vs IMMEDIATE (pays now).
-        if (card.system == 'branch' || card.system == 'triumph') {
+        // Reward-type tag on Triumphs: DEDICATION (a next-Age pick) vs IMMEDIATE (pays now).
+        if (card.system == 'triumph') {
             const rew = document.createElement('span');
             rew.classList.add(card.routesDedication ? 'mad-ded-tag' : 'mad-imm-tag');
             rew.textContent = Locale.compose(card.routesDedication ? 'LOC_MAD_TAG_DEDICATION' : 'LOC_MAD_TAG_IMMEDIATE');

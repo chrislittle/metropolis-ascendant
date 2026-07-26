@@ -34,21 +34,22 @@
 	<!-- Ascendancy per-branch progress bars -->
 	<div class="mad-progress"></div>
 
-	<!-- Filter row -->
-	<div class="mad-filters">
-		<fxs-activatable class="mad-tab mad-tab-tree mad-tab-on"><span data-l10n-id="LOC_MAD_TAB_TREE"></span></fxs-activatable>
-		<fxs-activatable class="mad-tab mad-tab-branch"><span data-l10n-id="LOC_MAD_TAB_BRANCH"></span></fxs-activatable>
-		<fxs-activatable class="mad-tab mad-tab-triumph"><span data-l10n-id="LOC_MAD_TAB_TRIUMPH"></span></fxs-activatable>
-		<fxs-activatable class="mad-tab mad-tab-card"><span data-l10n-id="LOC_MAD_TAB_CARD"></span></fxs-activatable>
-		<fxs-activatable class="mad-tab mad-tab-core"><span data-l10n-id="LOC_MAD_TAB_CORE"></span></fxs-activatable>
-		<fxs-activatable class="mad-tab mad-tab-settle"><span data-l10n-id="LOC_MAD_TAB_SETTLE"></span></fxs-activatable>
-	</div>
-
-	<!-- Controls row (kept off the tab row so the tab set never wraps) -->
-	<div class="mad-controls">
-		<span class="mad-counts"></span>
-		<fxs-activatable class="mad-tree-btn mad-expand-all"><span data-l10n-id="LOC_MAD_EXPAND_ALL"></span></fxs-activatable>
-		<fxs-activatable class="mad-tree-btn mad-collapse-all"><span data-l10n-id="LOC_MAD_COLLAPSE_ALL"></span></fxs-activatable>
+	<!-- View-control BAND (2026-07-26 revision): tabs + counts + expand/collapse in ONE full-width
+	     tinted strip — a visible zone dividing the data area above from the catalog it controls.
+	     Inner class names unchanged (the JS hooks query them). Wraps on narrow widths. -->
+	<div class="mad-band">
+		<div class="mad-filters">
+			<fxs-activatable class="mad-tab mad-tab-tree mad-tab-on"><span data-l10n-id="LOC_MAD_TAB_TREE"></span></fxs-activatable>
+			<fxs-activatable class="mad-tab mad-tab-triumph"><span data-l10n-id="LOC_MAD_TAB_TRIUMPH"></span></fxs-activatable>
+			<fxs-activatable class="mad-tab mad-tab-card"><span data-l10n-id="LOC_MAD_TAB_CARD"></span></fxs-activatable>
+			<fxs-activatable class="mad-tab mad-tab-core"><span data-l10n-id="LOC_MAD_TAB_CORE"></span></fxs-activatable>
+			<fxs-activatable class="mad-tab mad-tab-settle"><span data-l10n-id="LOC_MAD_TAB_SETTLE"></span></fxs-activatable>
+		</div>
+		<div class="mad-controls">
+			<span class="mad-counts"></span>
+			<fxs-activatable class="mad-tree-btn mad-expand-all"><span data-l10n-id="LOC_MAD_EXPAND_ALL"></span></fxs-activatable>
+			<fxs-activatable class="mad-tree-btn mad-collapse-all"><span data-l10n-id="LOC_MAD_COLLAPSE_ALL"></span></fxs-activatable>
+		</div>
 	</div>
 
 	<!-- The catalog -->

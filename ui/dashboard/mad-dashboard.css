@@ -6,9 +6,9 @@
     display: flex;
     flex-direction: column;
 }
-/* NOTE: player-color theming is applied via inline styles in applyPlayerAccents() (JS), NOT CSS
-   variables — this Coherent build ignores `color: var(--x)`. The hardcoded colors below are the
-   base/no-color-available look; JS overrides the "active/on" ones with the live player color. */
+/* NOTE: per-civ player-color theming was REMOVED 2026-07-26 — the hardcoded colors below ARE the
+   look, for every civ (fixed MA gold palette; Chris's call). Reminder for future styling: this
+   Coherent build ignores `color: var(--x)`, so keep all colors literal. */
 
 .mad-title { font-size: 1.1rem; color: rgba(255, 220, 150, 1); }   /* fxs-header renders its own gold; left as-is */
 /* MA emblem masthead — the logo crest above the title */
@@ -67,6 +67,56 @@
 
 /* Suspended = the whole catalog dims; the vitals stay loud. */
 .mad-frame.mad-suspended .mad-lanes { opacity: 0.45; }
+
+/* ---------------------------------------------------- view-control band (2026-07-26 revision) */
+/* One full-width tinted strip holding tabs + counts + expand/collapse: a ZONE, not a hairline.
+   Gold edges match the lane separators; wraps to two lines on narrow frames. */
+.mad-band {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    column-gap: 0.6rem;
+    row-gap: 0.15rem;
+    background-color: rgba(255, 255, 255, 0.045);
+    border-top: 0.0555555556rem solid rgba(211, 162, 51, 0.4);
+    border-bottom: 0.0555555556rem solid rgba(211, 162, 51, 0.4);
+    margin: 0.35rem 0 0.45rem;
+    padding: 0.28rem 0.55rem;
+}
+.mad-band .mad-controls { margin-bottom: 0; }
+
+/* ------------------------------------------- lane progress CHIPS (2026-07-26 revision) */
+/* THE CHIP IS THE PROGRESS BAR — same rule as the tree-tooltip cost pill: proportional gold
+   fill = nodes researched. Dim = untouched · gold border + fill = in progress · solid gold =
+   lane complete. Literal colors only (Coherent ignores var()). */
+.mad-lchip-row { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center;
+    align-items: center; column-gap: 0.3rem; row-gap: 0.25rem; margin-top: 0.25rem; }
+.mad-lchip { position: relative; overflow: hidden; display: inline-flex; flex-direction: row;
+    align-items: center; column-gap: 0.3rem; border: 0.0555555556rem solid #3d4250;
+    border-radius: 1rem; padding: 0.1rem 0.6rem; font-size: 0.66rem; letter-spacing: 0.06rem;
+    text-transform: uppercase; color: #8f96a6; white-space: nowrap; }
+.mad-lchip-fill { position: absolute; top: 0; left: 0; bottom: 0; pointer-events: none;
+    background: linear-gradient(180deg, rgba(242, 212, 136, 0.30), rgba(211, 162, 51, 0.22));
+    border-right: 0.0555555556rem solid rgba(242, 212, 136, 0.55); }
+.mad-lchip-t { position: relative; }
+.mad-lchip-cnt { color: #7a8090; }
+.mad-lchip.mad-lchip-part { border-color: #8a6318; color: #d8cba6; }
+.mad-lchip.mad-lchip-part .mad-lchip-cnt { color: #f2d488; font-weight: 600; }
+.mad-lchip.mad-lchip-done { background: linear-gradient(180deg, #f2d488, #d3a233);
+    border-color: #8a6318; color: #2a1c06; }
+.mad-lchip.mad-lchip-done .mad-lchip-cnt { color: #2a1c06; font-weight: 700; }
+
+/* --------------------------------------------- card columns (2026-07-26 revision, 3-across) */
+/* ⚠ ENGINE: display:grid silently collapses to block in this Coherent build (cards stacked
+   full-width, in-game proven 2026-07-26) — columns MUST be flex-wrap + percentage widths.
+   flex gaps ARE safe here (the shipped settlement track uses column-gap). The JS adds
+   .mad-narrow to the frame when the measured width can't carry columns. */
+.mad-cards { display: flex; flex-direction: row; flex-wrap: wrap;
+    column-gap: 1%; row-gap: 0.4rem; margin-top: 0.25rem; }
+.mad-cards .mad-card { width: 32.6%; box-sizing: border-box; margin: 0; /* gaps do the spacing */ }
+.mad-frame.mad-narrow .mad-cards .mad-card { width: 100%; }
 
 /* --------------------------------------------------------------- filters */
 .mad-filters {
