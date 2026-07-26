@@ -17,7 +17,7 @@
         <Row Tag="LOC_MAD_STATUS_SUSPENDED"><Text>SUSPENDED — over your settlement allowance</Text></Row>
         <Row Tag="LOC_MAD_SUSPENDED_HINT"><Text>All bonuses resume when your settlement count is within your allowance (Towns count).</Text></Row>
         <Row Tag="LOC_MAD_SETTLEMENTS"><Text>Settlements</Text></Row>
-        <Row Tag="LOC_MAD_CHARTERS"><Text>Charters</Text></Row>
+        <Row Tag="LOC_MAD_CHARTERS"><Text>Earned</Text></Row>
         <Row Tag="LOC_MAD_HOMELAND"><Text>Homeland</Text></Row>
         <Row Tag="LOC_MAD_DISTANT"><Text>Distant Lands</Text></Row>
         <Row Tag="LOC_MAD_URBAN_POP"><Text>Urban Population</Text></Row>
@@ -124,13 +124,14 @@
         <Row Tag="LOC_MAD_PROTECTORATES_BODY"><Text>Suzerainty itself feeds the metropolis: for each City-State type you are Suzerain of, your cities earn +1 of its yield per 4 [icon:YIELD_POPULATION] Urban Population ([icon:YIELD_SCIENCE] Scientific, [icon:YIELD_CULTURE] Cultural, [icon:YIELD_PRODUCTION] Militaristic, [icon:YIELD_GOLD] Economic, [icon:YIELD_FOOD] Expansionist) - whichever Suzerain bonus you pick. Diplomatic Suzerainties add +2 [icon:YIELD_DIPLOMACY] Influence per turn each. Each Suzerain grants +1 Resource capacity; Economic ones add +5 Trade Route range.</Text></Row>
         <Row Tag="LOC_MAD_PROT_SUZ_OF"><Text>Suzerain of</Text></Row>
         <Row Tag="LOC_MAD_PROT_NONE"><Text>Not Suzerain of any City-State yet — win one to start the yields.</Text></Row>
-        <!-- Settlements tab: per-slot "what / how to get / have?" for the founding settlements + the two Charters. -->
+        <!-- Settlements tab: per-slot "what / how to get / have?" for the founding settlements + the earned allowance slots. -->
         <Row Tag="LOC_MAD_TAB_SETTLE"><Text>Settlements</Text></Row>
         <Row Tag="LOC_MAD_LANE_SETTLEMENTS"><Text>Settlements</Text></Row>
         <Row Tag="LOC_MAD_SETTLE_BASE_NAME"><Text>Founding Settlements</Text></Row>
-        <Row Tag="LOC_MAD_SETTLE_BASE_BODY"><Text>Always yours — {1_Count} founding this Age (1 in Antiquity, 2 in Exploration &amp; Modern). Every settlement past these must be earned through a Charter.</Text></Row>
-        <Row Tag="LOC_MAD_SETTLE_CHARTER_HAVE"><Text>Earned — this Charter is granting you +1 Settlement.</Text></Row>
-        <Row Tag="LOC_MAD_SETTLE_CHARTER_LOCKED"><Text>Locked — earn your Expansion Triumph, {1_Triumph} ({2_Trigger}), and this Charter is granted immediately for +1 Settlement.</Text></Row>
+        <Row Tag="LOC_MAD_SETTLE_BASE_BODY"><Text>Always yours — {1_Count} founding this Age (1 in Antiquity, 2 in Exploration &amp; Modern). Every settlement past these must be earned — each Age’s Expansion feat grants +1 settlement allowance.</Text></Row>
+        <Row Tag="LOC_MAD_SETTLE_CHARTER_HAVE"><Text>Earned — your Expansion feat is granting +1 settlement allowance.</Text></Row>
+        <Row Tag="LOC_MAD_SETTLE_CHARTER_LOCKED"><Text>Locked — earn your Expansion Triumph, {1_Triumph} ({2_Trigger}), and +1 settlement allowance is granted immediately.</Text></Row>
+        <Row Tag="LOC_MAD_SETTLE_CARRY_BODY"><Text>Carried from Exploration — +1 settlement allowance throughout the Modern Age.</Text></Row>
         <Row Tag="LOC_MAD_SETTLE_TRIGGER_TBD"><Text>see the Triumphs tab</Text></Row>
 
         <!-- Empty / edge states -->

@@ -118,9 +118,9 @@ Every Metropolis Ascendant bonus, grouped by source. The Ascendancy civic-tree e
 
 Every civic on the tree carries a Boost - a goal shown on the node (listed with each node above). Meet it and that civic researches faster: a reward for playing with intent, in the spirit of Civilization VI's tech and civic boosts. Boosted nodes are flagged on the tree and in the dashboard.
 
-## Feats, Charters & Dedications
+## Feats & Dedications
 
-**Major feats** - each earns a Triumph whose rewards are granted IMMEDIATELY (a Tradition with an extra slot, a bonus package, a settlement Charter, or a next-Age Dedication - the in-game Triumph text states the exact effects):
+**Major feats** - each earns a Triumph whose rewards are granted IMMEDIATELY (a Tradition with an extra slot, a bonus package, an immediate +1 settlement allowance, or a next-Age Dedication - the in-game Triumph text states the exact effects):
 - **The First Academy** (Antiquity Science): Build a Library and an Academy together on one tile.
 - **The Athenaeum** (Exploration Science): Have a district with 80 or more total Yield.
 - **The Grand Symposium** (Modern Science): Complete 6 Masteries.
@@ -137,10 +137,10 @@ Every civic on the tree carries a Boost - a goal shown on the node (listed with 
 - **The Great Protector** (Exploration Diplomacy): Be the first to hold Suzerainty of 3 different types of City-State.
 - **Primus Inter Pares** (Modern Diplomacy): Be Suzerain of 4 different types of City-State at the same time.
 
-**Charters** - one per Age, granted IMMEDIATELY on earning that Age's Expansion feat - no tree, no research step; each is a permanent +1 to your settlement allowance and Settlement Limit. Floors (free): Antiquity 1, Exploration/Modern 2. Max per Age: Antiquity 2, Exploration 3, Modern 4 - the Modern 4th needs the Exploration feat carried over (earn the Expansion feat in both Ages).
+**Allowance slots** - one per Age, granted IMMEDIATELY on earning that Age's Expansion feat - no tree, no research step; each permanently raises your settlement allowance by 1. Floors (free): Antiquity 1, Exploration/Modern 2. Max per Age: Antiquity 2, Exploration 3, Modern 4 - the Exploration slot carries into Modern automatically, and Modern's own Expansion feat opens the 4th.
 - **Settlers' Charter** (Antiquity): +1 settlement allowance, up to 2. +1 Settlement Limit.
 - **Royal Charter** (Exploration): +1 settlement allowance, up to 3. +1 Settlement Limit.
-- **Homestead Act** (Modern): +1 settlement allowance, up to 4 (with your Exploration charter carried). +1 Settlement Limit.
+- **Homestead Act** (Modern): +1 settlement allowance, up to 4 (with your Exploration slot carried). +1 Settlement Limit.
 
 **Dedications** - carry your legacy into the next Age:
 - **Delenda Est**: Begin the Age with 500 Gold and 200 Influence.

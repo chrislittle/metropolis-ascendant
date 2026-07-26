@@ -25,13 +25,13 @@ Civilization VI's tech and civic boosts. Steer your play toward it and that civi
 freebie — a reward for playing with intent. Line your boosts up and you can race down a path well ahead of
 schedule. Boosted nodes are flagged on the tree and in the dashboard.
 
-## Feats, Charters & Dedications
+## Feats & Dedications
 
 - **Fifteen Major feats** mark the achievements of a towering city, each earning a Triumph. **Rewards are
   granted the moment the Triumph fires** — a Tradition with an extra slot to carry it, a named bonus package
-  (Lyceum, Sacred Precinct, …), a settlement Charter, or a next-Age Dedication. The Triumph text states the
+  (Lyceum, Sacred Precinct, …), an immediate +1 settlement allowance, or a next-Age Dedication. The Triumph text states the
   exact effects, numbers and all — no hidden trees, no second research step.
-- **Charters**, granted directly by the Expansion feats, are the deliberate way to widen your settlement
+- **Settlement allowance** — each Age’s Expansion feat raises it by 1, directly: the deliberate way to widen your
   allowance. You begin with a single city and earn your way toward more — **never past four**. Every bonus pays
   across all of your settlements, and switches off the instant you exceed what you've earned. Never map luck;
   always something you earned.
@@ -109,7 +109,7 @@ sub-system dock:
   and every bonus shows a computed per-turn figure, plus a headline "Metropolis Ascendant right now" total.
   Without it the dashboard shows a clean catalog view — nothing breaks, you just see no numbers.
 - **Ascendancy & footprint.** Your Ascendancy tree and mastery progress, the Settlements-vs-allowance track with
-  charter pips, and which civics are boosted.
+  earned-slot pips, and which civics are boosted.
 - **Vitals at a glance.** Your tall status — with a clear **SUSPENDED** banner if you exceed your earned
   settlement allowance — plus your Urban Population and your metropolis's happiness stage.
 - **Working sections.** The Surveyor section counts claimable resources within reach (4–5 hexes out), and the
@@ -149,7 +149,7 @@ Everything under `data/` and `text/` is **generated** from config tables at the 
 
 - `tools/gen-ascendant.ps1` — the **tall engine**: Urban-Population scaling, Suzerain, Wonders & Arcadia,
   Surveyor, Razing, Foundations, plus the README tiers table and the pillar sections of `docs/bonus-list.md`.
-- `tools/gen-ascendancy.ps1` — the **Ascendancy civic tree**: nodes, masteries, civic boosts, feats/charters,
+- `tools/gen-ascendancy.ps1` — the **Ascendancy civic tree**: nodes, masteries, civic boosts, feats/allowance slots,
   cards and pantheons; it also injects the Ascendancy sections into `docs/bonus-list.md`.
 
 Edit the config, then run **both, in this order** (the second injects its bonus-list sections into the file the

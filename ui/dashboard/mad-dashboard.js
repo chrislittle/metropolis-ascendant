@@ -827,8 +827,8 @@ class MadDashboardPanel extends Panel {
     }
 
     // SETTLEMENTS tab: one card per settlement source — what it is, HOW to unlock it, and whether
-    // you have it. (1) founding settlements (always); (2) & (3) the two Charters, which live in a
-    // hidden Charters tree REVEALED by this Age's Expansion Triumph, then researched (+1 each).
+    // you have it. (1) founding settlements (always); (2) & (3) the earned allowance slots,
+    // granted DIRECTLY by this Age's Expansion feat (the old hidden Charters tree is retired).
     collectSettlements(playerId, vitals) {
         const out = [];
         const sfx = currentAgeSfx();
@@ -839,6 +839,18 @@ class MadDashboardPanel extends Panel {
             nodeName: 'LOC_MAD_SETTLE_BASE_NAME', requiredDepth: 1, unlockedDepth: 1,
             lines: [Locale.compose('LOC_MAD_SETTLE_BASE_BODY', base)],
         });
+        // (1b) MODERN ONLY: the carried Exploration slot. The shipped carry is COUNT-ONLY
+        // (Triumph records are per-Age, so the data can't check the EX feat across the flip -
+        // the accepted rebuild made Modern's 3rd-settlement window unconditional, and the
+        // vitals' allowance++ mirrors that). This card makes the tab account for all 4:
+        // Founding (2) + this carried slot (3rd) + Homestead Act (4th).
+        if (sfx === 'MO') {
+            out.push({
+                lane: 'settlements', system: 'settle', nodeType: 'SETTLE_CARRY', kindLoc: 'LOC_MAD_TAB_SETTLE',
+                nodeName: 'LOC_NODE_MA_EX_CHARTER1_NAME', requiredDepth: 1, unlockedDepth: 1,
+                lines: [Locale.compose('LOC_MAD_SETTLE_CARRY_BODY')],
+            });
+        }
         // this Age's Expansion Triumph (the key that reveals the Charters tree)
         let expName = 'LOC_MAD_LANE_EXPANSION', expTrigger = null, expEarned = null;
         try {
@@ -1357,6 +1369,7 @@ class MadDashboardPanel extends Panel {
         el.appendChild(body);
 
         const foot = document.createElement('div');
+        let skipFoot = false;
         foot.classList.add('mad-card-foot');
         if (card.revealTrigger && !isActive && card.revealed) {
             // Triumph earned → the Mastery tree is OPEN; nudge the player to go research it.
@@ -1380,12 +1393,17 @@ class MadDashboardPanel extends Panel {
                 }
             }
             foot.textContent = txt;
+        } else if (card.system == 'settle') {
+            // Settlement-slot cards (2026-07-26): NO "Unlocks at:" footer — it named the card's
+            // own title (self-referential leftover from the retired Charters tree; there is no
+            // node to research). The body text already says exactly how the slot is earned.
+            skipFoot = true;
         } else {
             let gate = Locale.compose(card.nodeName);
             if (card.requiredDepth >= 2) gate += ` (${Locale.compose('LOC_MAD_MASTERY')})`;
             foot.textContent = `${Locale.compose('LOC_MAD_LOCKED_AT')} ${gate}`;
         }
-        el.appendChild(foot);
+        if (!skipFoot) el.appendChild(foot);
 
         // live engine-attributed impact chip: note-key buckets join to the card's own note
         // keys; stage/under-cap buckets join by yield to their specific note card.
