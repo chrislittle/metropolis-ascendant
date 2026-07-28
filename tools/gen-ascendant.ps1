@@ -213,7 +213,7 @@ if ($TestMode) { foreach ($a in $ages) { $a.Pops = @(2,4,6) } }   # tiny thresho
 
 # The Civ VII version you have TESTED on. Injected into the modinfo <Description> + the mod README so the
 # player-facing "tested on" string is single-sourced. Bump this when you re-validate on a newer patch.
-$testedVersion = '1.4.1'
+$testedVersion = '1.4.2'
 
 # SUZERAIN LAYER (Phase 3, ROUTE A). Five CITY-yield types -> PER-POP yield, each unlocked by drafting that
 # type's Shareable CS bonus (id CITY_STATE_<TYPE>_BONUS_<BonusAge>_7). DIPLOMATIC->Influence + free POP +

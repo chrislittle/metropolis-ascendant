@@ -169,7 +169,7 @@ Planned features and upcoming work are tracked as **[`enhancement` issues on Git
 
 ## Compatibility
 
-- Built and tested on Civilization VII **1.4.1**. No DLC required.
+- Built and tested on Civilization VII **1.4.2**. No DLC required.
 - Experimental and actively tuned — balance feedback is welcome.
 
 ## Credits & license

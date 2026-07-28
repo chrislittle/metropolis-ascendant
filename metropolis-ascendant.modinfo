@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Mod id="metropolis-ascendant" version="3"
+<Mod id="metropolis-ascendant" version="4"
 	xmlns="ModInfo">
 	<Properties>
 		<Name>Metropolis Ascendant</Name>
@@ -23,7 +23,7 @@
 [N]- Spans all three Ages: Antiquity, Exploration and Modern.
 [N][N]Every Ascendancy civic states its bonuses and its Boost on the node panel, and every Triumph states exactly what it grants — you always know what you are building toward.
 [N][N]GROWTH MILESTONE — at 5 Urban Population in Antiquity, 8 in Exploration, 10 in Modern: your metropolis gains +10/+12/+15 Happiness (by Age), and its Specialists cost 50% less Food and Happiness upkeep until the city reaches Ecstatic.
-[N][N]Built and tested on Civilization VII 1.4.1. No DLC required. Experimental and actively tuned — feedback welcome.
+[N][N]Built and tested on Civilization VII 1.4.2. No DLC required. Experimental and actively tuned — feedback welcome.
 [N][N]Built and developed using Claude Code.</Description>
 		<Authors>Chris</Authors>
 		<Package>Mod</Package>

@@ -185,18 +185,22 @@ function injectCss() {
         /* Overlay, NOT layout: absolutely positioned inside the card so it can never change
            the card's size (2026-07-22 - the in-flow version stretched the whole card grid).
            FLEX row, not inline-block: Coherent's engine flows flex reliably; inline-block
-           stacked the multi-pill cards vertically over the card text. */
+           stacked the multi-pill cards vertically over the card text.
+           Straddle placement (2026-07-28, patch 1.4.2): the compact card rewrite runs the
+           description to the card's bottom edge, so the row now hangs half BELOW the card
+           border into the inter-card margin (guaranteed dead space) - reads as a badge on
+           the frame instead of floating over text. */
         [data-mad-chip="1"] { position: relative; }
         .mad-chiprow {
-            position: absolute; left: 0.125rem; right: 0.125rem; bottom: 0.125rem;
+            position: absolute; left: 0.125rem; right: 0.125rem; bottom: -0.5rem;
             display: flex; flex-direction: row; flex-wrap: wrap;
             justify-content: center; align-items: center;
-            pointer-events: none;
+            pointer-events: none; z-index: 10;
         }
         .mad-chiprow .mad-chip-pill {
             flex: none; margin: 0.0625rem; padding: 0 0.3125rem;
             font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; color: #e9e3d3;
-            background: rgba(0, 0, 0, 0.6); border: 0.0625rem solid #c9a54e;
+            background: rgba(10, 8, 4, 0.9); border: 0.0625rem solid #c9a54e;
             border-radius: 0.5rem; white-space: nowrap;
         }
         /* On ALL MA cards the companion mod's box is hidden (post-card-fix its read
